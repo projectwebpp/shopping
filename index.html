@@ -24,6 +24,8 @@
         .admin-btn:active { transform: scale(0.95); }
         .cart-item { animation: fadeIn 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
@@ -120,25 +122,25 @@
     <div class="absolute inset-0 bg-black bg-opacity-50" id="adminOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl">
         <div class="p-4 border-b flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-database text-rose-500 mr-2"></i>จัดการฐานข้อมูล</h2>
+            <h2 class="text-lg font-semibold"><i class="fas fa-database text-rose-500 mr-2"></i>จัดการระบบ</h2>
             <button id="closeAdmin" class="text-gray-500"><i class="fas fa-times"></i></button>
         </div>
         <div class="p-4 space-y-4">
             <div class="bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
                 <i class="fas fa-info-circle mr-1"></i>
-                ระบบจะบันทึกข้อมูลลง Google Sheet อัตโนมัติเมื่อมีการสั่งซื้อ
+                คำสั่งซื้อจะถูกบันทึกในเครื่องของคุณ และจะส่งไปยังเซิร์ฟเวอร์อัตโนมัติ
             </div>
             <div class="grid grid-cols-2 gap-3">
-                <button id="setupDbBtn" class="bg-green-500 text-white py-3 rounded-xl font-semibold">
-                    <i class="fas fa-plus-circle mr-2"></i>สร้างฐานข้อมูล
+                <button id="viewOrdersBtn" class="bg-purple-500 text-white py-3 rounded-xl font-semibold">
+                    <i class="fas fa-list mr-2"></i>ดูประวัติคำสั่งซื้อ
                 </button>
-                <button id="checkSheetBtn" class="bg-blue-500 text-white py-3 rounded-xl font-semibold">
-                    <i class="fas fa-eye mr-2"></i>เปิด Google Sheet
+                <button id="clearOrdersBtn" class="bg-red-500 text-white py-3 rounded-xl font-semibold">
+                    <i class="fas fa-trash mr-2"></i>ล้างข้อมูลทั้งหมด
                 </button>
             </div>
-            <div class="bg-yellow-50 rounded-xl p-3 text-xs text-yellow-700">
-                <i class="fas fa-link mr-1"></i>
-                URL ปัจจุบัน: <span id="currentUrl" class="text-xs break-all"></span>
+            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-600">
+                <i class="fas fa-database mr-1"></i>
+                ข้อมูลคำสั่งซื้อ: <span id="orderCount">0</span> รายการ
             </div>
         </div>
     </div>
@@ -169,7 +171,7 @@
 
 <script>
 // ============================================
-// CONFIGURATION
+// CONFIGURATION - ใช้ URL ของคุณ
 // ============================================
 const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
 
@@ -180,18 +182,6 @@ let products = [];
 let cart = [];
 let currentCategory = "all";
 let searchQuery = "";
-
-// ============================================
-// Utility Functions
-// ============================================
-function showLoading() { document.getElementById("loadingOverlay")?.classList.remove("hidden"); }
-function hideLoading() { document.getElementById("loadingOverlay")?.classList.add("hidden"); }
-
-function formatPrice(price) { return price.toLocaleString("th-TH") + " บาท"; }
-
-function showToast(title, icon = "success") {
-    Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 1500 });
-}
 
 // ============================================
 // Products Data (สินค้าทั้งหมด)
@@ -209,10 +199,26 @@ const ALL_PRODUCTS = [
     { id: "P010", name: "พาวเวอร์แบงค์ 20000mAh", price: 890, image: "https://picsum.photos/id/0/200/200", category: "อิเล็กทรอนิกส์" }
 ];
 
+// ============================================
+// Utility Functions
+// ============================================
+function showLoading() { document.getElementById("loadingOverlay")?.classList.remove("hidden"); }
+function hideLoading() { document.getElementById("loadingOverlay")?.classList.add("hidden"); }
+
+function formatPrice(price) { return price.toLocaleString("th-TH") + " บาท"; }
+
+function showToast(title, icon = "success") {
+    Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 1500 });
+}
+
+// ============================================
+// Load Products
+// ============================================
 function loadProducts() {
     products = ALL_PRODUCTS;
     renderProducts();
     setupCategories();
+    updateOrderCountDisplay();
 }
 
 // ============================================
@@ -337,7 +343,32 @@ function updateCartUI() {
 }
 
 // ============================================
-// Submit Order - บันทึกข้อมูลไปยัง Google Sheets
+// Order Management (บันทึกใน localStorage)
+// ============================================
+function saveOrder(orderData) {
+    let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    orders.unshift(orderData);
+    localStorage.setItem("orders", JSON.stringify(orders));
+    updateOrderCountDisplay();
+}
+
+function getOrders() {
+    return JSON.parse(localStorage.getItem("orders") || "[]");
+}
+
+function clearAllOrders() {
+    localStorage.removeItem("orders");
+    updateOrderCountDisplay();
+}
+
+function updateOrderCountDisplay() {
+    const orders = getOrders();
+    const countSpan = document.getElementById("orderCount");
+    if (countSpan) countSpan.innerText = orders.length;
+}
+
+// ============================================
+// Submit Order - บันทึกคำสั่งซื้อ
 // ============================================
 async function submitOrder() {
     if (cart.length === 0) {
@@ -363,8 +394,23 @@ async function submitOrder() {
     }));
     
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const orderId = "ORD" + new Date().getTime();
+    const orderDate = new Date().toLocaleString("th-TH");
     
-    // สร้าง FormData สำหรับส่งข้อมูล
+    const orderData = {
+        orderId: orderId,
+        date: orderDate,
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+        items: items,
+        total: total
+    };
+    
+    showLoading();
+    
+    // สร้าง FormData สำหรับส่งไปยังเซิร์ฟเวอร์
     const formData = new FormData();
     formData.append("customerName", name);
     formData.append("name", name);
@@ -373,136 +419,60 @@ async function submitOrder() {
     formData.append("address", address);
     formData.append("items", JSON.stringify(items));
     formData.append("total", total);
-    
-    showLoading();
+    formData.append("orderId", orderId);
     
     try {
-        const response = await fetch(API_URL, {
+        // ส่งข้อมูลไปยังเซิร์ฟเวอร์ (แบบ no-cors)
+        await fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
             body: formData
         });
-        
-        hideLoading();
-        
-        // เมื่อใช้ mode no-cors ไม่สามารถอ่าน response ได้
-        // ให้ถือว่าสำเร็จและบันทึกข้อมูลลง localStorage เพื่อความปลอดภัย
-        const orderData = {
-            orderId: "ORD" + new Date().getTime(),
-            date: new Date().toLocaleString("th-TH"),
-            name: name,
-            email: email,
-            phone: phone,
-            address: address,
-            items: items,
-            total: total
-        };
-        
-        // บันทึกข้อมูลลง localStorage
-        let orders = JSON.parse(localStorage.getItem("orders") || "[]");
-        orders.push(orderData);
-        localStorage.setItem("orders", JSON.stringify(orders));
-        
-        Swal.fire({
-            title: "🎉 สั่งซื้อสำเร็จ!",
-            html: `เลขที่คำสั่งซื้อ: <strong>${orderData.orderId}</strong><br><br>ข้อมูลถูกบันทึกเรียบร้อย<br>🙏 ขอบคุณที่ใช้บริการ`,
-            icon: "success",
-            confirmButtonText: "ตกลง"
-        });
-        
-        cart = [];
-        updateCartUI();
-        closeCart();
-        document.getElementById("checkoutModal").classList.add("hidden");
-        document.getElementById("custName").value = "";
-        document.getElementById("custEmail").value = "";
-        document.getElementById("custPhone").value = "";
-        document.getElementById("custAddress").value = "";
-        
     } catch (error) {
-        hideLoading();
-        console.error("Error:", error);
-        
-        // กรณี error ให้บันทึกใน localStorage แทน
-        const orderData = {
-            orderId: "ORD" + new Date().getTime(),
-            date: new Date().toLocaleString("th-TH"),
-            name: name,
-            email: email,
-            phone: phone,
-            address: address,
-            items: items,
-            total: total
-        };
-        
-        let orders = JSON.parse(localStorage.getItem("orders") || "[]");
-        orders.push(orderData);
-        localStorage.setItem("orders", JSON.stringify(orders));
-        
-        Swal.fire({
-            title: "✅ สั่งซื้อสำเร็จ!",
-            html: `เลขที่คำสั่งซื้อ: <strong>${orderData.orderId}</strong><br><br>ข้อมูลถูกบันทึกเรียบร้อย<br>🙏 ขอบคุณที่ใช้บริการ`,
-            icon: "success",
-            confirmButtonText: "ตกลง"
-        });
-        
-        cart = [];
-        updateCartUI();
-        closeCart();
-        document.getElementById("checkoutModal").classList.add("hidden");
-        document.getElementById("custName").value = "";
-        document.getElementById("custEmail").value = "";
-        document.getElementById("custPhone").value = "";
-        document.getElementById("custAddress").value = "";
+        console.log("Server send failed, but order saved locally:", error);
     }
+    
+    // บันทึกข้อมูลลง localStorage เสมอ
+    saveOrder(orderData);
+    
+    hideLoading();
+    
+    Swal.fire({
+        title: "🎉 สั่งซื้อสำเร็จ!",
+        html: `เลขที่คำสั่งซื้อ: <strong>${orderId}</strong><br><br>📧 ระบบได้บันทึกข้อมูลของคุณเรียบร้อย<br>🙏 ขอบคุณที่ใช้บริการ`,
+        icon: "success",
+        confirmButtonText: "ตกลง"
+    });
+    
+    // เคลียร์ตะกร้า
+    cart = [];
+    updateCartUI();
+    closeCart();
+    document.getElementById("checkoutModal").classList.add("hidden");
+    document.getElementById("custName").value = "";
+    document.getElementById("custEmail").value = "";
+    document.getElementById("custPhone").value = "";
+    document.getElementById("custAddress").value = "";
 }
 
 // ============================================
-// Admin Functions
+// View Orders - แสดงประวัติคำสั่งซื้อ
 // ============================================
-function setupDatabase() {
-    Swal.fire({
-        title: "📊 สร้างฐานข้อมูล",
-        html: `
-            <div class="text-left">
-                <p>ระบบจะสร้างฐานข้อมูล Google Sheets อัตโนมัติเมื่อมีการสั่งซื้อครั้งแรก</p>
-                <p class="text-sm text-gray-500 mt-2">คุณไม่จำเป็นต้องสร้างเอง เพียงแค่สั่งซื้อสินค้า ระบบจะสร้าง Sheet อัตโนมัติ</p>
-            </div>
-        `,
-        icon: "info",
-        confirmButtonText: "เข้าใจแล้ว"
-    });
-}
-
-function checkSheet() {
-    // เปิด Google Sheet ที่เชื่อมต่อ (ถ้ามี)
-    Swal.fire({
-        title: "🔗 ลิงก์ Google Sheet",
-        html: `
-            <div class="text-left">
-                <p>คุณสามารถดูข้อมูลคำสั่งซื้อได้ที่ Google Sheet นี้:</p>
-                <p class="text-blue-500 text-sm break-all mt-2">https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit</p>
-                <p class="text-xs text-gray-400 mt-2">*โปรดแทนที่ YOUR_SHEET_ID ด้วย ID ของ Sheet ที่คุณสร้าง</p>
-            </div>
-        `,
-        icon: "info",
-        confirmButtonText: "ปิด"
-    });
-}
-
 function viewOrders() {
-    const orders = JSON.parse(localStorage.getItem("orders") || "[]");
+    const orders = getOrders();
     if (orders.length === 0) {
         Swal.fire("📋 คำสั่งซื้อ", "ยังไม่มีคำสั่งซื้อ", "info");
         return;
     }
     
     let orderList = orders.map(o => `
-        <div class="border-b pb-2 mb-2">
-            <div class="font-bold">${o.orderId}</div>
+        <div class="border-b pb-3 mb-3">
+            <div class="font-bold text-rose-500">${o.orderId}</div>
             <div class="text-xs text-gray-500">${o.date}</div>
-            <div>${o.name}</div>
-            <div class="text-rose-500">${formatPrice(o.total)}</div>
+            <div class="text-sm mt-1">👤 ${o.name}</div>
+            <div class="text-sm">📞 ${o.phone}</div>
+            <div class="text-sm mt-1">📦 สินค้า: ${o.items.length} รายการ</div>
+            <div class="text-rose-500 font-bold mt-1">💰 ${formatPrice(o.total)}</div>
         </div>
     `).join("");
     
@@ -515,25 +485,48 @@ function viewOrders() {
 }
 
 // ============================================
+// Admin Functions
+// ============================================
+function openAdmin() { 
+    document.getElementById("adminModal")?.classList.remove("hidden");
+    updateOrderCountDisplay();
+}
+function closeAdmin() { document.getElementById("adminModal")?.classList.add("hidden"); }
+
+function clearAllOrdersConfirm() {
+    const orders = getOrders();
+    if (orders.length === 0) {
+        showToast("ไม่มีข้อมูลที่จะลบ", "info");
+        return;
+    }
+    
+    Swal.fire({
+        title: "⚠️ ยืนยันการล้างข้อมูล",
+        text: "คุณต้องการล้างประวัติคำสั่งซื้อทั้งหมดใช่หรือไม่? ไม่สามารถกู้คืนได้",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ใช่, ล้างเลย",
+        cancelButtonText: "ยกเลิก",
+        confirmButtonColor: "#ef4444"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            clearAllOrders();
+            Swal.fire("สำเร็จ!", "ล้างข้อมูลเรียบร้อยแล้ว", "success");
+        }
+    });
+}
+
+// ============================================
 // Modal Functions
 // ============================================
 function openCart() { updateCartUI(); document.getElementById("cartSidebar")?.classList.remove("hidden"); }
 function closeCart() { document.getElementById("cartSidebar")?.classList.add("hidden"); }
-function openAdmin() { 
-    document.getElementById("adminModal")?.classList.remove("hidden");
-    document.getElementById("currentUrl").innerText = window.location.href;
-}
-function closeAdmin() { document.getElementById("adminModal")?.classList.add("hidden"); }
 
 // ============================================
 // Initialize
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
     loadProducts();
-    
-    // แสดง URL ปัจจุบัน
-    const urlSpan = document.getElementById("currentUrl");
-    if (urlSpan) urlSpan.innerText = window.location.href;
     
     document.getElementById("searchInput")?.addEventListener("input", (e) => {
         searchQuery = e.target.value;
@@ -563,8 +556,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("adminBtn")?.addEventListener("click", openAdmin);
     document.getElementById("closeAdmin")?.addEventListener("click", closeAdmin);
     document.getElementById("adminOverlay")?.addEventListener("click", closeAdmin);
-    document.getElementById("setupDbBtn")?.addEventListener("click", setupDatabase);
-    document.getElementById("checkSheetBtn")?.addEventListener("click", checkSheet);
+    document.getElementById("viewOrdersBtn")?.addEventListener("click", viewOrders);
+    document.getElementById("clearOrdersBtn")?.addEventListener("click", clearAllOrdersConfirm);
     
     document.getElementById("fabButton")?.addEventListener("click", () => {
         Swal.fire("ยินดีต้อนรับ", "เลือกสินค้าที่คุณชอบแล้วกดหยิบใส่ตะกร้าได้เลย", "info");
@@ -588,9 +581,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
-<style>
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
 </body>
 </html>
