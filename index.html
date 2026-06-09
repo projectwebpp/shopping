@@ -34,7 +34,7 @@
 <div id="loadingOverlay" class="loading-overlay hidden">
     <div class="bg-white rounded-2xl p-6 flex flex-col items-center">
         <i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i>
-        <p class="mt-2 text-gray-600">กำลังดำเนินการ...</p>
+        <p class="mt-2 text-gray-600">กำลังโหลดสินค้า...</p>
     </div>
 </div>
 
@@ -68,7 +68,12 @@
     <div id="categoryFilter" class="px-4 flex gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar"></div>
 
     <!-- Products Grid -->
-    <div id="productGrid" class="product-grid"></div>
+    <div id="productGrid" class="product-grid">
+        <div class="col-span-full text-center text-gray-400 py-10">
+            <i class="fas fa-spinner fa-pulse text-2xl"></i>
+            <p class="mt-2">กำลังโหลดสินค้า...</p>
+        </div>
+    </div>
 </div>
 
 <!-- Cart Sidebar -->
@@ -123,19 +128,19 @@
         <div class="p-4 space-y-4">
             <div class="bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
                 <i class="fas fa-info-circle mr-1"></i>
-                ข้อมูลคำสั่งซื้อถูกบันทึกในเครื่องของคุณ
+                สินค้าถูกดึงจาก Google Sheet อัตโนมัติ
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <button id="viewOrdersBtn" class="bg-purple-500 text-white py-3 rounded-xl font-semibold">
                     <i class="fas fa-list mr-2"></i>ดูประวัติคำสั่งซื้อ
                 </button>
                 <button id="clearOrdersBtn" class="bg-red-500 text-white py-3 rounded-xl font-semibold">
-                    <i class="fas fa-trash mr-2"></i>ล้างข้อมูลทั้งหมด
+                    <i class="fas fa-trash mr-2"></i>ล้างข้อมูลในเครื่อง
                 </button>
             </div>
             <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-600">
                 <i class="fas fa-database mr-1"></i>
-                จำนวนคำสั่งซื้อ: <span id="orderCount">0</span> รายการ
+                จำนวนคำสั่งซื้อในเครื่อง: <span id="orderCount">0</span> รายการ
             </div>
         </div>
     </div>
@@ -166,22 +171,14 @@
 
 <script>
 // ============================================
-// CONFIGURATION
+// ใส่ URL ที่ได้จากการ Deploy Web App
 // ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
-
-// ============================================
-// สินค้าทั้งหมด (Hardcode ตามที่ต้องการ)
-// ============================================
-const PRODUCTS = [
-    { id: "P001", name: "เสื้อเชิ้ตผู้ชายคอปก", price: 399, image: "https://picsum.photos/id/20/200/200", category: "เสื้อผ้า" },
-    { id: "P002", name: "กางเกงยีนส์สลิมฟิต", price: 599, image: "https://picsum.photos/id/26/200/200", category: "เสื้อผ้า" },
-
-];
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec";
 
 // ============================================
 // Global Variables
 // ============================================
+let products = [];
 let cart = [];
 let currentCategory = "all";
 let searchQuery = "";
@@ -197,10 +194,41 @@ function showToast(title, icon = "success") {
 }
 
 // ============================================
+// ดึงสินค้าจาก Google Sheet ผ่าน API
+// ============================================
+async function loadProductsFromSheet() {
+    showLoading();
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.products) {
+            products = result.products;
+            console.log("โหลดสินค้าสำเร็จ:", products.length, "รายการ");
+        } else {
+            console.error("ไม่สามารถโหลดสินค้าได้:", result.error);
+            products = [];
+        }
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        products = [];
+    }
+    
+    renderProducts();
+    setupCategories();
+    hideLoading();
+}
+
+// ============================================
 // Render Products
 // ============================================
 function renderProducts() {
-    let filtered = PRODUCTS.filter(p => currentCategory === "all" || p.category === currentCategory);
+    let filtered = products.filter(p => currentCategory === "all" || p.category === currentCategory);
     if (searchQuery.trim()) {
         filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
@@ -229,7 +257,7 @@ function renderProducts() {
 }
 
 function setupCategories() {
-    const categories = ["all", ...new Set(PRODUCTS.map(p => p.category))];
+    const categories = ["all", ...new Set(products.map(p => p.category))];
     const container = document.getElementById("categoryFilter");
     if (!container) return;
     
@@ -341,7 +369,7 @@ function updateOrderCountDisplay() {
 }
 
 // ============================================
-// Submit Order
+// Submit Order - บันทึกคำสั่งซื้อ
 // ============================================
 async function submitOrder() {
     if (cart.length === 0) {
@@ -391,10 +419,12 @@ async function submitOrder() {
     formData.append("address", address);
     formData.append("items", JSON.stringify(items));
     formData.append("total", total);
-    formData.append("orderId", orderId);
     
     try {
-        await fetch(API_URL, { method: "POST", mode: "no-cors", body: formData });
+        await fetch(API_URL, {
+            method: "POST",
+            body: formData
+        });
         console.log("Data sent to server");
     } catch (error) {
         console.log("Server send failed:", error);
@@ -489,9 +519,7 @@ function closeAdmin() { document.getElementById("adminModal")?.classList.add("hi
 // Initialize
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    renderProducts();
-    setupCategories();
-    updateOrderCountDisplay();
+    loadProductsFromSheet();
     
     document.getElementById("searchInput")?.addEventListener("input", (e) => {
         searchQuery = e.target.value;
