@@ -142,8 +142,8 @@
 <!-- Category Form Modal -->
 <div id="categoryFormModal" class="modal-container hidden"><div class="modal-overlay" id="categoryFormOverlay"></div><div class="modal-content"><div class="modal-header"><h2 class="text-lg font-semibold"><span id="categoryFormTitle">เพิ่มหมวดหมู่</span></h2><button id="closeCategoryForm" class="text-gray-500"><i class="fas fa-times"></i></button></div><div class="modal-body"><input type="hidden" id="categoryId"><div class="form-field"><label>ชื่อหมวดหมู่</label><input type="text" id="categoryName" placeholder="เช่น เสื้อผ้า, รองเท้า"></div><div class="form-field"><label>สถานะ</label><select id="categoryStatus"><option value="active">ใช้งาน</option><option value="inactive">ปิดใช้งาน</option></select></div><div class="flex gap-3 pt-2"><button id="cancelCategoryFormBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="saveCategoryBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div></div></div></div>
 
-<!-- Order Status Modal -->
-<div id="orderStatusModal" class="modal-container hidden"><div class="modal-overlay" id="orderStatusOverlay"></div><div class="modal-content p-4"><h2 class="text-lg font-semibold mb-4">อัพเดทสถานะคำสั่งซื้อ</h2><div id="orderStatusInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div><select id="newOrderStatus" class="w-full border rounded-lg p-3 mb-4"><option value="Pending">Pending (รอการชำระเงิน)</option><option value="Paid">Paid (ชำระเงินแล้ว)</option><option value="Processing">Processing (กำลังจัดเตรียมสินค้า)</option><option value="Shipped">Shipped (จัดส่งแล้ว)</option><option value="Delivered">Delivered (ได้รับสินค้าแล้ว)</option><option value="Cancelled">Cancelled (ยกเลิก)</option></select><div class="flex gap-3"><button id="cancelOrderStatusBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmOrderStatusBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">อัพเดท</button></div><button id="sendNotifyBtn" class="w-full mt-3 bg-blue-500 text-white py-2 rounded-lg text-sm"><i class="fab fa-line mr-1"></i>แจ้งเตือนผู้ซื้อทาง LINE</button></div></div>
+<!-- Order Status Modal (ไม่มีปุ่มแจ้งเตือน) -->
+<div id="orderStatusModal" class="modal-container hidden"><div class="modal-overlay" id="orderStatusOverlay"></div><div class="modal-content p-4"><h2 class="text-lg font-semibold mb-4">อัพเดทสถานะคำสั่งซื้อ</h2><div id="orderStatusInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div><select id="newOrderStatus" class="w-full border rounded-lg p-3 mb-4"><option value="Pending">Pending (รอการชำระเงิน)</option><option value="Paid">Paid (ชำระเงินแล้ว)</option><option value="Processing">Processing (กำลังจัดเตรียมสินค้า)</option><option value="Shipped">Shipped (จัดส่งแล้ว)</option><option value="Delivered">Delivered (ได้รับสินค้าแล้ว)</option><option value="Cancelled">Cancelled (ยกเลิก)</option></select><div class="flex gap-3"><button id="cancelOrderStatusBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmOrderStatusBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">อัพเดทสถานะ</button></div></div></div>
 
 <!-- User Role Modal -->
 <div id="userRoleModal" class="modal-container hidden"><div class="modal-overlay" id="userRoleOverlay"></div><div class="modal-content p-4"><h2 class="text-lg font-semibold mb-4">แก้ไขสิทธิ์ผู้ใช้</h2><div id="userRoleInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div><select id="userRoleSelect" class="w-full border rounded-lg p-3 mb-4"><option value="user">ผู้ใช้ทั่วไป</option><option value="admin">ผู้ดูแลระบบ (Admin)</option></select><div class="flex gap-3"><button id="cancelUserRoleBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmUserRoleBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div></div></div>
@@ -387,16 +387,10 @@ async function updateOrderStatus(){
     const newStatus=document.getElementById("newOrderStatus").value;
     if(!currentEditingOrder) return; showLoading();
     try{ const fd=new FormData(); fd.append("orderId",currentEditingOrder.orderId); fd.append("status",newStatus); fd.append("customerLineId",currentEditingOrder.customerLineId); fd.append("adminLineId",userProfile?.userId); const res=await fetchPostAPI("updateOrderStatus",fd);
-        if(res.success){ showToast("อัพเดทสถานะสำเร็จ"); document.getElementById("orderStatusModal").classList.add("hidden"); await loadAllOrders(); await loadProducts(); if(currentEditingOrder.customerLineId && newStatus!==currentEditingOrder.status) await sendOrderNotify(currentEditingOrder.customerLineId,currentEditingOrder.orderId,newStatus); }
+        if(res.success){ showToast("อัพเดทสถานะสำเร็จ"); document.getElementById("orderStatusModal").classList.add("hidden"); await loadAllOrders(); await loadProducts(); }
         else Swal.fire("ผิดพลาด",res.error,"error");
     } catch(e){ Swal.fire("ผิดพลาด",e.message,"error"); }
     hideLoading();
-}
-async function sendOrderNotify(customerLineId,orderId,status){
-    if(!liff.isInClient()) return;
-    const statusText={ Pending:"รอการชำระเงิน", Paid:"ชำระเงินแล้ว", Processing:"กำลังจัดเตรียมสินค้า", Shipped:"จัดส่งแล้ว", Delivered:"ได้รับสินค้าแล้ว", Cancelled:"ยกเลิก" };
-    try{ await liff.sendMessages([{ type:"text", text:`📦 แจ้งเตือนคำสั่งซื้อ\nเลขที่: ${orderId}\nสถานะ: ${statusText[status]||status}\nขอบคุณที่ใช้บริการค่ะ` }]); showToast("แจ้งเตือนผู้ซื้อเรียบร้อย"); }
-    catch(e){ console.log(e); }
 }
 async function loadAdminProducts(){ const container=document.getElementById("adminProductsList"); if(!products.length){ container.innerHTML='<div class="text-center text-gray-400 py-10">ไม่มีสินค้า</div>'; return; } container.innerHTML=products.map(p=>`<div class="product-list-item"><img src="${p.image}" class="w-16 h-16 object-cover rounded"><div class="flex-1"><div class="font-medium">${p.name}</div><div class="text-sm text-gray-500">${p.category}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div><div class="text-xs ${(Number(p.stock)||0)<=0?'text-red-500':'text-gray-500'}">คงเหลือ ${Number(p.stock)||0} ชิ้น</div></div><div class="flex gap-2"><button onclick="editProduct('${p.id}')" class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-edit"></i></button><button onclick="deleteProduct('${p.id}')" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-trash"></i></button></div></div>`).join(""); }
 async function addNewProduct(){ document.getElementById("productFormTitle").innerText="เพิ่มสินค้า"; document.getElementById("productId").value=""; document.getElementById("productName").value=""; document.getElementById("productPrice").value=""; document.getElementById("productStock").value="0"; document.getElementById("productImage").value=""; document.getElementById("productStatus").value="active"; document.getElementById("imagePreview").classList.add("hidden"); await loadCategoriesOptions(); document.getElementById("productFormModal").classList.remove("hidden"); }
@@ -466,7 +460,7 @@ function showAllOrders(){
     if(!orderHistory.length) content.innerHTML='<p class="text-center py-10">ยังไม่มีประวัติการสั่งซื้อ</p>';
     else content.innerHTML=orderHistory.map(o=>{
         let slipButton='';
-        if(o.status==='Pending'){
+        if(o.status==='Pending' && !o.slipUrl){
             slipButton=`<button class="w-full mt-2 bg-blue-500 text-white py-2 rounded-xl text-sm" onclick="uploadSlip('${o.orderId}', ${o.total}, '${escapeHtml(o.name)}')"><i class="fas fa-upload mr-1"></i>แนบสลิปโอนเงิน</button>`;
         }
         let slipLink='';
@@ -553,7 +547,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("cancelOrderStatusBtn")?.addEventListener("click",()=>document.getElementById("orderStatusModal").classList.add("hidden"));
     document.getElementById("orderStatusOverlay")?.addEventListener("click",()=>document.getElementById("orderStatusModal").classList.add("hidden"));
     document.getElementById("confirmOrderStatusBtn")?.addEventListener("click",updateOrderStatus);
-    document.getElementById("sendNotifyBtn")?.addEventListener("click",async()=>{ if(currentEditingOrder) await sendOrderNotify(currentEditingOrder.customerLineId, currentEditingOrder.orderId, document.getElementById("newOrderStatus").value); });
     document.getElementById("cancelUserRoleBtn")?.addEventListener("click",()=>document.getElementById("userRoleModal").classList.add("hidden"));
     document.getElementById("userRoleOverlay")?.addEventListener("click",()=>document.getElementById("userRoleModal").classList.add("hidden"));
     document.getElementById("confirmUserRoleBtn")?.addEventListener("click",saveUserRole);
