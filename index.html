@@ -39,61 +39,27 @@
 </div>
 
 <div class="max-w-md mx-auto">
-    <!-- Header -->
     <div class="bg-white sticky top-0 z-50 shadow-sm px-4 py-3 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-bold text-rose-500">🛍️ E-Shop</h1>
-            <p class="text-xs text-gray-400">Thailand</p>
-        </div>
+        <div><h1 class="text-xl font-bold text-rose-500">🛍️ E-Shop</h1><p class="text-xs text-gray-400">Thailand</p></div>
         <div class="flex items-center gap-3">
-            <div id="adminBtn" class="admin-btn text-gray-500">
-                <i class="fas fa-cog text-xl"></i>
-            </div>
-            <div id="cartIcon" class="relative cursor-pointer">
-                <i class="fas fa-shopping-cart text-2xl text-gray-700"></i>
-                <span id="cartCount" class="cart-badge">0</span>
-            </div>
+            <div id="adminBtn" class="admin-btn text-gray-500"><i class="fas fa-cog text-xl"></i></div>
+            <div id="cartIcon" class="relative cursor-pointer"><i class="fas fa-shopping-cart text-2xl text-gray-700"></i><span id="cartCount" class="cart-badge">0</span></div>
         </div>
     </div>
 
-    <!-- Search -->
-    <div class="p-4">
-        <div class="bg-white rounded-xl shadow-sm border p-3 flex gap-2">
-            <i class="fas fa-search text-gray-400"></i>
-            <input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 outline-none text-sm">
-        </div>
-    </div>
+    <div class="p-4"><div class="bg-white rounded-xl shadow-sm border p-3 flex gap-2"><i class="fas fa-search text-gray-400"></i><input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 outline-none text-sm"></div></div>
 
-    <!-- Categories -->
     <div id="categoryFilter" class="px-4 flex gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar"></div>
-
-    <!-- Products Grid -->
-    <div id="productGrid" class="product-grid">
-        <div class="col-span-full text-center text-gray-400 py-10">
-            <i class="fas fa-spinner fa-pulse text-2xl"></i>
-            <p class="mt-2">กำลังโหลดสินค้า...</p>
-        </div>
-    </div>
+    <div id="productGrid" class="product-grid"><div class="col-span-full text-center text-gray-400 py-10"><i class="fas fa-spinner fa-pulse text-2xl"></i><p class="mt-2">กำลังโหลดสินค้า...</p></div></div>
 </div>
 
 <!-- Cart Sidebar -->
 <div id="cartSidebar" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="cartOverlay"></div>
     <div class="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-rose-500 mr-2"></i>ตะกร้าสินค้า</h2>
-            <button id="closeCart" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
-        </div>
-        <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3">
-            <div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>ตะกร้าว่างเปล่า</p></div>
-        </div>
-        <div class="p-4 border-t bg-white">
-            <div class="flex justify-between mb-3">
-                <span class="font-semibold">รวมทั้งสิ้น</span>
-                <span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span>
-            </div>
-            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold hover:bg-rose-600 transition">🧾 สั่งซื้อเลย</button>
-        </div>
+        <div class="p-4 border-b flex justify-between items-center"><h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-rose-500 mr-2"></i>ตะกร้าสินค้า</h2><button id="closeCart" class="text-gray-500"><i class="fas fa-times text-xl"></i></button></div>
+        <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3"><div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>ตะกร้าว่างเปล่า</p></div></div>
+        <div class="p-4 border-t bg-white"><div class="flex justify-between mb-3"><span class="font-semibold">รวมทั้งสิ้น</span><span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span></div><button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold hover:bg-rose-600 transition">🧾 สั่งซื้อเลย</button></div>
     </div>
 </div>
 
@@ -101,18 +67,13 @@
 <div id="checkoutModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="checkoutOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] overflow-y-auto">
-        <div class="p-4 border-b sticky top-0 bg-white">
-            <h2 class="text-lg font-semibold">📝 ข้อมูลการสั่งซื้อ</h2>
-        </div>
+        <div class="p-4 border-b sticky top-0 bg-white"><h2 class="text-lg font-semibold">📝 ข้อมูลการสั่งซื้อ</h2></div>
         <div class="p-4 space-y-4">
             <input type="text" id="custName" placeholder="ชื่อ-นามสกุล" class="w-full border rounded-xl p-3">
             <input type="email" id="custEmail" placeholder="อีเมล" class="w-full border rounded-xl p-3">
             <input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์" class="w-full border rounded-xl p-3">
             <textarea id="custAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3" rows="3"></textarea>
-            <div class="flex gap-3 pt-2">
-                <button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
-                <button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">✅ ยืนยัน</button>
-            </div>
+            <div class="flex gap-3 pt-2"><button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">✅ ยืนยัน</button></div>
         </div>
     </div>
 </div>
@@ -121,59 +82,31 @@
 <div id="adminModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="adminOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-database text-rose-500 mr-2"></i>จัดการระบบ</h2>
-            <button id="closeAdmin" class="text-gray-500"><i class="fas fa-times"></i></button>
-        </div>
+        <div class="p-4 border-b flex justify-between items-center"><h2 class="text-lg font-semibold"><i class="fas fa-database text-rose-500 mr-2"></i>จัดการระบบ</h2><button id="closeAdmin" class="text-gray-500"><i class="fas fa-times"></i></button></div>
         <div class="p-4 space-y-4">
-            <div class="bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
-                <i class="fas fa-info-circle mr-1"></i>
-                สินค้าถูกดึงจาก Google Sheet อัตโนมัติ
-            </div>
+            <div class="bg-blue-50 rounded-xl p-3 text-sm text-blue-700"><i class="fas fa-info-circle mr-1"></i>สินค้าถูกดึงจาก Google Sheet โดยตรง</div>
             <div class="grid grid-cols-2 gap-3">
-                <button id="viewOrdersBtn" class="bg-purple-500 text-white py-3 rounded-xl font-semibold">
-                    <i class="fas fa-list mr-2"></i>ดูประวัติคำสั่งซื้อ
-                </button>
-                <button id="clearOrdersBtn" class="bg-red-500 text-white py-3 rounded-xl font-semibold">
-                    <i class="fas fa-trash mr-2"></i>ล้างข้อมูลในเครื่อง
-                </button>
+                <button id="viewOrdersBtn" class="bg-purple-500 text-white py-3 rounded-xl font-semibold"><i class="fas fa-list mr-2"></i>ดูประวัติคำสั่งซื้อ</button>
+                <button id="clearOrdersBtn" class="bg-red-500 text-white py-3 rounded-xl font-semibold"><i class="fas fa-trash mr-2"></i>ล้างข้อมูลในเครื่อง</button>
             </div>
-            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-600">
-                <i class="fas fa-database mr-1"></i>
-                จำนวนคำสั่งซื้อในเครื่อง: <span id="orderCount">0</span> รายการ
-            </div>
+            <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-600"><i class="fas fa-database mr-1"></i>จำนวนคำสั่งซื้อในเครื่อง: <span id="orderCount">0</span> รายการ</div>
         </div>
     </div>
 </div>
 
-<!-- Floating Button -->
-<div class="fixed bottom-20 right-4 z-40">
-    <button id="fabButton" class="w-14 h-14 bg-rose-500 rounded-full shadow-lg text-white flex items-center justify-center hover:bg-rose-600 transition">
-        <i class="fas fa-plus text-2xl"></i>
-    </button>
-</div>
+<div class="fixed bottom-20 right-4 z-40"><button id="fabButton" class="w-14 h-14 bg-rose-500 rounded-full shadow-lg text-white flex items-center justify-center hover:bg-rose-600 transition"><i class="fas fa-plus text-2xl"></i></button></div>
 
-<!-- Bottom Navigation -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2 z-40">
-    <div class="dock-item text-center flex-1 py-1 active text-rose-500" data-tab="home">
-        <i class="fas fa-home text-xl"></i>
-        <div class="text-xs">หน้าแรก</div>
-    </div>
-    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="cart">
-        <i class="fas fa-shopping-cart text-xl"></i>
-        <div class="text-xs">ตะกร้า</div>
-    </div>
-    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="profile">
-        <i class="fas fa-user text-xl"></i>
-        <div class="text-xs">โปรไฟล์</div>
-    </div>
+    <div class="dock-item text-center flex-1 py-1 active text-rose-500" data-tab="home"><i class="fas fa-home text-xl"></i><div class="text-xs">หน้าแรก</div></div>
+    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="cart"><i class="fas fa-shopping-cart text-xl"></i><div class="text-xs">ตะกร้า</div></div>
+    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="profile"><i class="fas fa-user text-xl"></i><div class="text-xs">โปรไฟล์</div></div>
 </div>
 
 <script>
 // ============================================
-// ใส่ URL ที่ได้จากการ Deploy Web App
+// ใช้ URL เดียวกับหน้าเว็บ (fetch ไปหา doGet)
 // ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
+const API_URL = window.location.href;
 
 // ============================================
 // Global Variables
@@ -194,18 +127,19 @@ function showToast(title, icon = "success") {
 }
 
 // ============================================
-// ดึงสินค้าจาก Google Sheet ผ่าน API
+// ดึงสินค้าจาก Google Sheet
 // ============================================
 async function loadProductsFromSheet() {
     showLoading();
     
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(API_URL + "?action=getProducts", {
             method: "GET",
             headers: { "Content-Type": "application/json" }
         });
         
         const result = await response.json();
+        console.log("API Response:", result);
         
         if (result.success && result.products) {
             products = result.products;
@@ -369,7 +303,7 @@ function updateOrderCountDisplay() {
 }
 
 // ============================================
-// Submit Order - บันทึกคำสั่งซื้อ
+// Submit Order
 // ============================================
 async function submitOrder() {
     if (cart.length === 0) {
@@ -411,45 +345,58 @@ async function submitOrder() {
     
     showLoading();
     
-    // ส่งข้อมูลไปยังเซิร์ฟเวอร์
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", email);
-    formData.append("phone", phone);
-    formData.append("address", address);
-    formData.append("items", JSON.stringify(items));
-    formData.append("total", total);
-    
     try {
-        await fetch(API_URL, {
+        const response = await fetch(API_URL, {
             method: "POST",
-            body: formData
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, phone, address, items, total })
         });
-        console.log("Data sent to server");
+        
+        const result = await response.json();
+        console.log("Server response:", result);
+        
+        if (result.success) {
+            saveOrder(orderData);
+            hideLoading();
+            Swal.fire({
+                title: "🎉 สั่งซื้อสำเร็จ!",
+                html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId || orderId}</strong><br><br>📧 ระบบได้บันทึกข้อมูลของคุณเรียบร้อย<br>🙏 ขอบคุณที่ใช้บริการ`,
+                icon: "success",
+                confirmButtonText: "ตกลง"
+            });
+            
+            cart = [];
+            updateCartUI();
+            closeCart();
+            document.getElementById("checkoutModal").classList.add("hidden");
+            document.getElementById("custName").value = "";
+            document.getElementById("custEmail").value = "";
+            document.getElementById("custPhone").value = "";
+            document.getElementById("custAddress").value = "";
+        } else {
+            hideLoading();
+            Swal.fire("❌ เกิดข้อผิดพลาด", result.error || "ไม่สามารถบันทึกข้อมูลได้", "error");
+        }
     } catch (error) {
-        console.log("Server send failed:", error);
+        console.error("Error:", error);
+        // ถ้าส่งไปเซิร์ฟเวอร์ไม่ได้ ให้บันทึกเฉพาะ localStorage
+        saveOrder(orderData);
+        hideLoading();
+        Swal.fire({
+            title: "✅ สั่งซื้อสำเร็จ!",
+            html: `เลขที่คำสั่งซื้อ: <strong>${orderId}</strong><br><br>📧 ระบบได้บันทึกข้อมูลของคุณเรียบร้อย<br>🙏 ขอบคุณที่ใช้บริการ`,
+            icon: "success",
+            confirmButtonText: "ตกลง"
+        });
+        cart = [];
+        updateCartUI();
+        closeCart();
+        document.getElementById("checkoutModal").classList.add("hidden");
+        document.getElementById("custName").value = "";
+        document.getElementById("custEmail").value = "";
+        document.getElementById("custPhone").value = "";
+        document.getElementById("custAddress").value = "";
     }
-    
-    // บันทึกใน localStorage
-    saveOrder(orderData);
-    
-    hideLoading();
-    
-    Swal.fire({
-        title: "🎉 สั่งซื้อสำเร็จ!",
-        html: `เลขที่คำสั่งซื้อ: <strong>${orderId}</strong><br><br>📧 ระบบได้บันทึกข้อมูลของคุณเรียบร้อย<br>🙏 ขอบคุณที่ใช้บริการ`,
-        icon: "success",
-        confirmButtonText: "ตกลง"
-    });
-    
-    cart = [];
-    updateCartUI();
-    closeCart();
-    document.getElementById("checkoutModal").classList.add("hidden");
-    document.getElementById("custName").value = "";
-    document.getElementById("custEmail").value = "";
-    document.getElementById("custPhone").value = "";
-    document.getElementById("custAddress").value = "";
 }
 
 // ============================================
@@ -481,9 +428,6 @@ function viewOrders() {
     });
 }
 
-// ============================================
-// Clear Orders Confirm
-// ============================================
 function clearOrdersConfirm() {
     const orders = getOrders();
     if (orders.length === 0) {
