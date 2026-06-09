@@ -116,8 +116,11 @@
 </div>
 
 <script>
-// ใช้ URL ปัจจุบัน (Web App URL เดียวกัน)
-const API_URL = window.location.href;
+// ============================================
+// 🔧 แก้ไขตรงนี้: ใส่ URL ของ Google Apps Script Web App
+// ============================================
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+// ============================================
 
 let products = [], cart = [], currentCategory = "all", searchQuery = "";
 
@@ -173,7 +176,7 @@ async function loadProducts() {
     } catch(e) {
         console.error("❌ Fetch error:", e);
         showToast("❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่ภายหลัง", "error");
-        document.getElementById("productGrid").innerHTML = '<div class="col-span-full text-center py-10 text-red-500">❌ ไม่สามารถโหลดสินค้าได้</div>';
+        document.getElementById("productGrid").innerHTML = '<div class="col-span-full text-center py-10 text-red-500">❌ ไม่สามารถโหลดสินค้าได้<br>ตรวจสอบ URL: ' + API_URL + '</div>';
     }
     hideLoading();
 }
@@ -309,7 +312,11 @@ async function submitOrder() {
     try {
         let res = await fetch(API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            mode: "cors",
+            headers: { 
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
             body: JSON.stringify({ name, email, phone, address, items, total })
         });
         let result = await res.json();
@@ -332,7 +339,8 @@ async function submitOrder() {
         }
     } catch(e) {
         hideLoading();
-        Swal.fire("❌ ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่ภายหลัง", "error");
+        console.error("Submit error:", e);
+        Swal.fire("❌ ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่ภายหลัง\n\n" + e.message, "error");
     }
 }
 
