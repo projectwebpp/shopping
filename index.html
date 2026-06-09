@@ -110,7 +110,12 @@
 </div>
 
 <script>
-// ใช้ google.script.run สำหรับเรียก backend ใน Google Apps Script
+// ============================================
+// 🔧 แก้ไขตรงนี้: ใส่ URL ของ Web App ที่ Deploy แล้ว
+// ============================================
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+// ============================================
+
 let products = [], cart = [], currentCategory = "all", searchQuery = "";
 
 function showLoading() { 
@@ -136,32 +141,50 @@ function showToast(title, icon = "success") {
     });
 }
 
-// โหลดสินค้าโดยใช้ google.script.run
-function loadProducts() {
+// โหลดสินค้าโดยใช้ fetch
+async function loadProducts() {
     showLoading();
-    console.log("📡 กำลังโหลดสินค้า...");
-    
-    google.script.run
-        .withSuccessHandler(function(data) {
-            console.log("✅ โหลดสินค้าสำเร็จ:", data);
-            if (data.success) {
-                products = data.products;
-                console.log("📦 สินค้าทั้งหมด:", products.length, "รายการ");
-                renderProducts();
-                setupCategories();
-            } else {
-                showToast("❌ " + data.error, "error");
-                document.getElementById("productGrid").innerHTML = `<div class="col-span-full text-center py-10 text-red-500">❌ ${data.error}</div>`;
+    try {
+        const url = `${API_URL}?action=getProducts`;
+        console.log("📡 Fetching:", url);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json',
             }
-            hideLoading();
-        })
-        .withFailureHandler(function(error) {
-            console.error("❌ โหลดสินค้าล้มเหลว:", error);
-            showToast("❌ โหลดสินค้าไม่สำเร็จ: " + error.message, "error");
-            document.getElementById("productGrid").innerHTML = `<div class="col-span-full text-center py-10 text-red-500">❌ โหลดสินค้าไม่สำเร็จ<br>${error.message}</div>`;
-            hideLoading();
-        })
-        .getProductsAPI();
+        });
+        
+        console.log("📡 Response status:", response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("📦 Data received:", data);
+        
+        if (data.success) {
+            products = data.products;
+            console.log(`✅ โหลดสินค้าสำเร็จ: ${products.length} รายการ`);
+            renderProducts();
+            setupCategories();
+        } else {
+            throw new Error(data.error || "ไม่ทราบสาเหตุ");
+        }
+    } catch(error) {
+        console.error("❌ Error:", error);
+        document.getElementById("productGrid").innerHTML = `
+            <div class="col-span-full text-center py-10">
+                <div class="text-red-500 mb-2">❌ ${error.message}</div>
+                <div class="text-xs text-gray-400 mt-2">API URL: ${API_URL}</div>
+                <button onclick="loadProducts()" class="mt-4 bg-rose-500 text-white px-4 py-2 rounded-lg">🔄 ลองใหม่</button>
+            </div>
+        `;
+        showToast("❌ " + error.message, "error");
+    }
+    hideLoading();
 }
 
 function renderProducts() {
@@ -181,7 +204,7 @@ function renderProducts() {
                 <div class="text-xs text-gray-400">🏷️ ${p.category}</div>
                 <div class="font-medium text-sm">${p.name}</div>
                 <div class="text-rose-500 font-bold text-sm">${formatPrice(p.price)}</div>
-                <button onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm hover:bg-rose-600 transition">
+                <button onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm">
                     🛒 หยิบใส่ตะกร้า
                 </button>
             </div>
@@ -262,71 +285,79 @@ function removeFromCart(id) {
     showToast("🗑️ ลบสินค้าเรียบร้อย", "info"); 
 }
 
-// บันทึกคำสั่งซื้อโดยใช้ google.script.run
-function submitOrder() {
+// บันทึกคำสั่งซื้อโดยใช้ fetch POST
+async function submitOrder() {
     if (!cart.length) { 
         showToast("⚠️ ไม่มีสินค้าในตะกร้า", "error"); 
         return; 
     }
     
-    let name = document.getElementById("custName").value.trim();
-    let email = document.getElementById("custEmail").value.trim();
-    let phone = document.getElementById("custPhone").value.trim();
-    let address = document.getElementById("custAddress").value.trim();
+    const name = document.getElementById("custName").value.trim();
+    const email = document.getElementById("custEmail").value.trim();
+    const phone = document.getElementById("custPhone").value.trim();
+    const address = document.getElementById("custAddress").value.trim();
     
     if (!name || !email || !phone || !address) { 
         showToast("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน", "error"); 
         return; 
     }
     
-    // ตรวจสอบอีเมล
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(email)) {
         showToast("⚠️ กรุณากรอกอีเมลให้ถูกต้อง", "error");
         return;
     }
     
-    let items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
-    let total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+    const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
+    const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
     
-    let orderData = { 
-        name: name, 
-        email: email, 
-        phone: phone, 
-        address: address, 
-        items: items, 
-        total: total 
-    };
+    const orderData = { name, email, phone, address, items, total };
     
-    console.log("📦 กำลังส่งคำสั่งซื้อ:", orderData);
+    console.log("📦 Sending order:", orderData);
     showLoading();
     
-    google.script.run
-        .withSuccessHandler(function(result) {
-            console.log("✅ ผลลัพธ์การสั่งซื้อ:", result);
-            hideLoading();
-            if (result.success) {
-                Swal.fire({ 
-                    title: "🎉 สั่งซื้อสำเร็จ!", 
-                    html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br><br>🙏 ขอบคุณที่ใช้บริการ`, 
-                    icon: "success",
-                    confirmButtonColor: "#f43f5e"
-                });
-                cart = [];
-                updateCartUI();
-                closeCart();
-                document.getElementById("checkoutModal").classList.add("hidden");
-                ["custName", "custEmail", "custPhone", "custAddress"].forEach(id => document.getElementById(id).value = "");
-            } else {
-                Swal.fire("❌ ผิดพลาด", result.error || "ไม่สามารถบันทึกคำสั่งซื้อได้", "error");
-            }
-        })
-        .withFailureHandler(function(error) {
-            console.error("❌ การสั่งซื้อล้มเหลว:", error);
-            hideLoading();
-            Swal.fire("❌ ผิดพลาด", "ไม่สามารถบันทึกคำสั่งซื้อได้: " + error.message, "error");
-        })
-        .handlePost(orderData);
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        console.log("📡 Response status:", response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log("📦 Response data:", result);
+        
+        hideLoading();
+        
+        if (result.success) {
+            Swal.fire({ 
+                title: "🎉 สั่งซื้อสำเร็จ!", 
+                html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br><br>🙏 ขอบคุณที่ใช้บริการ`, 
+                icon: "success",
+                confirmButtonColor: "#f43f5e"
+            });
+            cart = [];
+            updateCartUI();
+            closeCart();
+            document.getElementById("checkoutModal").classList.add("hidden");
+            ["custName", "custEmail", "custPhone", "custAddress"].forEach(id => document.getElementById(id).value = "");
+        } else {
+            Swal.fire("❌ ผิดพลาด", result.error || "ไม่สามารถบันทึกคำสั่งซื้อได้", "error");
+        }
+    } catch(error) {
+        hideLoading();
+        console.error("❌ Submit error:", error);
+        Swal.fire("❌ ผิดพลาด", `ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ${error.message}`, "error");
+    }
 }
 
 function openCart() { 
@@ -338,9 +369,9 @@ function closeCart() {
     document.getElementById("cartSidebar").classList.add("hidden"); 
 }
 
-// เมื่อหน้าเว็บโหลดเสร็จ
+// Event Listeners
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("🚀 หน้าเว็บโหลดเสร็จ กำลังเริ่มต้นระบบ...");
+    console.log("🚀 App started, API_URL:", API_URL);
     loadProducts();
     
     document.getElementById("searchInput").oninput = e => { 
@@ -382,27 +413,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (item.dataset.tab === "cart") openCart();
             else if (item.dataset.tab === "home") closeCart();
             else if (item.dataset.tab === "profile") {
-                Swal.fire("👤 โปรไฟล์", "ยินดีต้อนรับสู่ E-Shop Thailand\n\nติดต่อ: support@eshopthailand.com", "info");
+                Swal.fire("👤 โปรไฟล์", "ยินดีต้อนรับสู่ E-Shop Thailand", "info");
             }
         };
     });
-});
-
-// ป้องกันการคลิกปุ่มซ้ำ
-let isSubmitting = false;
-function submitOrderWithLock() {
-    if (isSubmitting) return;
-    isSubmitting = true;
-    submitOrder();
-    setTimeout(() => { isSubmitting = false; }, 3000);
-}
-
-// แก้ไข event listener
-document.addEventListener("DOMContentLoaded", () => {
-    const confirmBtn = document.getElementById("confirmOrder");
-    if (confirmBtn) {
-        confirmBtn.onclick = submitOrderWithLock;
-    }
 });
 </script>
 </body>
