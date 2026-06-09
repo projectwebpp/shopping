@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Shop Thailand</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -16,16 +16,24 @@
         .dock-item.active { color: #f43f5e; }
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; }
         @media (min-width: 640px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
-        .loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .cat-btn { cursor: pointer; transition: all 0.3s; }
+        .debug-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px; max-height: 150px; overflow-y: auto; z-index: 10000; display: none; }
+        .debug-panel.show { display: block; }
     </style>
 </head>
 <body>
+
+<!-- Debug Panel -->
+<div id="debugPanel" class="debug-panel">
+    <div id="debugLog"></div>
+</div>
 
 <div id="loading" class="loading hidden">
     <div class="bg-white rounded-2xl p-6 text-center">
         <i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i>
         <p class="mt-2">กำลังโหลดสินค้า...</p>
+        <p id="loadingStatus" class="text-xs text-gray-400 mt-2"></p>
     </div>
 </div>
 
@@ -41,6 +49,11 @@
         </div>
     </div>
 
+    <!-- Debug Toggle Button -->
+    <div class="px-4 py-2 text-right">
+        <button id="debugToggle" class="text-xs text-gray-400">🔧 Show Debug</button>
+    </div>
+
     <div class="p-4">
         <div class="bg-white rounded-xl shadow-sm border p-3">
             <input type="text" id="searchInput" placeholder="🔍 ค้นหาสินค้า..." class="w-full outline-none">
@@ -54,7 +67,7 @@
     </div>
 </div>
 
-<!-- Cart Sidebar -->
+<!-- Cart Sidebar (เหมือนเดิม) -->
 <div id="cartSidebar" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="cartOverlay"></div>
     <div class="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl flex flex-col">
@@ -68,14 +81,12 @@
                 <span>💰 รวมทั้งสิ้น</span>
                 <span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span>
             </div>
-            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl hover:bg-rose-600 transition">
-                🧾 สั่งซื้อเลย
-            </button>
+            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl hover:bg-rose-600 transition">🧾 สั่งซื้อเลย</button>
         </div>
     </div>
 </div>
 
-<!-- Checkout Modal -->
+<!-- Checkout Modal (เหมือนเดิม) -->
 <div id="checkoutModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="checkoutOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4 max-h-[90vh] overflow-auto">
@@ -113,17 +124,30 @@
 // ============================================
 // 🔧 แก้ไขตรงนี้: ใส่ URL ของ Web App ที่ Deploy แล้ว
 // ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 // ============================================
 
 let products = [], cart = [], currentCategory = "all", searchQuery = "";
 
-function showLoading() { 
-    document.getElementById("loading").classList.remove("hidden"); 
+// Debug function
+function debugLog(msg) {
+    const debugDiv = document.getElementById('debugLog');
+    const timestamp = new Date().toLocaleTimeString();
+    const logMsg = `[${timestamp}] ${msg}<br>`;
+    debugDiv.innerHTML = logMsg + debugDiv.innerHTML;
+    console.log(msg);
+}
+
+function showLoading(statusMsg = '') {
+    document.getElementById("loading").classList.remove("hidden");
+    if (statusMsg) {
+        document.getElementById("loadingStatus").innerText = statusMsg;
+    }
 }
 
 function hideLoading() { 
-    document.getElementById("loading").classList.add("hidden"); 
+    document.getElementById("loading").classList.add("hidden");
+    document.getElementById("loadingStatus").innerText = '';
 }
 
 function formatPrice(p) { 
@@ -131,22 +155,62 @@ function formatPrice(p) {
 }
 
 function showToast(title, icon = "success") {
-    Swal.fire({ 
-        title, 
-        icon, 
-        toast: true, 
-        position: "top-end", 
-        showConfirmButton: false, 
-        timer: 1500 
-    });
+    Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 1500 });
+}
+
+// ทดสอบ API ก่อน
+async function testAPI() {
+    debugLog('🔍 Testing API connection...');
+    try {
+        const testUrl = `${API_URL}?test=1`;
+        debugLog(`📡 Testing: ${testUrl}`);
+        
+        const response = await fetch(testUrl, {
+            method: 'GET',
+            mode: 'cors'
+        });
+        
+        debugLog(`📡 Response status: ${response.status}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            debugLog(`✅ API Test Success: ${JSON.stringify(data)}`);
+            return true;
+        } else {
+            debugLog(`❌ API Test Failed: ${response.status} ${response.statusText}`);
+            return false;
+        }
+    } catch(error) {
+        debugLog(`❌ API Test Error: ${error.message}`);
+        return false;
+    }
 }
 
 // โหลดสินค้าโดยใช้ fetch
 async function loadProducts() {
-    showLoading();
+    showLoading('กำลังเชื่อมต่อ API...');
+    debugLog('🚀 Starting loadProducts...');
+    debugLog(`📡 API_URL: ${API_URL}`);
+    
+    // ทดสอบ API ก่อน
+    const apiWorking = await testAPI();
+    if (!apiWorking) {
+        hideLoading();
+        document.getElementById("productGrid").innerHTML = `
+            <div class="col-span-full text-center py-10">
+                <div class="text-red-500 mb-2">❌ ไม่สามารถเชื่อมต่อ API ได้</div>
+                <div class="text-xs text-gray-400 mt-2">URL: ${API_URL}</div>
+                <div class="text-xs text-gray-400">ตรวจสอบว่า Deploy Web App แล้วและตั้งค่า Anyone</div>
+                <button onclick="location.reload()" class="mt-4 bg-rose-500 text-white px-4 py-2 rounded-lg">🔄 ลองใหม่</button>
+            </div>
+        `;
+        return;
+    }
+    
     try {
         const url = `${API_URL}?action=getProducts`;
-        console.log("📡 Fetching:", url);
+        debugLog(`📡 Fetching products from: ${url}`);
+        showLoading('กำลังโหลดสินค้า...');
         
         const response = await fetch(url, {
             method: 'GET',
@@ -156,29 +220,41 @@ async function loadProducts() {
             }
         });
         
-        console.log("📡 Response status:", response.status);
+        debugLog(`📡 Response status: ${response.status} ${response.statusText}`);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log("📦 Data received:", data);
+        debugLog(`📦 Data received: ${JSON.stringify(data).substring(0, 200)}...`);
         
         if (data.success) {
             products = data.products;
-            console.log(`✅ โหลดสินค้าสำเร็จ: ${products.length} รายการ`);
-            renderProducts();
-            setupCategories();
+            debugLog(`✅ Load success: ${products.length} products`);
+            
+            if (products.length === 0) {
+                document.getElementById("productGrid").innerHTML = `
+                    <div class="col-span-full text-center py-10">
+                        <div class="text-yellow-500 mb-2">⚠️ ไม่มีสินค้าในระบบ</div>
+                        <div class="text-xs text-gray-400">กรุณาเพิ่มสินค้าใน Sheet "Products"</div>
+                    </div>
+                `;
+            } else {
+                renderProducts();
+                setupCategories();
+                debugLog(`✅ UI updated with ${products.length} products`);
+            }
         } else {
-            throw new Error(data.error || "ไม่ทราบสาเหตุ");
+            throw new Error(data.error || "Unknown error");
         }
     } catch(error) {
-        console.error("❌ Error:", error);
+        debugLog(`❌ Error: ${error.message}`);
         document.getElementById("productGrid").innerHTML = `
             <div class="col-span-full text-center py-10">
                 <div class="text-red-500 mb-2">❌ ${error.message}</div>
                 <div class="text-xs text-gray-400 mt-2">API URL: ${API_URL}</div>
+                <div class="text-xs text-gray-400">เปิด Console (F12) เพื่อดูรายละเอียด</div>
                 <button onclick="loadProducts()" class="mt-4 bg-rose-500 text-white px-4 py-2 rounded-lg">🔄 ลองใหม่</button>
             </div>
         `;
@@ -204,7 +280,7 @@ function renderProducts() {
                 <div class="text-xs text-gray-400">🏷️ ${p.category}</div>
                 <div class="font-medium text-sm">${p.name}</div>
                 <div class="text-rose-500 font-bold text-sm">${formatPrice(p.price)}</div>
-                <button onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm">
+                <button onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm hover:bg-rose-600 transition">
                     🛒 หยิบใส่ตะกร้า
                 </button>
             </div>
@@ -285,7 +361,6 @@ function removeFromCart(id) {
     showToast("🗑️ ลบสินค้าเรียบร้อย", "info"); 
 }
 
-// บันทึกคำสั่งซื้อโดยใช้ fetch POST
 async function submitOrder() {
     if (!cart.length) { 
         showToast("⚠️ ไม่มีสินค้าในตะกร้า", "error"); 
@@ -310,11 +385,10 @@ async function submitOrder() {
     
     const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
     const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
-    
     const orderData = { name, email, phone, address, items, total };
     
-    console.log("📦 Sending order:", orderData);
-    showLoading();
+    debugLog(`📦 Sending order: ${JSON.stringify(orderData)}`);
+    showLoading('กำลังบันทึกคำสั่งซื้อ...');
     
     try {
         const response = await fetch(API_URL, {
@@ -327,15 +401,14 @@ async function submitOrder() {
             body: JSON.stringify(orderData)
         });
         
-        console.log("📡 Response status:", response.status);
+        debugLog(`📡 Response status: ${response.status}`);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const result = await response.json();
-        console.log("📦 Response data:", result);
-        
+        debugLog(`📦 Response: ${JSON.stringify(result)}`);
         hideLoading();
         
         if (result.success) {
@@ -355,7 +428,7 @@ async function submitOrder() {
         }
     } catch(error) {
         hideLoading();
-        console.error("❌ Submit error:", error);
+        debugLog(`❌ Submit error: ${error.message}`);
         Swal.fire("❌ ผิดพลาด", `ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ${error.message}`, "error");
     }
 }
@@ -371,8 +444,18 @@ function closeCart() {
 
 // Event Listeners
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("🚀 App started, API_URL:", API_URL);
+    debugLog('🚀 App started');
+    debugLog(`📡 API_URL: ${API_URL}`);
+    
     loadProducts();
+    
+    // Debug toggle
+    const debugToggle = document.getElementById('debugToggle');
+    const debugPanel = document.getElementById('debugPanel');
+    debugToggle.onclick = () => {
+        debugPanel.classList.toggle('show');
+        debugToggle.innerText = debugPanel.classList.contains('show') ? '🔧 Hide Debug' : '🔧 Show Debug';
+    };
     
     document.getElementById("searchInput").oninput = e => { 
         searchQuery = e.target.value; 
