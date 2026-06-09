@@ -40,13 +40,12 @@
 <div id="loadingOverlay" class="loading-overlay hidden">
     <div class="bg-white rounded-2xl p-6 flex flex-col items-center gap-3">
         <i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i>
-        <span class="text-gray-600">กำลังโหลด...</span>
+        <span class="text-gray-600">กำลังบันทึกข้อมูล...</span>
     </div>
 </div>
 
 <!-- Main App -->
 <div class="max-w-md mx-auto relative">
-    <!-- Header -->
     <div class="bg-white sticky top-0 z-50 shadow-sm px-4 py-3 flex items-center justify-between">
         <div>
             <h1 class="text-xl font-bold text-rose-500">🛍️ E-Shop</h1>
@@ -58,7 +57,6 @@
         </div>
     </div>
 
-    <!-- Command Palette -->
     <div class="px-4 pt-3">
         <div class="command-palette bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
             <div class="flex items-center px-4 py-3">
@@ -68,12 +66,10 @@
         </div>
     </div>
 
-    <!-- Category Filter -->
     <div id="categoryFilter" class="px-4 py-2 overflow-x-auto flex gap-2 whitespace-nowrap hide-scrollbar">
         <button data-cat="all" class="cat-btn active-cat px-4 py-1.5 rounded-full text-sm bg-rose-500 text-white">✨ ทั้งหมด</button>
     </div>
 
-    <!-- Product Grid -->
     <div id="productGrid" class="product-grid">
         <div class="col-span-full text-center text-gray-400 py-10">
             <i class="fas fa-spinner fa-pulse text-2xl"></i>
@@ -118,14 +114,12 @@
     </div>
 </div>
 
-<!-- Floating Action Button -->
 <div class="fixed bottom-20 right-4 z-40">
     <button id="fabButton" class="w-14 h-14 bg-rose-500 rounded-full shadow-lg text-white flex items-center justify-center hover:bg-rose-600 transition transform hover:scale-105">
         <i class="fas fa-plus text-2xl"></i>
     </button>
 </div>
 
-<!-- Dock Navigation -->
 <div class="fixed bottom-0 left-0 right-0 tab-bar border-t border-gray-200 z-40">
     <div class="flex justify-around py-2">
         <div class="dock-item text-center flex-1 py-1 active text-rose-500" data-tab="home"><i class="fas fa-home text-xl"></i><div class="text-xs mt-1">หน้าแรก</div></div>
@@ -135,60 +129,27 @@
 </div>
 
 <script>
-// ============================================
-// CONFIGURATION
-// ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
+// ใส่ URL ที่ได้จากการ Deploy Web App ตรงนี้!
+const API_URL = "https://script.google.com/macros/s/YOUR_WEB_APP_URL/exec";
 
-// ============================================
-// GLOBAL STATE
-// ============================================
 let products = [];
 let cart = [];
 let currentCategory = "all";
 let searchQuery = "";
 
-// ============================================
-// UTILITIES
-// ============================================
-function showLoading() {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.classList.remove("hidden");
-}
-
-function hideLoading() {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.classList.add("hidden");
-}
+function showLoading() { document.getElementById("loadingOverlay")?.classList.remove("hidden"); }
+function hideLoading() { document.getElementById("loadingOverlay")?.classList.add("hidden"); }
 
 function showToast(title, icon = "success") {
-    Swal.fire({
-        title: title,
-        icon: icon,
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true,
-        background: "#fff",
-        color: "#333"
-    });
+    Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 2000 });
 }
 
-function formatPrice(price) {
-    return price.toLocaleString("th-TH") + " บาท";
-}
+function formatPrice(price) { return price.toLocaleString("th-TH") + " บาท"; }
 
-// ============================================
-// CART MANAGEMENT
-// ============================================
 function addToCart(product) {
     const existing = cart.find(item => item.id === product.id);
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({ ...product, quantity: 1 });
-    }
+    if (existing) existing.quantity += 1;
+    else cart.push({ ...product, quantity: 1 });
     updateCartUI();
     showToast("✅ " + product.name + " ใส่ตะกร้าแล้ว");
 }
@@ -203,11 +164,8 @@ function updateQuantity(productId, delta) {
     const item = cart.find(item => item.id === productId);
     if (item) {
         item.quantity += delta;
-        if (item.quantity <= 0) {
-            removeFromCart(productId);
-        } else {
-            updateCartUI();
-        }
+        if (item.quantity <= 0) removeFromCart(productId);
+        else updateCartUI();
     }
 }
 
@@ -223,7 +181,7 @@ function updateCartUI() {
     const cartItemsContainer = document.getElementById("cartItems");
     if (cartItemsContainer) {
         if (cart.length === 0) {
-            cartItemsContainer.innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>🛒 ตะกร้าว่างเปล่า</p><p class="text-xs mt-2">เลือกสินค้ากันเถอะ!</p></div>`;
+            cartItemsContainer.innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>🛒 ตะกร้าว่างเปล่า</p></div>`;
         } else {
             cartItemsContainer.innerHTML = cart.map(item => `
                 <div class="cart-item flex gap-3 bg-gray-50 rounded-xl p-3">
@@ -244,9 +202,6 @@ function updateCartUI() {
     }
 }
 
-// ============================================
-// SUBMIT ORDER
-// ============================================
 async function submitOrder() {
     if (cart.length === 0) {
         showToast("⚠️ กรุณาเลือกสินค้าก่อน", "error");
@@ -272,164 +227,127 @@ async function submitOrder() {
     
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
-    // สร้าง FormData
-    const formData = new FormData();
-    formData.append("customerName", name);
-    formData.append("email", email);
-    formData.append("phone", phone);
-    formData.append("address", address);
-    formData.append("items", JSON.stringify(items));
-    formData.append("total", total);
+    const orderData = {
+        customerName: name,
+        email: email,
+        phone: phone,
+        address: address,
+        items: JSON.stringify(items),
+        total: total
+    };
     
     showLoading();
     
     try {
         const response = await fetch(API_URL, {
             method: "POST",
-            body: formData
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData)
         });
         
-        const result = await response.text();
+        const result = await response.json();
         console.log("Response:", result);
-        
         hideLoading();
         
-        Swal.fire({
-            title: "🎉 สั่งซื้อสำเร็จ!",
-            html: `ขอบคุณที่ใช้บริการ<br><br>📧 ทางร้านจะส่งอีเมลยืนยันให้คุณ<br>🙏 ขอบคุณที่ใช้บริการ`,
-            icon: "success",
-            confirmButtonText: "ตกลง",
-            confirmButtonColor: "#f43f5e"
-        });
-        
-        // เคลียร์ตะกร้า
-        cart = [];
-        updateCartUI();
-        closeCart();
-        document.getElementById("checkoutModal").classList.add("hidden");
-        
-        // เคลียร์ฟอร์ม
-        document.getElementById("custName").value = "";
-        document.getElementById("custEmail").value = "";
-        document.getElementById("custPhone").value = "";
-        document.getElementById("custAddress").value = "";
+        if (result.success) {
+            Swal.fire({
+                title: "🎉 สั่งซื้อสำเร็จ!",
+                html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br><br>📧 ทางร้านจะส่งอีเมลยืนยันให้คุณ<br>🙏 ขอบคุณที่ใช้บริการ`,
+                icon: "success",
+                confirmButtonText: "ตกลง",
+                confirmButtonColor: "#f43f5e"
+            });
+            
+            cart = [];
+            updateCartUI();
+            closeCart();
+            document.getElementById("checkoutModal").classList.add("hidden");
+            document.getElementById("custName").value = "";
+            document.getElementById("custEmail").value = "";
+            document.getElementById("custPhone").value = "";
+            document.getElementById("custAddress").value = "";
+        } else {
+            Swal.fire({
+                title: "❌ เกิดข้อผิดพลาด",
+                html: result.message,
+                icon: "error",
+                confirmButtonText: "ตกลง"
+            });
+        }
         
     } catch (error) {
         hideLoading();
         console.error("Error:", error);
-        
-        // แสดงว่าสำเร็จแม้จะมี error (สำหรับการทดสอบ)
         Swal.fire({
-            title: "✅ ดำเนินการเรียบร้อย",
-            html: `ระบบได้รับคำสั่งซื้อของคุณแล้ว<br>ทางร้านจะติดต่อกลับโดยเร็วที่สุด`,
-            icon: "success",
-            confirmButtonText: "ตกลง",
-            confirmButtonColor: "#f43f5e"
+            title: "❌ เกิดข้อผิดพลาด",
+            html: `ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้<br>กรุณาลองใหม่อีกครั้ง`,
+            icon: "error",
+            confirmButtonText: "ตกลง"
         });
-        
-        cart = [];
-        updateCartUI();
-        closeCart();
-        document.getElementById("checkoutModal").classList.add("hidden");
     }
 }
 
-// ============================================
-// LOAD PRODUCTS
-// ============================================
 function loadProducts() {
-    showLoading();
-    
-    // สินค้าตัวอย่าง
     products = [
-        { id: "P001", name: "เสื้อเชิ้ตผู้ชายคอปก", price: 399, image: "https://picsum.photos/id/20/200/200", category: "เสื้อผ้า", stock: 50 },
-        { id: "P002", name: "กางเกงยีนส์สลิมฟิต", price: 599, image: "https://picsum.photos/id/26/200/200", category: "เสื้อผ้า", stock: 35 },
-        { id: "P003", name: "รองเท้าผ้าใบสไตล์วินเทจ", price: 899, image: "https://picsum.photos/id/0/200/200", category: "รองเท้า", stock: 20 },
-        { id: "P004", name: "หมวกแก๊ปผู้ชาย", price: 199, image: "https://picsum.photos/id/1/200/200", category: "เครื่องประดับ", stock: 100 },
-        { id: "P005", name: "กระเป๋าเป้สะพายหลัง", price: 1290, image: "https://picsum.photos/id/133/200/200", category: "กระเป๋า", stock: 15 },
-        { id: "P006", name: "นาฬิกาข้อมือสปอร์ต", price: 2490, image: "https://picsum.photos/id/82/200/200", category: "เครื่องประดับ", stock: 10 },
-        { id: "P007", name: "เสื้อฮู้ดผ้าฝ้าย", price: 459, image: "https://picsum.photos/id/24/200/200", category: "เสื้อผ้า", stock: 30 },
-        { id: "P008", name: "แก้วน้ำสแตนเลส", price: 299, image: "https://picsum.photos/id/30/200/200", category: "ของใช้", stock: 45 },
-        { id: "P009", name: "หูฟังบลูทูธ", price: 1590, image: "https://picsum.photos/id/1/200/200", category: "อิเล็กทรอนิกส์", stock: 25 },
-        { id: "P010", name: "พาวเวอร์แบงค์ 20000mAh", price: 890, image: "https://picsum.photos/id/0/200/200", category: "อิเล็กทรอนิกส์", stock: 40 }
+        { id: "P001", name: "เสื้อเชิ้ตผู้ชายคอปก", price: 399, image: "https://picsum.photos/id/20/200/200", category: "เสื้อผ้า" },
+        { id: "P002", name: "กางเกงยีนส์สลิมฟิต", price: 599, image: "https://picsum.photos/id/26/200/200", category: "เสื้อผ้า" },
+        { id: "P003", name: "รองเท้าผ้าใบสไตล์วินเทจ", price: 899, image: "https://picsum.photos/id/0/200/200", category: "รองเท้า" },
+        { id: "P004", name: "หมวกแก๊ปผู้ชาย", price: 199, image: "https://picsum.photos/id/1/200/200", category: "เครื่องประดับ" },
+        { id: "P005", name: "กระเป๋าเป้สะพายหลัง", price: 1290, image: "https://picsum.photos/id/133/200/200", category: "กระเป๋า" },
+        { id: "P006", name: "นาฬิกาข้อมือสปอร์ต", price: 2490, image: "https://picsum.photos/id/82/200/200", category: "เครื่องประดับ" },
+        { id: "P007", name: "เสื้อฮู้ดผ้าฝ้าย", price: 459, image: "https://picsum.photos/id/24/200/200", category: "เสื้อผ้า" },
+        { id: "P008", name: "แก้วน้ำสแตนเลส", price: 299, image: "https://picsum.photos/id/30/200/200", category: "ของใช้" }
     ];
-    
     renderProducts();
     setupCategories();
-    hideLoading();
 }
 
-// ============================================
-// RENDER PRODUCTS
-// ============================================
 function renderProducts() {
     let filtered = [...products];
-    
-    if (currentCategory !== "all") {
-        filtered = filtered.filter(p => p.category === currentCategory);
-    }
-    
-    if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
-    }
-    
+    if (currentCategory !== "all") filtered = filtered.filter(p => p.category === currentCategory);
+    if (searchQuery.trim()) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     const grid = document.getElementById("productGrid");
     if (!grid) return;
-    
-    if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10"><i class="fas fa-box-open text-4xl mb-3"></i><p>🔍 ไม่พบสินค้า</p></div>`;
-        return;
-    }
-    
+    if (filtered.length === 0) { grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">🔍 ไม่พบสินค้า</div>`; return; }
     grid.innerHTML = filtered.map(product => `
-        <div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition">
+        <div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
             <img src="${product.image}" class="w-full h-36 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">
             <div class="p-2">
                 <div class="text-xs text-gray-400">🏷️ ${product.category}</div>
                 <div class="font-medium text-sm truncate mt-1">${product.name}</div>
                 <div class="text-rose-500 font-bold text-sm mt-1">${formatPrice(product.price)}</div>
                 <button class="add-to-cart-btn w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-xs hover:bg-rose-600 transition" 
-                    data-id="${product.id}" 
-                    data-name="${product.name}" 
-                    data-price="${product.price}" 
-                    data-image="${product.image}" 
-                    data-category="${product.category}">
+                    data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-image="${product.image}" data-category="${product.category}">
                     <i class="fas fa-cart-plus mr-1"></i> 🛒 หยิบใส่ตะกร้า
                 </button>
             </div>
         </div>
     `).join("");
-    
     document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const product = {
+            addToCart({
                 id: btn.dataset.id,
                 name: btn.dataset.name,
                 price: parseInt(btn.dataset.price),
                 image: btn.dataset.image,
                 category: btn.dataset.category
-            };
-            addToCart(product);
+            });
         });
     });
 }
 
-// ============================================
-// SETUP CATEGORIES
-// ============================================
 function setupCategories() {
     const categories = [...new Set(products.map(p => p.category))];
     const container = document.getElementById("categoryFilter");
     if (!container) return;
-    
     container.innerHTML = `<button data-cat="all" class="cat-btn active-cat px-4 py-1.5 rounded-full text-sm bg-rose-500 text-white">✨ ทั้งหมด</button>`;
-    
     categories.forEach(cat => {
         container.innerHTML += `<button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700">🏷️ ${cat}</button>`;
     });
-    
     document.querySelectorAll(".cat-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".cat-btn").forEach(b => {
@@ -444,121 +362,34 @@ function setupCategories() {
     });
 }
 
-// ============================================
-// CART MODAL
-// ============================================
-function openCart() {
-    updateCartUI();
-    const cartSidebar = document.getElementById("cartSidebar");
-    if (cartSidebar) cartSidebar.classList.remove("hidden");
-}
+function openCart() { updateCartUI(); document.getElementById("cartSidebar")?.classList.remove("hidden"); }
+function closeCart() { document.getElementById("cartSidebar")?.classList.add("hidden"); }
 
-function closeCart() {
-    const cartSidebar = document.getElementById("cartSidebar");
-    if (cartSidebar) cartSidebar.classList.add("hidden");
-}
-
-// ============================================
-// INITIALIZATION
-// ============================================
 document.addEventListener("DOMContentLoaded", () => {
     loadProducts();
-    
-    // Search
-    const searchInput = document.getElementById("searchInput");
-    if (searchInput) {
-        searchInput.addEventListener("input", (e) => {
-            searchQuery = e.target.value;
-            renderProducts();
-        });
-    }
-    
-    // Cart
-    const cartIcon = document.getElementById("cartIcon");
-    if (cartIcon) cartIcon.addEventListener("click", openCart);
-    
-    const closeCartBtn = document.getElementById("closeCart");
-    if (closeCartBtn) closeCartBtn.addEventListener("click", closeCart);
-    
-    const cartOverlay = document.getElementById("cartOverlay");
-    if (cartOverlay) cartOverlay.addEventListener("click", closeCart);
-    
-    // Checkout
-    const checkoutBtn = document.getElementById("checkoutBtn");
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener("click", () => {
-            if (cart.length === 0) {
-                showToast("⚠️ ตะกร้าว่างเปล่า กรุณาเลือกสินค้าก่อน", "error");
-                return;
-            }
-            const checkoutModal = document.getElementById("checkoutModal");
-            if (checkoutModal) checkoutModal.classList.remove("hidden");
-        });
-    }
-    
-    const cancelCheckout = document.getElementById("cancelCheckout");
-    if (cancelCheckout) {
-        cancelCheckout.addEventListener("click", () => {
-            const checkoutModal = document.getElementById("checkoutModal");
-            if (checkoutModal) checkoutModal.classList.add("hidden");
-        });
-    }
-    
-    const checkoutOverlay = document.getElementById("checkoutOverlay");
-    if (checkoutOverlay) {
-        checkoutOverlay.addEventListener("click", () => {
-            const checkoutModal = document.getElementById("checkoutModal");
-            if (checkoutModal) checkoutModal.classList.add("hidden");
-        });
-    }
-    
-    const confirmOrder = document.getElementById("confirmOrder");
-    if (confirmOrder) confirmOrder.addEventListener("click", submitOrder);
-    
-    // FAB Button
-    const fabButton = document.getElementById("fabButton");
-    if (fabButton) {
-        fabButton.addEventListener("click", () => {
-            Swal.fire({
-                title: "🎉 ยินดีต้อนรับ",
-                text: "เลือกสินค้าที่คุณชอบ แล้วกดหยิบใส่ตะกร้าได้เลย!",
-                icon: "info",
-                confirmButtonText: "รับทราบ",
-                confirmButtonColor: "#f43f5e"
-            });
-        });
-    }
-    
-    // Dock Navigation
+    document.getElementById("searchInput")?.addEventListener("input", (e) => { searchQuery = e.target.value; renderProducts(); });
+    document.getElementById("cartIcon")?.addEventListener("click", openCart);
+    document.getElementById("closeCart")?.addEventListener("click", closeCart);
+    document.getElementById("cartOverlay")?.addEventListener("click", closeCart);
+    document.getElementById("checkoutBtn")?.addEventListener("click", () => {
+        if (cart.length === 0) { showToast("⚠️ ตะกร้าว่างเปล่า", "error"); return; }
+        document.getElementById("checkoutModal")?.classList.remove("hidden");
+    });
+    document.getElementById("cancelCheckout")?.addEventListener("click", () => document.getElementById("checkoutModal")?.classList.add("hidden"));
+    document.getElementById("checkoutOverlay")?.addEventListener("click", () => document.getElementById("checkoutModal")?.classList.add("hidden"));
+    document.getElementById("confirmOrder")?.addEventListener("click", submitOrder);
+    document.getElementById("fabButton")?.addEventListener("click", () => {
+        Swal.fire({ title: "🎉 ยินดีต้อนรับ", text: "เลือกสินค้าที่คุณชอบ แล้วกดหยิบใส่ตะกร้าได้เลย!", icon: "info", confirmButtonText: "รับทราบ" });
+    });
     document.querySelectorAll(".dock-item").forEach(item => {
         item.addEventListener("click", () => {
             const tab = item.dataset.tab;
-            document.querySelectorAll(".dock-item").forEach(dock => {
-                dock.classList.remove("active", "text-rose-500");
-                dock.classList.add("text-gray-500");
-            });
+            document.querySelectorAll(".dock-item").forEach(d => { d.classList.remove("active", "text-rose-500"); d.classList.add("text-gray-500"); });
             item.classList.add("active", "text-rose-500");
-            item.classList.remove("text-gray-500");
-            
-            if (tab === "home") {
-                const productGrid = document.getElementById("productGrid");
-                if (productGrid) productGrid.style.display = "grid";
-                closeCart();
-            } else if (tab === "cart") {
-                openCart();
-            } else if (tab === "profile") {
-                Swal.fire({
-                    title: "👤 โปรไฟล์",
-                    html: `
-                        <div class="text-left">
-                            <p><strong>📧 อีเมล:</strong> customer@eshop.com</p>
-                            <p><strong>📱 เบอร์โทร:</strong> 08x-xxx-xxxx</p>
-                            <p><strong>🏠 ที่อยู่:</strong> กรุงเทพฯ ประเทศไทย</p>
-                        </div>
-                    `,
-                    icon: "info",
-                    confirmButtonText: "ปิด"
-                });
+            if (tab === "home") closeCart();
+            else if (tab === "cart") openCart();
+            else if (tab === "profile") {
+                Swal.fire({ title: "👤 โปรไฟล์", html: `<div><p>📧 อีเมล: customer@eshop.com</p><p>📱 เบอร์: 08x-xxx-xxxx</p></div>`, icon: "info" });
             }
         });
     });
