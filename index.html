@@ -68,12 +68,7 @@
     <div id="categoryFilter" class="px-4 flex gap-2 overflow-x-auto whitespace-nowrap pb-2 hide-scrollbar"></div>
 
     <!-- Products Grid -->
-    <div id="productGrid" class="product-grid">
-        <div class="col-span-full text-center text-gray-400 py-10">
-            <i class="fas fa-spinner fa-pulse text-2xl"></i>
-            <p class="mt-2">กำลังโหลดสินค้า...</p>
-        </div>
-    </div>
+    <div id="productGrid" class="product-grid"></div>
 </div>
 
 <!-- Cart Sidebar -->
@@ -128,19 +123,19 @@
         <div class="p-4 space-y-4">
             <div class="bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
                 <i class="fas fa-info-circle mr-1"></i>
-                API Endpoint: <span id="apiUrlDisplay" class="text-xs break-all"></span>
+                ข้อมูลคำสั่งซื้อถูกบันทึกในเครื่องของคุณ
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <button id="viewOrdersBtn" class="bg-purple-500 text-white py-3 rounded-xl font-semibold">
                     <i class="fas fa-list mr-2"></i>ดูประวัติคำสั่งซื้อ
                 </button>
                 <button id="clearOrdersBtn" class="bg-red-500 text-white py-3 rounded-xl font-semibold">
-                    <i class="fas fa-trash mr-2"></i>ล้างข้อมูลในเครื่อง
+                    <i class="fas fa-trash mr-2"></i>ล้างข้อมูลทั้งหมด
                 </button>
             </div>
             <div class="bg-gray-50 rounded-xl p-3 text-xs text-gray-600">
                 <i class="fas fa-database mr-1"></i>
-                จำนวนคำสั่งซื้อในเครื่อง: <span id="orderCount">0</span> รายการ
+                จำนวนคำสั่งซื้อ: <span id="orderCount">0</span> รายการ
             </div>
         </div>
     </div>
@@ -171,22 +166,14 @@
 
 <script>
 // ============================================
-// CONFIGURATION - ใช้ URL ของคุณ
+// CONFIGURATION
 // ============================================
 const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
 
 // ============================================
-// Global Variables
+// สินค้าทั้งหมด (Hardcode ตามที่ต้องการ)
 // ============================================
-let products = [];
-let cart = [];
-let currentCategory = "all";
-let searchQuery = "";
-
-// ============================================
-// Product Data (สินค้าทั้งหมด)
-// ============================================
-const ALL_PRODUCTS = [
+const PRODUCTS = [
     { id: "P001", name: "เสื้อเชิ้ตผู้ชายคอปก", price: 399, image: "https://picsum.photos/id/20/200/200", category: "เสื้อผ้า" },
     { id: "P002", name: "กางเกงยีนส์สลิมฟิต", price: 599, image: "https://picsum.photos/id/26/200/200", category: "เสื้อผ้า" },
     { id: "P003", name: "รองเท้าผ้าใบสไตล์วินเทจ", price: 899, image: "https://picsum.photos/id/0/200/200", category: "รองเท้า" },
@@ -200,6 +187,13 @@ const ALL_PRODUCTS = [
 ];
 
 // ============================================
+// Global Variables
+// ============================================
+let cart = [];
+let currentCategory = "all";
+let searchQuery = "";
+
+// ============================================
 // Utility Functions
 // ============================================
 function showLoading() { document.getElementById("loadingOverlay")?.classList.remove("hidden"); }
@@ -210,24 +204,10 @@ function showToast(title, icon = "success") {
 }
 
 // ============================================
-// Load Products
-// ============================================
-function loadProducts() {
-    products = ALL_PRODUCTS;
-    renderProducts();
-    setupCategories();
-    updateOrderCountDisplay();
-    
-    // แสดง URL ใน Admin Panel
-    const urlDisplay = document.getElementById("apiUrlDisplay");
-    if (urlDisplay) urlDisplay.innerText = API_URL;
-}
-
-// ============================================
 // Render Products
 // ============================================
 function renderProducts() {
-    let filtered = products.filter(p => currentCategory === "all" || p.category === currentCategory);
+    let filtered = PRODUCTS.filter(p => currentCategory === "all" || p.category === currentCategory);
     if (searchQuery.trim()) {
         filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
@@ -256,7 +236,7 @@ function renderProducts() {
 }
 
 function setupCategories() {
-    const categories = ["all", ...new Set(products.map(p => p.category))];
+    const categories = ["all", ...new Set(PRODUCTS.map(p => p.category))];
     const container = document.getElementById("categoryFilter");
     if (!container) return;
     
@@ -313,39 +293,36 @@ function updateQuantity(productId, delta) {
 
 function updateCartUI() {
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const cartCountElem = document.getElementById("cartCount");
-    if (cartCountElem) cartCountElem.innerText = cartCount;
+    document.getElementById("cartCount").innerText = cartCount;
     
     const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const cartTotalElem = document.getElementById("cartTotal");
-    if (cartTotalElem) cartTotalElem.innerHTML = formatPrice(cartTotal);
+    document.getElementById("cartTotal").innerHTML = formatPrice(cartTotal);
     
     const cartItemsContainer = document.getElementById("cartItems");
-    if (cartItemsContainer) {
-        if (cart.length === 0) {
-            cartItemsContainer.innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>ตะกร้าว่างเปล่า</p></div>`;
-        } else {
-            cartItemsContainer.innerHTML = cart.map(item => `
-                <div class="cart-item flex gap-3 bg-gray-50 rounded-xl p-3">
-                    <img src="${item.image}" class="w-16 h-16 rounded-lg object-cover">
-                    <div class="flex-1">
-                        <div class="font-medium text-sm">${item.name}</div>
-                        <div class="text-rose-500 text-sm">${formatPrice(item.price)}</div>
-                        <div class="flex items-center gap-2 mt-2">
-                            <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)"><i class="fas fa-minus text-xs"></i></button>
-                            <span class="text-sm w-8 text-center">${item.quantity}</span>
-                            <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)"><i class="fas fa-plus text-xs"></i></button>
-                            <button onclick="removeFromCart('${item.id}')" class="ml-auto text-red-400"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </div>
-                </div>
-            `).join("");
-        }
+    if (cart.length === 0) {
+        cartItemsContainer.innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>ตะกร้าว่างเปล่า</p></div>`;
+        return;
     }
+    
+    cartItemsContainer.innerHTML = cart.map(item => `
+        <div class="cart-item flex gap-3 bg-gray-50 rounded-xl p-3">
+            <img src="${item.image}" class="w-16 h-16 rounded-lg object-cover">
+            <div class="flex-1">
+                <div class="font-medium text-sm">${item.name}</div>
+                <div class="text-rose-500 text-sm">${formatPrice(item.price)}</div>
+                <div class="flex items-center gap-2 mt-2">
+                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)"><i class="fas fa-minus text-xs"></i></button>
+                    <span class="text-sm w-8 text-center">${item.quantity}</span>
+                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)"><i class="fas fa-plus text-xs"></i></button>
+                    <button onclick="removeFromCart('${item.id}')" class="ml-auto text-red-400"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+        </div>
+    `).join("");
 }
 
 // ============================================
-// Order Management (บันทึกใน localStorage)
+// Order Management (localStorage)
 // ============================================
 function saveOrder(orderData) {
     let orders = JSON.parse(localStorage.getItem("orders") || "[]");
@@ -371,7 +348,7 @@ function updateOrderCountDisplay() {
 }
 
 // ============================================
-// Submit Order - บันทึกคำสั่งซื้อ
+// Submit Order
 // ============================================
 async function submitOrder() {
     if (cart.length === 0) {
@@ -413,9 +390,8 @@ async function submitOrder() {
     
     showLoading();
     
-    // สร้าง FormData สำหรับส่งไปยังเซิร์ฟเวอร์
+    // ส่งข้อมูลไปยังเซิร์ฟเวอร์
     const formData = new FormData();
-    formData.append("customerName", name);
     formData.append("name", name);
     formData.append("email", email);
     formData.append("phone", phone);
@@ -425,18 +401,13 @@ async function submitOrder() {
     formData.append("orderId", orderId);
     
     try {
-        // ส่งข้อมูลไปยังเซิร์ฟเวอร์
-        await fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: formData
-        });
+        await fetch(API_URL, { method: "POST", mode: "no-cors", body: formData });
         console.log("Data sent to server");
     } catch (error) {
         console.log("Server send failed:", error);
     }
     
-    // บันทึกข้อมูลลง localStorage เสมอ
+    // บันทึกใน localStorage
     saveOrder(orderData);
     
     hideLoading();
@@ -448,7 +419,6 @@ async function submitOrder() {
         confirmButtonText: "ตกลง"
     });
     
-    // เคลียร์ตะกร้า
     cart = [];
     updateCartUI();
     closeCart();
@@ -460,7 +430,7 @@ async function submitOrder() {
 }
 
 // ============================================
-// View Orders - แสดงประวัติคำสั่งซื้อ
+// View Orders
 // ============================================
 function viewOrders() {
     const orders = getOrders();
@@ -489,15 +459,9 @@ function viewOrders() {
 }
 
 // ============================================
-// Admin Functions
+// Clear Orders Confirm
 // ============================================
-function openAdmin() { 
-    document.getElementById("adminModal")?.classList.remove("hidden");
-    updateOrderCountDisplay();
-}
-function closeAdmin() { document.getElementById("adminModal")?.classList.add("hidden"); }
-
-function clearAllOrdersConfirm() {
+function clearOrdersConfirm() {
     const orders = getOrders();
     if (orders.length === 0) {
         showToast("ไม่มีข้อมูลที่จะลบ", "info");
@@ -506,7 +470,7 @@ function clearAllOrdersConfirm() {
     
     Swal.fire({
         title: "⚠️ ยืนยันการล้างข้อมูล",
-        text: "คุณต้องการล้างประวัติคำสั่งซื้อทั้งหมดในเครื่องใช่หรือไม่?",
+        text: "คุณต้องการล้างประวัติคำสั่งซื้อทั้งหมดใช่หรือไม่?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "ใช่, ล้างเลย",
@@ -525,12 +489,16 @@ function clearAllOrdersConfirm() {
 // ============================================
 function openCart() { updateCartUI(); document.getElementById("cartSidebar")?.classList.remove("hidden"); }
 function closeCart() { document.getElementById("cartSidebar")?.classList.add("hidden"); }
+function openAdmin() { document.getElementById("adminModal")?.classList.remove("hidden"); updateOrderCountDisplay(); }
+function closeAdmin() { document.getElementById("adminModal")?.classList.add("hidden"); }
 
 // ============================================
 // Initialize
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    loadProducts();
+    renderProducts();
+    setupCategories();
+    updateOrderCountDisplay();
     
     document.getElementById("searchInput")?.addEventListener("input", (e) => {
         searchQuery = e.target.value;
@@ -561,7 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("closeAdmin")?.addEventListener("click", closeAdmin);
     document.getElementById("adminOverlay")?.addEventListener("click", closeAdmin);
     document.getElementById("viewOrdersBtn")?.addEventListener("click", viewOrders);
-    document.getElementById("clearOrdersBtn")?.addEventListener("click", clearAllOrdersConfirm);
+    document.getElementById("clearOrdersBtn")?.addEventListener("click", clearOrdersConfirm);
     
     document.getElementById("fabButton")?.addEventListener("click", () => {
         Swal.fire("ยินดีต้อนรับ", "เลือกสินค้าที่คุณชอบแล้วกดหยิบใส่ตะกร้าได้เลย", "info");
@@ -578,9 +546,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (tab === "home") closeCart();
             else if (tab === "cart") openCart();
-            else if (tab === "profile") {
-                viewOrders();
-            }
+            else if (tab === "profile") viewOrders();
         });
     });
 });
