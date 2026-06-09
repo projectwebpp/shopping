@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://static.line-scdn.net/liff/edge/versions/2.21.4/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { background: #f5f5f5; font-family: 'IBM Plex Sans Thai', sans-serif; padding-bottom: 75px; }
@@ -97,7 +98,7 @@
     <!-- Header -->
     <div class="bg-white sticky top-0 z-40 shadow-sm px-4 py-3 flex justify-between items-center">
         <div>
-            <h1 class="text-xl font-bold text-rose-500">🛍️ E-Shop</h1>
+            <h1 id="storeNameHeader" class="text-xl font-bold text-rose-500">🛍️ E-Shop</h1>
             <p class="text-xs text-gray-400">Thailand</p>
         </div>
         <div class="flex items-center gap-3">
@@ -164,10 +165,41 @@
             <input type="email" id="custEmail" placeholder="อีเมล" class="w-full border rounded-xl p-3">
             <input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์" class="w-full border rounded-xl p-3">
             <textarea id="custAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3" rows="3"></textarea>
+            <div class="form-field">
+                <label>วิธีการชำระเงิน</label>
+                <select id="paymentMethod" class="w-full border rounded-xl p-3">
+                    <option value="cash">💰 เงินสด (ชำระเมื่อรับสินค้า)</option>
+                    <option value="promptpay">📱 โอนผ่าน PromptPay (แสดง QR Code)</option>
+                </select>
+            </div>
             <div class="flex gap-3 pt-2">
                 <button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
                 <button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">✅ ยืนยัน</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- PromptPay QR Modal -->
+<div id="qrModal" class="modal-container hidden">
+    <div class="modal-overlay" id="qrOverlay"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="text-lg font-semibold"><i class="fas fa-qrcode text-rose-500 mr-2"></i>ชำระเงินผ่าน PromptPay</h2>
+            <button id="closeQrModal" class="text-gray-500"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body text-center">
+            <div id="qrCodeContainer" class="flex justify-center mb-4"></div>
+            <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                <p class="font-semibold">ยอดที่ต้องชำระ</p>
+                <p id="qrAmount" class="text-2xl text-rose-500 font-bold">0 บาท</p>
+            </div>
+            <div id="qrTimer" class="text-sm text-red-500 font-semibold mb-3">⏱️ QR Code จะหมดอายุใน 60 วินาที</div>
+            <div class="bg-yellow-50 rounded-lg p-3 text-sm">
+                <i class="fas fa-info-circle mr-1"></i> กรุณาสแกน QR Code เพื่อชำระเงิน<br>
+                หลังจากโอนแล้ว รายการสั่งซื้อจะถูกดำเนินการเมื่อแอดมินยืนยัน
+            </div>
+            <button id="closeQrModalBtn" class="w-full mt-4 bg-gray-500 text-white py-3 rounded-xl">ปิด</button>
         </div>
     </div>
 </div>
@@ -225,10 +257,12 @@
         <div id="adminCategoriesSection" class="p-4 hidden"><div class="flex justify-between items-center mb-3"><h3 class="font-semibold">จัดการหมวดหมู่</h3><button id="addCategoryBtn" class="bg-rose-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-plus mr-1"></i>เพิ่มหมวดหมู่</button></div><div id="adminCategoriesList" class="space-y-3 max-h-96 overflow-y-auto"></div></div>
         <div id="adminUsersSection" class="p-4 hidden"><div class="flex justify-between items-center mb-3"><h3 class="font-semibold">จัดการสมาชิก</h3><button id="refreshUsersBtn" class="text-rose-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button></div><div id="adminUsersList" class="space-y-3 max-h-96 overflow-y-auto"></div></div>
         <div id="adminSettingsSection" class="p-4 hidden">
-            <div class="bg-yellow-50 rounded-xl p-3 mb-4 text-sm"><i class="fas fa-info-circle mr-1"></i>ตั้งค่าการแจ้งเตือนและสิทธิ์ผู้ดูแลระบบ</div>
-            <div class="form-field"><label>LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text" id="botToken" placeholder="Channel Access Token"><button id="saveBotToken" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Token</button></div>
-            <div class="form-field mt-4"><label>Admin User IDs (คั่นด้วยเครื่องหมายจุลภาค)</label><input type="text" id="adminIds" placeholder="Uxxxxxxxxx, Uyyyyyyyyy"><button id="saveAdminIds" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Admin IDs</button></div>
-            <div class="form-field mt-4"><label>ทดสอบแจ้งเตือน</label><button id="testNotifyBtn" class="w-full bg-rose-500 text-white py-2 rounded-lg"><i class="fab fa-line mr-1"></i>ส่งข้อความทดสอบ</button></div>
+            <div class="bg-yellow-50 rounded-xl p-3 mb-4 text-sm"><i class="fas fa-info-circle mr-1"></i>ตั้งค่าทั่วไป</div>
+            <div class="form-field"><label>🏪 ชื่อร้านค้า</label><input type="text" id="storeName" placeholder="ชื่อร้าน"><button id="saveStoreName" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
+            <div class="form-field mt-4"><label>📱 หมายเลข PromptPay (เบอร์โทร)</label><input type="text" id="promptpayPhone" placeholder="0812345678"><button id="savePromptPay" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
+            <div class="form-field"><label>🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text" id="botToken" placeholder="Channel Access Token"><button id="saveBotToken" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Token</button></div>
+            <div class="form-field mt-4"><label>👑 Admin User IDs (คั่นด้วยจุลภาค)</label><input type="text" id="adminIds" placeholder="Uxxxxxxxxx, Uyyyyyyyyy"><button id="saveAdminIds" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Admin IDs</button></div>
+            <div class="form-field mt-4"><label>📢 ทดสอบแจ้งเตือน</label><button id="testNotifyBtn" class="w-full bg-rose-500 text-white py-2 rounded-lg"><i class="fab fa-line mr-1"></i>ส่งข้อความทดสอบ</button></div>
         </div>
     </div>
 </div>
@@ -318,7 +352,7 @@
 
 <script>
 // ============================================
-// CONFIGURATION - ใช้ลิงค์ใหม่ตามที่คุณกำหนด
+// CONFIGURATION
 // ============================================
 const API_URL = "https://script.google.com/macros/s/AKfycbwM9du1XjiXCftKL0Xl19kpB76bWcO9D-0ZKddWcIeThPkN4pNEkPRa-BXbfDh6I4mvkQ/exec";
 const LIFF_ID = "2006974084-pCKlrYsc";
@@ -330,6 +364,9 @@ let products = [], cart = [], categories = [], adminCategories = [], allUsers = 
 let currentCategory = "all", searchQuery = "", currentTab = "all", isRadialOpen = false;
 let liffProfile = null, userProfile = null, isAdmin = false;
 let currentEditingOrder = null, currentEditingUser = null;
+let storeSettings = { STORE_NAME: "E-Shop Thailand", PROMPTPAY_PHONE: "" };
+let qrTimerInterval = null;
+let pendingOrderData = null;
 
 // ============================================
 // Utility Functions
@@ -449,6 +486,161 @@ function showContextMenu(x, y, p) {
     menu.querySelectorAll(".context-menu-item").forEach(item => item.addEventListener("click", () => { if (item.dataset.action === "add") addToCart(p); else if (item.dataset.action === "detail") Swal.fire({ title: p.name, html: `<img src="${p.image}" class="w-full rounded-lg mb-3"><p>ราคา: ${formatPrice(p.price)}</p><p>หมวดหมู่: ${p.category}</p>` }); else if (item.dataset.action === "share") { navigator.clipboard.writeText(p.name + " - " + formatPrice(p.price)); showToast("คัดลอกข้อมูลสินค้าแล้ว"); } removeContextMenu(); }));
 }
 function removeContextMenu() { const menu = document.querySelector(".context-menu"); if (menu) menu.remove(); }
+
+// ============================================
+// PromptPay QR Code Functions
+// ============================================
+function crc16ccitt(data) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < data.length; i++) {
+        crc ^= data.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+            if (crc & 0x8000) crc = (crc << 1) ^ 0x1021;
+            else crc <<= 1;
+        }
+    }
+    return crc & 0xFFFF;
+}
+
+function generatePromptPayPayload(amount, phoneNumber) {
+    const phone = phoneNumber.replace(/\D/g, '');
+    if (!phone || phone.length !== 10) return null;
+    let payload = "00020101021129370016A000000677010111";
+    const phoneLen = phone.length;
+    const phoneHex = (phoneLen + 13).toString(16).padStart(2, '0').toUpperCase();
+    payload += phoneHex;
+    payload += "01130066" + phone;
+    const amountStr = amount.toFixed(2);
+    const amountLen = amountStr.length;
+    const amountHex = (amountLen + 5).toString(16).padStart(2, '0').toUpperCase();
+    payload += "5303764" + amountHex + amountStr;
+    const crc = crc16ccitt(payload);
+    payload += "6304" + crc.toString(16).padStart(4, '0').toUpperCase();
+    return payload;
+}
+
+function showPromptPayQR(amount, orderId) {
+    const phone = storeSettings.PROMPTPAY_PHONE;
+    if (!phone) {
+        Swal.fire("แจ้งเตือน", "ยังไม่ได้ตั้งค่าหมายเลข PromptPay กรุณาติดต่อแอดมิน", "error");
+        return false;
+    }
+    const payload = generatePromptPayPayload(amount, phone);
+    if (!payload) {
+        Swal.fire("แจ้งเตือน", "หมายเลข PromptPay ไม่ถูกต้อง", "error");
+        return false;
+    }
+    document.getElementById("qrAmount").innerText = formatPrice(amount);
+    document.getElementById("qrCodeContainer").innerHTML = "";
+    try {
+        new QRCode(document.getElementById("qrCodeContainer"), {
+            text: payload,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    } catch(e) {
+        document.getElementById("qrCodeContainer").innerHTML = '<div class="text-red-500">ไม่สามารถสร้าง QR Code ได้</div>';
+        return false;
+    }
+    if (qrTimerInterval) clearInterval(qrTimerInterval);
+    let secondsLeft = 60;
+    const timerEl = document.getElementById("qrTimer");
+    timerEl.innerText = `⏱️ QR Code จะหมดอายุใน ${secondsLeft} วินาที`;
+    qrTimerInterval = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft <= 0) {
+            clearInterval(qrTimerInterval);
+            timerEl.innerText = "❌ QR Code หมดอายุแล้ว กรุณาสั่งซื้อใหม่";
+            document.getElementById("qrCodeContainer").innerHTML = '<div class="text-red-500">QR Code หมดอายุ</div>';
+            Swal.fire("QR Code หมดอายุ", "กรุณาสั่งซื้อใหม่หรือติดต่อแอดมิน", "warning");
+        } else {
+            timerEl.innerText = `⏱️ QR Code จะหมดอายุใน ${secondsLeft} วินาที`;
+        }
+    }, 1000);
+    document.getElementById("qrModal").classList.remove("hidden");
+    return true;
+}
+
+// ============================================
+// Order Functions
+// ============================================
+async function submitOrder() {
+    if (!cart.length) { showToast("ไม่มีสินค้าในตะกร้า", "error"); return; }
+    for (const item of cart) {
+        const latestProduct = products.find(p => p.id === item.id);
+        const stock = Number(latestProduct?.stock ?? item.stock) || 0;
+        if (stock <= 0 || item.quantity > stock) {
+            showToast(`สินค้า "${item.name}" เหลือ ${stock} ชิ้น`, "error");
+            return;
+        }
+    }
+    const name = document.getElementById("custName").value.trim();
+    const email = document.getElementById("custEmail").value.trim();
+    const phone = document.getElementById("custPhone").value.trim();
+    const address = document.getElementById("custAddress").value.trim();
+    const paymentMethod = document.getElementById("paymentMethod").value;
+    if (!name || !email || !phone || !address) { showToast("กรุณากรอกข้อมูลให้ครบ", "error"); return; }
+    if (userProfile) {
+        userProfile.displayName = name;
+        userProfile.email = email;
+        userProfile.phone = phone;
+        userProfile.address = address;
+        await updateUserProfile({ userId: userProfile.userId, displayName: name, email: email, phone: phone, address: address, pictureUrl: userProfile.pictureUrl });
+    }
+    const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
+    const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+    const fd = new FormData();
+    fd.append("name", name);
+    fd.append("email", email);
+    fd.append("phone", phone);
+    fd.append("address", address);
+    fd.append("lineId", userProfile?.userId || "web_user");
+    fd.append("lineName", userProfile?.lineName || "");
+    fd.append("items", JSON.stringify(items));
+    fd.append("total", total);
+    fd.append("paymentMethod", paymentMethod);
+    showLoading();
+    try {
+        const res = await fetch(API_URL, { method: "POST", body: fd });
+        const result = await res.json();
+        if (result.success) {
+            if (paymentMethod === "promptpay") {
+                const qrShown = showPromptPayQR(total, result.orderId);
+                if (!qrShown) {
+                    await sendFlexMessage({ orderId: result.orderId, items, total });
+                    Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่: <strong>${result.orderId}</strong><br>กรุณาชำระเงินตาม QR Code ที่แสดง`, icon: "success" });
+                }
+            } else {
+                await sendFlexMessage({ orderId: result.orderId, items, total });
+                Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่: <strong>${result.orderId}</strong>`, icon: "success" });
+            }
+            cart = [];
+            updateCartUI();
+            closeCart();
+            document.getElementById("checkoutModal").classList.add("hidden");
+            await loadProducts();
+            if (userProfile?.userId) {
+                orderHistory = await fetchAPI("getUserOrders", { lineId: userProfile.userId });
+                userProfile = await fetchAPI("getUserProfile", { lineId: userProfile.userId });
+            }
+        } else {
+            Swal.fire("ผิดพลาด", result.error, "error");
+        }
+    } catch(e) {
+        Swal.fire("ผิดพลาด", "เชื่อมต่อไม่ได้", "error");
+    }
+    hideLoading();
+}
+
+async function sendFlexMessage(orderData) {
+    if (!liff.isInClient()) return;
+    try {
+        await liff.sendMessages([{ type: "flex", altText: "ใบเสร็จ", contents: { type: "bubble", header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666" }] }, body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold" }, { type: "separator" }, ...orderData.items.map(i => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${i.name} x ${i.quantity}`, flex: 2 }, { type: "text", text: formatPrice(i.price * i.quantity), flex: 1, align: "end" }] })), { type: "separator" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e" }] }] }, footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center" }] } } }]);
+    } catch(e) { console.log(e); }
+}
 
 // ============================================
 // Admin Functions
@@ -571,14 +763,33 @@ async function loadAllUsers() {
     try { const res = await fetchAPI("getAllUsers", { lineId: userProfile?.userId }); allUsers = res.users || []; renderAdminUsers(); }
     catch(e) { console.error(e); }
 }
+async function loadStoreSettings() {
+    try { const res = await fetchAPI("getSettings"); storeSettings = { STORE_NAME: res.STORE_NAME || "E-Shop Thailand", PROMPTPAY_PHONE: res.PROMPTPAY_PHONE || "" }; document.getElementById("storeNameHeader").innerHTML = `🛍️ ${storeSettings.STORE_NAME}`; document.getElementById("storeName").value = storeSettings.STORE_NAME; document.getElementById("promptpayPhone").value = storeSettings.PROMPTPAY_PHONE; }
+    catch(e) { console.error(e); }
+}
+async function saveStoreNameSetting() {
+    const name = document.getElementById("storeName").value.trim();
+    if (!name) { showToast("กรุณากรอกชื่อร้าน", "error"); return; }
+    showLoading();
+    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("storeName", name); const res = await fetchPostAPI("saveStoreName", fd);
+        if (res.success) { showToast("บันทึกชื่อร้านสำเร็จ"); await loadStoreSettings(); }
+        else Swal.fire("ผิดพลาด", res.error, "error");
+    } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
+    hideLoading();
+}
+async function savePromptPaySetting() {
+    const phone = document.getElementById("promptpayPhone").value.trim();
+    showLoading();
+    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("promptpayPhone", phone); const res = await fetchPostAPI("savePromptPay", fd);
+        if (res.success) { showToast("บันทึกหมายเลข PromptPay สำเร็จ"); await loadStoreSettings(); }
+        else Swal.fire("ผิดพลาด", res.error, "error");
+    } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
+    hideLoading();
+}
 async function saveBotTokenSetting() {
     const token = document.getElementById("botToken").value.trim();
     showLoading();
-    try {
-        const fd = new FormData();
-        fd.append("adminLineId", userProfile?.userId);
-        fd.append("token", token);
-        const res = await fetchPostAPI("saveBotToken", fd);
+    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("token", token); const res = await fetchPostAPI("saveBotToken", fd);
         if (res.success) showToast("บันทึก Token เรียบร้อย");
         else Swal.fire("ผิดพลาด", res.error, "error");
     } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
@@ -587,15 +798,19 @@ async function saveBotTokenSetting() {
 async function saveAdminIdsSetting() {
     const ids = document.getElementById("adminIds").value.trim();
     showLoading();
-    try {
-        const fd = new FormData();
-        fd.append("adminLineId", userProfile?.userId);
-        fd.append("ids", ids);
-        const res = await fetchPostAPI("saveAdminIds", fd);
+    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("ids", ids); const res = await fetchPostAPI("saveAdminIds", fd);
         if (res.success) { showToast("บันทึก Admin IDs เรียบร้อย"); await checkAdminStatus(userProfile?.userId); }
         else Swal.fire("ผิดพลาด", res.error, "error");
     } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
     hideLoading();
+}
+async function loadBotTokenSetting() {
+    try { const settings = await fetchAPI("getSettings"); document.getElementById("botToken").value = settings.BOT_TOKEN || ""; }
+    catch(e) { document.getElementById("botToken").value = ""; }
+}
+async function loadAdminIdsSetting() {
+    try { const settings = await fetchAPI("getSettings"); document.getElementById("adminIds").value = settings.ADMIN_IDS || ""; }
+    catch(e) { document.getElementById("adminIds").value = ""; }
 }
 async function testNotify() { if (!liff.isInClient()) { showToast("ไม่ได้อยู่ในแอป LINE", "error"); return; } try { await liff.sendMessages([{ type: "text", text: "ทดสอบการแจ้งเตือนจาก E-Shop" }]); showToast("ส่งข้อความทดสอบสำเร็จ"); } catch(e) { showToast("ส่งไม่สำเร็จ", "error"); } }
 async function uploadImageToDrive() {
@@ -620,6 +835,7 @@ async function initializeLIFF() {
         await saveUserProfile(userProfile); updateUserUI(); autoFillCheckoutForm();
         orderHistory = await fetchAPI("getUserOrders", { lineId: userProfile.userId });
         await checkAdminStatus(userProfile.userId);
+        await loadStoreSettings();
         if (isAdmin) { await loadAllOrders(); await loadAllUsers(); await loadCategories(); renderTabBar(); }
         else { await loadCategories(); renderTabBar(); }
         await loadProducts();
@@ -664,45 +880,12 @@ async function reorderItems(orderId) {
     const o = orderHistory.find(o => o.orderId === orderId);
     if (o?.items) { o.items.forEach(i => { const p = products.find(p => p.id === i.id); if (p) addToCart(p); }); showToast("เพิ่มสินค้าลงตะกร้าเรียบร้อย"); closeAllModals(); }
 }
-async function submitOrder() {
-    if (!cart.length) { showToast("ไม่มีสินค้าในตะกร้า", "error"); return; }
-    for (const item of cart) {
-        const latestProduct = products.find(p => p.id === item.id);
-        const stock = Number(latestProduct?.stock ?? item.stock) || 0;
-        if (stock <= 0 || item.quantity > stock) {
-            showToast(`สินค้า "${item.name}" เหลือ ${stock} ชิ้น`, "error");
-            return;
-        }
-    }
-    const name = document.getElementById("custName").value.trim(), email = document.getElementById("custEmail").value.trim(), phone = document.getElementById("custPhone").value.trim(), address = document.getElementById("custAddress").value.trim();
-    if (!name || !email || !phone || !address) { showToast("กรุณากรอกข้อมูลให้ครบ", "error"); return; }
-    if (userProfile) { userProfile.displayName = name; userProfile.email = email; userProfile.phone = phone; userProfile.address = address; await updateUserProfile({ userId: userProfile.userId, displayName: name, email: email, phone: phone, address: address, pictureUrl: userProfile.pictureUrl }); }
-    const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })), total = cart.reduce((s, i) => s + (i.price * i.quantity), 0), fd = new FormData();
-    fd.append("name", name); fd.append("email", email); fd.append("phone", phone); fd.append("address", address);
-    fd.append("lineId", userProfile?.userId || "web_user"); fd.append("lineName", userProfile?.lineName || "");
-    fd.append("items", JSON.stringify(items)); fd.append("total", total);
-    showLoading();
-    try { const res = await fetch(API_URL, { method: "POST", body: fd }); const result = await res.json();
-        if (result.success) { await sendFlexMessage({ orderId: result.orderId, items, total });
-            Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่: <strong>${result.orderId}</strong>`, icon: "success" });
-            cart = []; updateCartUI(); closeCart(); document.getElementById("checkoutModal").classList.add("hidden");
-            await loadProducts();
-            if (userProfile?.userId) { orderHistory = await fetchAPI("getUserOrders", { lineId: userProfile.userId }); userProfile = await fetchAPI("getUserProfile", { lineId: userProfile.userId }); }
-        } else Swal.fire("ผิดพลาด", result.error, "error");
-    } catch(e) { Swal.fire("ผิดพลาด", "เชื่อมต่อไม่ได้", "error"); }
-    hideLoading();
-}
-async function sendFlexMessage(orderData) {
-    if (!liff.isInClient()) return;
-    try { await liff.sendMessages([{ type: "flex", altText: "ใบเสร็จ", contents: { type: "bubble", header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666" }] }, body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold" }, { type: "separator" }, ...orderData.items.map(i => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${i.name} x ${i.quantity}`, flex: 2 }, { type: "text", text: formatPrice(i.price * i.quantity), flex: 1, align: "end" }] })), { type: "separator" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e" }] }] }, footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center" }] } } }]); }
-    catch(e) { console.log(e); }
-}
 function openCart() { updateCartUI(); document.getElementById("cartSidebar").classList.remove("hidden"); closeRadialMenu(); }
 function closeCart() { document.getElementById("cartSidebar").classList.add("hidden"); }
-function closeAllModals() { ["profileModal", "editProfileModal", "orderHistoryModal", "orderDetailModal", "adminPanelModal", "productFormModal", "categoryFormModal", "orderStatusModal", "userRoleModal", "checkoutModal"].forEach(id => document.getElementById(id)?.classList.add("hidden")); }
+function closeAllModals() { ["profileModal", "editProfileModal", "orderHistoryModal", "orderDetailModal", "adminPanelModal", "productFormModal", "categoryFormModal", "orderStatusModal", "userRoleModal", "checkoutModal", "qrModal"].forEach(id => document.getElementById(id)?.classList.add("hidden")); if (qrTimerInterval) clearInterval(qrTimerInterval); }
 function toggleRadialMenu() { const rm = document.getElementById("radialMenu"); if (isRadialOpen) { rm.classList.add("hidden"); isRadialOpen = false; } else { rm.classList.remove("hidden"); isRadialOpen = true; } }
 function closeRadialMenu() { document.getElementById("radialMenu").classList.add("hidden"); isRadialOpen = false; }
-async function openAdminPanel() { if (!isAdmin) { showToast("ไม่มีสิทธิ์เข้าถึง", "error"); return; } await loadAllOrders(); await loadAdminProducts(); await loadAdminCategories(); await loadAllUsers(); document.getElementById("adminPanelModal").classList.remove("hidden"); closeRadialMenu(); }
+async function openAdminPanel() { if (!isAdmin) { showToast("ไม่มีสิทธิ์เข้าถึง", "error"); return; } await loadAllOrders(); await loadAdminProducts(); await loadAdminCategories(); await loadAllUsers(); await loadBotTokenSetting(); await loadAdminIdsSetting(); document.getElementById("adminPanelModal").classList.remove("hidden"); closeRadialMenu(); }
 
 // ============================================
 // Event Listeners & Initialize
@@ -743,7 +926,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         else if (target === "products") { document.getElementById("adminProductsSection").classList.remove("hidden"); loadAdminProducts(); }
         else if (target === "categories") { document.getElementById("adminCategoriesSection").classList.remove("hidden"); loadAdminCategories(); }
         else if (target === "users") { document.getElementById("adminUsersSection").classList.remove("hidden"); loadAllUsers(); }
-        else if (target === "settings") { document.getElementById("adminSettingsSection").classList.remove("hidden"); loadBotTokenSetting(); loadAdminIdsSetting(); }
+        else if (target === "settings") { document.getElementById("adminSettingsSection").classList.remove("hidden"); loadBotTokenSetting(); loadAdminIdsSetting(); loadStoreSettings(); }
     }); });
     document.getElementById("refreshOrdersBtn")?.addEventListener("click", async () => await loadAllOrders());
     document.getElementById("refreshUsersBtn")?.addEventListener("click", async () => await loadAllUsers());
@@ -768,23 +951,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("confirmUserRoleBtn")?.addEventListener("click", saveUserRole);
     document.getElementById("saveBotToken")?.addEventListener("click", saveBotTokenSetting);
     document.getElementById("saveAdminIds")?.addEventListener("click", saveAdminIdsSetting);
+    document.getElementById("saveStoreName")?.addEventListener("click", saveStoreNameSetting);
+    document.getElementById("savePromptPay")?.addEventListener("click", savePromptPaySetting);
     document.getElementById("testNotifyBtn")?.addEventListener("click", testNotify);
+    document.getElementById("closeQrModal")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
+    document.getElementById("qrOverlay")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
+    document.getElementById("closeQrModalBtn")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
     document.querySelectorAll(".radial-item").forEach(i => i.addEventListener("click", () => { const a = i.dataset.action; if (a === "home") { window.scrollTo({ top: 0 }); closeCart(); closeAllModals(); } else if (a === "search") document.getElementById("searchInput")?.focus(); else if (a === "cart") openCart(); else if (a === "profile") showProfileModal(); else if (a === "category") document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); else if (a === "admin") openAdminPanel(); closeRadialMenu(); }));
     document.addEventListener("click", (e) => { if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fab")) closeRadialMenu(); if (!e.target.closest(".context-menu")) removeContextMenu(); });
     document.querySelectorAll(".dock-item").forEach(d => d.addEventListener("click", () => { document.querySelectorAll(".dock-item").forEach(dd => dd.classList.remove("active")); d.classList.add("active"); const dck = d.dataset.dock; if (dck === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0 }); } else if (dck === "shop") { closeCart(); closeAllModals(); } else if (dck === "cart") openCart(); else if (dck === "profile") showProfileModal(); }));
 });
-async function loadBotTokenSetting() {
-    try {
-        const settings = await fetchAPI("getSettings");
-        document.getElementById("botToken").value = settings.BOT_TOKEN || "";
-    } catch(e) { document.getElementById("botToken").value = ""; }
-}
-async function loadAdminIdsSetting() {
-    try {
-        const settings = await fetchAPI("getSettings");
-        document.getElementById("adminIds").value = settings.ADMIN_IDS || "";
-    } catch(e) { document.getElementById("adminIds").value = ""; }
-}
 </script>
 </body>
 </html>
