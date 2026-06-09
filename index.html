@@ -60,7 +60,11 @@
         .order-history-card:active { transform: scale(0.98); }
         .profile-header { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border-radius: 20px; padding: 20px; margin-bottom: 16px; color: white; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; background: white; }
-        .user-avatar-small { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+        .user-avatar-small { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .user-info-header { display: flex; align-items: center; gap: 12px; }
+        .user-text-info { display: flex; flex-direction: column; }
+        .user-name { font-size: 14px; font-weight: 600; color: #1f2937; }
+        .user-line-name { font-size: 11px; color: #6b7280; }
     </style>
 </head>
 <body>
@@ -80,9 +84,14 @@
             <h1 class="text-xl font-bold text-rose-500">E-Shop</h1>
             <p class="text-xs text-gray-400">Thailand</p>
         </div>
-        <div class="flex items-center gap-3">
-            <div id="userAvatar" class="cursor-pointer">
-                <img id="profileImageSmall" class="user-avatar-small" src="https://via.placeholder.com/32?text=User" alt="profile">
+        <div class="flex items-center gap-4">
+            <!-- User Info with Avatar and Name -->
+            <div id="userAvatarContainer" class="flex items-center gap-2 cursor-pointer">
+                <img id="profileImageSmall" class="user-avatar-small" src="https://via.placeholder.com/36?text=User" alt="profile">
+                <div class="user-text-info hidden sm:block">
+                    <span id="userDisplayName" class="user-name">Guest</span>
+                    <span id="userLineName" class="user-line-name">Not connected</span>
+                </div>
             </div>
             <div id="cartIcon" class="relative cursor-pointer">
                 <i class="fas fa-shopping-cart text-2xl text-gray-700"></i>
@@ -217,7 +226,7 @@
 // ============================================
 // CONFIGURATION
 // ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
+const API_URL = window.location.href;
 const LIFF_ID = "2006974084-pCKlrYsc";
 
 // ============================================
@@ -232,7 +241,6 @@ let isRadialOpen = false;
 let liffProfile = null;
 let userProfile = null;
 let orderHistory = [];
-let userPictureUrl = null;
 
 // ============================================
 // Utility Functions
@@ -245,6 +253,53 @@ function showToast(title, icon = "success") {
 }
 
 // ============================================
+// Google Apps Script Calls
+// ============================================
+function callGoogleScript(functionName, ...args) {
+    return new Promise((resolve, reject) => {
+        google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            [functionName](...args);
+    });
+}
+
+async function saveUserToSheet(profile) {
+    try {
+        const result = await callGoogleScript('saveUserProfileWrapper',
+            profile.userId, profile.lineName, profile.displayName,
+            profile.email, profile.phone, profile.address, profile.pictureUrl || "");
+        const data = JSON.parse(result);
+        return data.success;
+    } catch(error) {
+        console.error("Save profile error:", error);
+        return false;
+    }
+}
+
+async function loadUserFromSheet(lineId) {
+    try {
+        const result = await callGoogleScript('getUserProfileWrapper', lineId);
+        const data = JSON.parse(result);
+        return data;
+    } catch(error) {
+        console.error("Load profile error:", error);
+        return null;
+    }
+}
+
+async function loadOrdersFromSheet(lineId) {
+    try {
+        const result = await callGoogleScript('getUserOrdersWrapper', lineId);
+        const orders = JSON.parse(result);
+        return orders;
+    } catch(error) {
+        console.error("Load orders error:", error);
+        return [];
+    }
+}
+
+// ============================================
 // LIFF Functions
 // ============================================
 async function initializeLIFF() {
@@ -253,81 +308,103 @@ async function initializeLIFF() {
         console.log("LIFF initialized successfully");
         
         if (liff.isLoggedIn()) {
-            // ดึงโปรไฟล์ LINE
+            // Get LIFF profile
             liffProfile = await liff.getProfile();
             console.log("LIFF Profile:", liffProfile);
             
-            // ดึงรูปโปรไฟล์
-            if (liffProfile.pictureUrl) {
-                userPictureUrl = liffProfile.pictureUrl;
-            }
-            
-            // ดึงอีเมล (ต้องขอ scope email)
+            // Try to get email from ID token
             let userEmail = "";
             try {
                 if (liff.getDecodedIDToken) {
                     const idToken = liff.getDecodedIDToken();
                     if (idToken && idToken.email) {
                         userEmail = idToken.email;
+                        console.log("Email retrieved from ID token:", userEmail);
                     }
                 }
             } catch(e) {
-                console.log("Cannot get email:", e);
+                console.log("Cannot get email from ID token:", e);
             }
             
-            // โหลดโปรไฟล์จาก localStorage
-            const saved = localStorage.getItem(`user_${liffProfile.userId}`);
-            if (saved) {
-                userProfile = JSON.parse(saved);
-                // อัพเดทอีเมลจาก LINE ถ้ามี
-                if (userEmail && !userProfile.email) {
-                    userProfile.email = userEmail;
-                    saveUserToLocal();
+            // Try to get email from access token (alternative method)
+            if (!userEmail) {
+                try {
+                    const accessToken = liff.getAccessToken();
+                    if (accessToken) {
+                        const response = await fetch('https://api.line.me/v2/profile', {
+                            headers: { 'Authorization': `Bearer ${accessToken}` }
+                        });
+                        const profileData = await response.json();
+                        console.log("Profile from API:", profileData);
+                    }
+                } catch(e) {
+                    console.log("Cannot get email from API:", e);
                 }
+            }
+            
+            // Load user profile from Sheet
+            let sheetProfile = await loadUserFromSheet(liffProfile.userId);
+            
+            if (sheetProfile && sheetProfile.displayName) {
+                userProfile = {
+                    userId: sheetProfile.lineId,
+                    lineName: sheetProfile.lineName,
+                    displayName: sheetProfile.displayName,
+                    email: sheetProfile.email || userEmail,
+                    phone: sheetProfile.phone || "",
+                    address: sheetProfile.address || "",
+                    pictureUrl: liffProfile.pictureUrl || sheetProfile.pictureUrl || ""
+                };
             } else {
                 userProfile = {
                     userId: liffProfile.userId,
+                    lineName: liffProfile.displayName,
                     displayName: liffProfile.displayName,
                     email: userEmail,
                     phone: "",
                     address: "",
                     pictureUrl: liffProfile.pictureUrl || ""
                 };
-                saveUserToLocal();
             }
             
-            // อัพเดท UI
+            // Save to Sheet
+            await saveUserToSheet(userProfile);
+            
+            // Update UI
             updateUserUI();
             autoFillCheckoutForm();
             
-            // โหลดประวัติการสั่งซื้อ
-            loadOrderHistory();
+            // Load order history
+            orderHistory = await loadOrdersFromSheet(liffProfile.userId);
         } else {
             liff.login();
         }
     } catch (error) {
         console.error("LIFF initialization failed:", error);
         // Fallback mode
-        userProfile = { userId: "guest", displayName: "Guest", email: "", phone: "", address: "", pictureUrl: "" };
+        userProfile = { userId: "guest", lineName: "Guest", displayName: "Guest", email: "", phone: "", address: "", pictureUrl: "" };
         updateUserUI();
-    }
-}
-
-function saveUserToLocal() {
-    if (userProfile && userProfile.userId) {
-        localStorage.setItem(`user_${userProfile.userId}`, JSON.stringify(userProfile));
     }
 }
 
 function updateUserUI() {
     const avatarSmall = document.getElementById("profileImageSmall");
-    if (avatarSmall) {
-        if (userPictureUrl || userProfile?.pictureUrl) {
-            avatarSmall.src = userPictureUrl || userProfile.pictureUrl;
-            avatarSmall.onerror = () => { avatarSmall.src = "https://via.placeholder.com/32?text=User"; };
-        } else {
-            avatarSmall.src = "https://via.placeholder.com/32?text=User";
+    const userNameSpan = document.getElementById("userDisplayName");
+    const userLineSpan = document.getElementById("userLineName");
+    
+    if (avatarSmall && userProfile) {
+        if (userProfile.pictureUrl) {
+            avatarSmall.src = userProfile.pictureUrl;
+            avatarSmall.onerror = () => { avatarSmall.src = "https://via.placeholder.com/36?text=User"; };
         }
+    }
+    
+    if (userNameSpan && userProfile) {
+        userNameSpan.innerText = userProfile.displayName || "Guest";
+    }
+    
+    if (userLineSpan && userProfile) {
+        userLineSpan.innerText = userProfile.lineName || "Not connected";
     }
 }
 
@@ -347,16 +424,10 @@ function autoFillCheckoutForm() {
 // ============================================
 // Order History Functions
 // ============================================
-function saveOrderToHistory(order) {
-    const orders = JSON.parse(localStorage.getItem(`orders_${userProfile.userId}`) || "[]");
-    orders.unshift(order);
-    localStorage.setItem(`orders_${userProfile.userId}`, JSON.stringify(orders));
-    orderHistory = orders;
-}
-
-function loadOrderHistory() {
-    if (userProfile) {
-        orderHistory = JSON.parse(localStorage.getItem(`orders_${userProfile.userId}`) || "[]");
+async function saveOrderToSheet(order) {
+    // Orders are saved via doPost, just update local cache
+    if (userProfile && userProfile.userId) {
+        orderHistory.unshift(order);
     }
 }
 
@@ -428,7 +499,7 @@ async function sendFlexMessage(orderData) {
 function showProfileModal() {
     const profileContent = document.getElementById("profileContent");
     const orders = orderHistory;
-    const profilePic = userPictureUrl || userProfile?.pictureUrl || "https://via.placeholder.com/80?text=User";
+    const profilePic = userProfile?.pictureUrl || "https://via.placeholder.com/80?text=User";
     
     profileContent.innerHTML = `
         <div class="profile-header">
@@ -436,7 +507,8 @@ function showProfileModal() {
                 <img class="profile-avatar" src="${profilePic}" alt="profile" onerror="this.src='https://via.placeholder.com/80?text=User'">
                 <div>
                     <h3 class="font-bold text-lg">${userProfile?.displayName || "Guest"}</h3>
-                    <p class="text-sm opacity-90">LINE ID: ${liffProfile?.userId || "Not connected"}</p>
+                    <p class="text-sm opacity-90">LINE: ${userProfile?.lineName || "Not connected"}</p>
+                    <p class="text-xs opacity-75 mt-1">ID: ${userProfile?.userId || "-"}</p>
                 </div>
             </div>
         </div>
@@ -457,7 +529,7 @@ function showProfileModal() {
                 ${orders.length === 0 ? '<p class="text-gray-400 text-center py-4">ยังไม่มีประวัติการสั่งซื้อ</p>' : orders.slice(0, 5).map(order => `
                     <div class="border-b border-gray-100 py-3 cursor-pointer" onclick="viewOrderDetail('${order.orderId}')">
                         <div class="flex justify-between items-center">
-                            <div><p class="font-medium text-sm">${order.orderId}</p><p class="text-xs text-gray-400">${order.date}</p></div>
+                            <div><p class="font-medium text-sm">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div>
                             <div class="text-right"><p class="text-rose-500 font-bold text-sm">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.items.length} รายการ</p></div>
                         </div>
                     </div>
@@ -481,18 +553,26 @@ function showEditProfileModal() {
     document.getElementById("profileModal").classList.add("hidden");
 }
 
-function saveEditedProfile() {
+async function saveEditedProfile() {
     if (userProfile) {
         userProfile.displayName = document.getElementById("editDisplayName").value;
         userProfile.email = document.getElementById("editEmail").value;
         userProfile.phone = document.getElementById("editPhone").value;
         userProfile.address = document.getElementById("editAddress").value;
-        saveUserToLocal();
-        updateUserUI();
-        autoFillCheckoutForm();
-        showToast("บันทึกข้อมูลเรียบร้อย");
-        document.getElementById("editProfileModal").classList.add("hidden");
-        showProfileModal();
+        
+        showLoading();
+        const success = await saveUserToSheet(userProfile);
+        hideLoading();
+        
+        if (success) {
+            updateUserUI();
+            autoFillCheckoutForm();
+            showToast("บันทึกข้อมูลเรียบร้อย");
+            document.getElementById("editProfileModal").classList.add("hidden");
+            showProfileModal();
+        } else {
+            showToast("เกิดข้อผิดพลาด กรุณาลองใหม่", "error");
+        }
     }
 }
 
@@ -506,7 +586,7 @@ function showAllOrders() {
         content.innerHTML = orders.map(order => `
             <div class="order-history-card" onclick="viewOrderDetail('${order.orderId}')">
                 <div class="flex justify-between items-start mb-2">
-                    <div><p class="font-semibold text-rose-500">${order.orderId}</p><p class="text-xs text-gray-400">${order.date}</p></div>
+                    <div><p class="font-semibold text-rose-500">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div>
                     <div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.status || "สำเร็จ"}</p></div>
                 </div>
                 <div class="border-t border-gray-100 pt-2 mt-2">
@@ -531,9 +611,8 @@ function viewOrderDetail(orderId) {
             html: `
                 <div class="text-left">
                     <p><strong>เลขที่คำสั่งซื้อ:</strong> ${order.orderId}</p>
-                    <p><strong>วันที่:</strong> ${order.date}</p>
-                    <p><strong>ชื่อ:</strong> ${order.customerName}</p>
-                    <p><strong>ที่อยู่:</strong> ${order.address}</p>
+                    <p><strong>วันที่:</strong> ${order.timestamp}</p>
+                    <p><strong>ชื่อ:</strong> ${order.name}</p>
                     <hr class="my-2">
                     ${order.items.map(item => `<p>${item.name} x ${item.quantity} = ${formatPrice(item.price * item.quantity)}</p>`).join('')}
                     <hr class="my-2">
@@ -720,13 +799,13 @@ async function submitOrder() {
     const address = document.getElementById("custAddress").value.trim();
     if (!name || !email || !phone || !address) { showToast("กรุณากรอกข้อมูลให้ครบถ้วน", "error"); return; }
     
-    // อัพเดทโปรไฟล์
+    // Update profile
     if (userProfile) {
         userProfile.displayName = name;
         userProfile.email = email;
         userProfile.phone = phone;
         userProfile.address = address;
-        saveUserToLocal();
+        await saveUserToSheet(userProfile);
     }
     
     const items = cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity }));
@@ -736,26 +815,23 @@ async function submitOrder() {
     
     const orderData = {
         orderId: orderId,
-        date: orderDate,
-        customerName: name,
-        email: email,
-        phone: phone,
-        address: address,
+        timestamp: orderDate,
+        name: name,
         items: items,
         total: total,
         status: "สำเร็จ"
     };
     
-    // บันทึกประวัติการสั่งซื้อ
-    saveOrderToHistory(orderData);
+    // Save order to history
+    await saveOrderToSheet(orderData);
     
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
     formData.append("phone", phone);
     formData.append("address", address);
-    formData.append("lineId", liffProfile?.userId || "web_user");
-    formData.append("lineName", liffProfile?.displayName || "");
+    formData.append("lineId", userProfile?.userId || "web_user");
+    formData.append("lineName", userProfile?.lineName || "");
     formData.append("items", JSON.stringify(items));
     formData.append("total", total);
     
@@ -766,7 +842,7 @@ async function submitOrder() {
         hideLoading();
         
         if (result.success) {
-            // ส่ง Flex Message ไป LINE
+            // Send Flex Message to LINE
             await sendFlexMessage({ orderId: result.orderId, items: items, total: total });
             
             Swal.fire({ 
@@ -778,6 +854,11 @@ async function submitOrder() {
             
             cart = []; updateCartUI(); closeCart();
             document.getElementById("checkoutModal").classList.add("hidden");
+            
+            // Reload orders
+            if (userProfile && userProfile.userId) {
+                orderHistory = await loadOrdersFromSheet(userProfile.userId);
+            }
         } else { Swal.fire("ผิดพลาด", result.error, "error"); }
     } catch(error) { hideLoading(); Swal.fire("ผิดพลาด", "เชื่อมต่อไม่ได้", "error"); }
 }
@@ -819,7 +900,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("cartIcon")?.addEventListener("click", openCart);
     document.getElementById("closeCart")?.addEventListener("click", closeCart);
     document.getElementById("cartOverlay")?.addEventListener("click", closeCart);
-    document.getElementById("userAvatar")?.addEventListener("click", showProfileModal);
+    document.getElementById("userAvatarContainer")?.addEventListener("click", showProfileModal);
     document.getElementById("checkoutBtn")?.addEventListener("click", () => { if (cart.length === 0) showToast("ตะกร้าว่าง", "error"); else document.getElementById("checkoutModal").classList.remove("hidden"); closeRadialMenu(); });
     document.getElementById("cancelCheckout")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
     document.getElementById("checkoutOverlay")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
