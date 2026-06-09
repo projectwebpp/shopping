@@ -61,10 +61,13 @@
         .profile-header { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border-radius: 20px; padding: 20px; margin-bottom: 16px; color: white; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; background: white; }
         .user-avatar-small { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
-        .user-info-header { display: flex; align-items: center; gap: 12px; }
+        .user-info-header { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .user-text-info { display: flex; flex-direction: column; }
         .user-name { font-size: 14px; font-weight: 600; color: #1f2937; }
         .user-line-name { font-size: 11px; color: #6b7280; }
+        .stat-card { background: white; border-radius: 12px; padding: 12px; text-align: center; flex: 1; }
+        .stat-value { font-size: 20px; font-weight: bold; color: #f43f5e; }
+        .stat-label { font-size: 11px; color: #6b7280; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -86,7 +89,7 @@
         </div>
         <div class="flex items-center gap-4">
             <!-- User Info with Avatar and Name -->
-            <div id="userAvatarContainer" class="flex items-center gap-2 cursor-pointer">
+            <div id="userAvatarContainer" class="user-info-header">
                 <img id="profileImageSmall" class="user-avatar-small" src="https://via.placeholder.com/36?text=User" alt="profile">
                 <div class="user-text-info hidden sm:block">
                     <span id="userDisplayName" class="user-name">Guest</span>
@@ -202,6 +205,18 @@
     </div>
 </div>
 
+<!-- Order Detail Modal -->
+<div id="orderDetailModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50" id="orderDetailOverlay"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center">
+            <h2 class="text-lg font-semibold"><i class="fas fa-receipt text-rose-500 mr-2"></i>รายละเอียดคำสั่งซื้อ</h2>
+            <button id="closeOrderDetail" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div id="orderDetailContent" class="p-4"></div>
+    </div>
+</div>
+
 <!-- Floating Action Button -->
 <div id="fab" class="fixed bottom-24 right-4 z-40 fab"><i class="fas fa-plus text-2xl"></i></div>
 
@@ -226,7 +241,7 @@
 // ============================================
 // CONFIGURATION
 // ============================================
-const API_URL ="https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec"
+const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
 const LIFF_ID = "2006974084-pCKlrYsc";
 
 // ============================================
@@ -299,6 +314,14 @@ async function loadOrdersFromSheet(lineId) {
     }
 }
 
+async function updateUserStats(lineId, amount) {
+    try {
+        await callGoogleScript('updateUserStatsWrapper', lineId, amount);
+    } catch(error) {
+        console.error("Update stats error:", error);
+    }
+}
+
 // ============================================
 // LIFF Functions
 // ============================================
@@ -308,7 +331,6 @@ async function initializeLIFF() {
         console.log("LIFF initialized successfully");
         
         if (liff.isLoggedIn()) {
-            // Get LIFF profile
             liffProfile = await liff.getProfile();
             console.log("LIFF Profile:", liffProfile);
             
@@ -319,27 +341,11 @@ async function initializeLIFF() {
                     const idToken = liff.getDecodedIDToken();
                     if (idToken && idToken.email) {
                         userEmail = idToken.email;
-                        console.log("Email retrieved from ID token:", userEmail);
+                        console.log("Email retrieved:", userEmail);
                     }
                 }
             } catch(e) {
-                console.log("Cannot get email from ID token:", e);
-            }
-            
-            // Try to get email from access token (alternative method)
-            if (!userEmail) {
-                try {
-                    const accessToken = liff.getAccessToken();
-                    if (accessToken) {
-                        const response = await fetch('https://api.line.me/v2/profile', {
-                            headers: { 'Authorization': `Bearer ${accessToken}` }
-                        });
-                        const profileData = await response.json();
-                        console.log("Profile from API:", profileData);
-                    }
-                } catch(e) {
-                    console.log("Cannot get email from API:", e);
-                }
+                console.log("Cannot get email:", e);
             }
             
             // Load user profile from Sheet
@@ -353,7 +359,9 @@ async function initializeLIFF() {
                     email: sheetProfile.email || userEmail,
                     phone: sheetProfile.phone || "",
                     address: sheetProfile.address || "",
-                    pictureUrl: liffProfile.pictureUrl || sheetProfile.pictureUrl || ""
+                    pictureUrl: liffProfile.pictureUrl || sheetProfile.pictureUrl || "",
+                    totalSpent: sheetProfile.totalSpent || 0,
+                    orderCount: sheetProfile.orderCount || 0
                 };
             } else {
                 userProfile = {
@@ -363,7 +371,9 @@ async function initializeLIFF() {
                     email: userEmail,
                     phone: "",
                     address: "",
-                    pictureUrl: liffProfile.pictureUrl || ""
+                    pictureUrl: liffProfile.pictureUrl || "",
+                    totalSpent: 0,
+                    orderCount: 0
                 };
             }
             
@@ -381,8 +391,7 @@ async function initializeLIFF() {
         }
     } catch (error) {
         console.error("LIFF initialization failed:", error);
-        // Fallback mode
-        userProfile = { userId: "guest", lineName: "Guest", displayName: "Guest", email: "", phone: "", address: "", pictureUrl: "" };
+        userProfile = { userId: "guest", lineName: "Guest", displayName: "Guest", email: "", phone: "", address: "", pictureUrl: "", totalSpent: 0, orderCount: 0 };
         updateUserUI();
     }
 }
@@ -422,78 +431,6 @@ function autoFillCheckoutForm() {
 }
 
 // ============================================
-// Order History Functions
-// ============================================
-async function saveOrderToSheet(order) {
-    // Orders are saved via doPost, just update local cache
-    if (userProfile && userProfile.userId) {
-        orderHistory.unshift(order);
-    }
-}
-
-// ============================================
-// Send Flex Message to LINE
-// ============================================
-async function sendFlexMessage(orderData) {
-    if (!liff.isInClient || !liff.isInClient()) {
-        console.log("Not in LINE client, cannot send message");
-        return;
-    }
-    
-    const flexMessage = {
-        type: "flex",
-        altText: "ใบเสร็จการสั่งซื้อ",
-        contents: {
-            type: "bubble",
-            header: {
-                type: "box",
-                layout: "vertical",
-                contents: [
-                    { type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", size: "xl", color: "#f43f5e" },
-                    { type: "text", text: orderData.orderId, size: "sm", color: "#666666", margin: "md" }
-                ]
-            },
-            body: {
-                type: "box",
-                layout: "vertical",
-                contents: [
-                    { type: "text", text: "รายละเอียดคำสั่งซื้อ", weight: "bold", size: "md", margin: "md" },
-                    { type: "separator", margin: "md" },
-                    ...orderData.items.map(item => ({
-                        type: "box", layout: "horizontal",
-                        contents: [
-                            { type: "text", text: `${item.name} x ${item.quantity}`, flex: 2, size: "sm" },
-                            { type: "text", text: formatPrice(item.price * item.quantity), flex: 1, align: "end", size: "sm" }
-                        ], margin: "sm"
-                    })),
-                    { type: "separator", margin: "md" },
-                    {
-                        type: "box", layout: "horizontal",
-                        contents: [
-                            { type: "text", text: "รวมทั้งสิ้น", weight: "bold", size: "md" },
-                            { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e", size: "md" }
-                        ], margin: "md"
-                    }
-                ]
-            },
-            footer: {
-                type: "box", layout: "vertical",
-                contents: [
-                    { type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center", size: "sm", color: "#666666" }
-                ]
-            }
-        }
-    };
-    
-    try {
-        await liff.sendMessages([flexMessage]);
-        console.log("Flex message sent successfully");
-    } catch (error) {
-        console.error("Send message error:", error);
-    }
-}
-
-// ============================================
 // Profile Modal Functions
 // ============================================
 function showProfileModal() {
@@ -513,6 +450,21 @@ function showProfileModal() {
             </div>
         </div>
         
+        <div class="flex gap-3 mb-4">
+            <div class="stat-card">
+                <div class="stat-value">${userProfile?.orderCount || 0}</div>
+                <div class="stat-label"><i class="fas fa-shopping-bag mr-1"></i>คำสั่งซื้อ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${formatPrice(userProfile?.totalSpent || 0)}</div>
+                <div class="stat-label"><i class="fas fa-coins mr-1"></i>ยอดรวม</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${orderHistory.length}</div>
+                <div class="stat-label"><i class="fas fa-clock mr-1"></i>รายการ</div>
+            </div>
+        </div>
+        
         <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
             <h3 class="font-semibold mb-3"><i class="fas fa-envelope text-rose-500 mr-2"></i>ข้อมูลติดต่อ</h3>
             <div class="space-y-2 text-sm">
@@ -524,7 +476,10 @@ function showProfileModal() {
         </div>
         
         <div class="bg-white rounded-xl p-4 shadow-sm">
-            <h3 class="font-semibold mb-3"><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</h3>
+            <h3 class="font-semibold mb-3 flex justify-between items-center">
+                <span><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</span>
+                <button id="refreshOrdersBtn" class="text-xs text-rose-500"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
+            </h3>
             <div id="orderHistoryPreview" class="max-h-64 overflow-y-auto">
                 ${orders.length === 0 ? '<p class="text-gray-400 text-center py-4">ยังไม่มีประวัติการสั่งซื้อ</p>' : orders.slice(0, 5).map(order => `
                     <div class="border-b border-gray-100 py-3 cursor-pointer" onclick="viewOrderDetail('${order.orderId}')">
@@ -542,6 +497,15 @@ function showProfileModal() {
     document.getElementById("profileModal").classList.remove("hidden");
     document.getElementById("editProfileBtn")?.addEventListener("click", showEditProfileModal);
     document.getElementById("viewAllOrdersBtn")?.addEventListener("click", () => showAllOrders());
+    document.getElementById("refreshOrdersBtn")?.addEventListener("click", async () => {
+        if (userProfile?.userId) {
+            showLoading();
+            orderHistory = await loadOrdersFromSheet(userProfile.userId);
+            hideLoading();
+            showProfileModal();
+            showToast("อัปเดตประวัติเรียบร้อย");
+        }
+    });
 }
 
 function showEditProfileModal() {
@@ -606,21 +570,64 @@ function showAllOrders() {
 function viewOrderDetail(orderId) {
     const order = orderHistory.find(o => o.orderId === orderId);
     if (order) {
-        Swal.fire({
-            title: "รายละเอียดคำสั่งซื้อ",
-            html: `
-                <div class="text-left">
-                    <p><strong>เลขที่คำสั่งซื้อ:</strong> ${order.orderId}</p>
-                    <p><strong>วันที่:</strong> ${order.timestamp}</p>
-                    <p><strong>ชื่อ:</strong> ${order.name}</p>
-                    <hr class="my-2">
-                    ${order.items.map(item => `<p>${item.name} x ${item.quantity} = ${formatPrice(item.price * item.quantity)}</p>`).join('')}
-                    <hr class="my-2">
-                    <p class="font-bold text-rose-500">ยอดรวม: ${formatPrice(order.total)}</p>
+        const content = document.getElementById("orderDetailContent");
+        content.innerHTML = `
+            <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <p class="text-xs text-gray-500">เลขที่คำสั่งซื้อ</p>
+                        <p class="font-semibold text-rose-500">${order.orderId}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-gray-500">วันที่สั่งซื้อ</p>
+                        <p class="text-sm">${order.timestamp}</p>
+                    </div>
                 </div>
-            `,
-            icon: "info",
-            confirmButtonText: "ปิด"
+                <div class="border-t border-gray-200 pt-3">
+                    <p class="text-xs text-gray-500 mb-2">ข้อมูลผู้รับ</p>
+                    <p class="text-sm font-medium">${order.name || "-"}</p>
+                    <p class="text-sm">${order.phone || "-"}</p>
+                    <p class="text-sm">${order.address || "-"}</p>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <p class="font-semibold mb-2"><i class="fas fa-box text-rose-500 mr-2"></i>รายการสินค้า</p>
+                <div class="space-y-2">
+                    ${order.items.map(item => `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <div>
+                                <p class="text-sm font-medium">${item.name}</p>
+                                <p class="text-xs text-gray-400">จำนวน x ${item.quantity}</p>
+                            </div>
+                            <p class="text-rose-500 font-medium">${formatPrice(item.price * item.quantity)}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-xl p-3">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold">ยอดรวมทั้งสิ้น</span>
+                    <span class="text-xl font-bold text-rose-500">${formatPrice(order.total)}</span>
+                </div>
+                <div class="flex justify-between text-sm mt-2">
+                    <span class="text-gray-500">สถานะ</span>
+                    <span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>${order.status || "สำเร็จ"}</span>
+                </div>
+            </div>
+            
+            <button id="reorderFromDetailBtn" class="w-full mt-4 bg-rose-500 text-white py-3 rounded-xl font-semibold transition">
+                <i class="fas fa-redo-alt mr-2"></i>สั่งซื้ออีกครั้ง
+            </button>
+        `;
+        
+        document.getElementById("orderDetailModal").classList.remove("hidden");
+        document.getElementById("closeAllModals");
+        
+        document.getElementById("reorderFromDetailBtn")?.addEventListener("click", () => {
+            reorderItems(orderId);
+            document.getElementById("orderDetailModal").classList.add("hidden");
         });
     }
 }
@@ -810,20 +817,6 @@ async function submitOrder() {
     
     const items = cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity }));
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const orderId = "ORD" + new Date().getTime();
-    const orderDate = new Date().toLocaleString("th-TH");
-    
-    const orderData = {
-        orderId: orderId,
-        timestamp: orderDate,
-        name: name,
-        items: items,
-        total: total,
-        status: "สำเร็จ"
-    };
-    
-    // Save order to history
-    await saveOrderToSheet(orderData);
     
     const formData = new FormData();
     formData.append("name", name);
@@ -839,9 +832,13 @@ async function submitOrder() {
     try {
         const response = await fetch(API_URL, { method: "POST", body: formData });
         const result = await response.json();
-        hideLoading();
         
         if (result.success) {
+            // Update user stats
+            if (userProfile?.userId) {
+                await updateUserStats(userProfile.userId, total);
+            }
+            
             // Send Flex Message to LINE
             await sendFlexMessage({ orderId: result.orderId, items: items, total: total });
             
@@ -856,11 +853,30 @@ async function submitOrder() {
             document.getElementById("checkoutModal").classList.add("hidden");
             
             // Reload orders
-            if (userProfile && userProfile.userId) {
+            if (userProfile?.userId) {
                 orderHistory = await loadOrdersFromSheet(userProfile.userId);
+                userProfile = await loadUserFromSheet(userProfile.userId);
             }
         } else { Swal.fire("ผิดพลาด", result.error, "error"); }
-    } catch(error) { hideLoading(); Swal.fire("ผิดพลาด", "เชื่อมต่อไม่ได้", "error"); }
+    } catch(error) { console.error(error); }
+    hideLoading();
+}
+
+async function sendFlexMessage(orderData) {
+    if (!liff.isInClient || !liff.isInClient()) return;
+    
+    const flexMessage = {
+        type: "flex",
+        altText: "ใบเสร็จการสั่งซื้อ",
+        contents: {
+            type: "bubble",
+            header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", size: "xl", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666", margin: "md" }] },
+            body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold", size: "md", margin: "md" }, { type: "separator", margin: "md" }, ...orderData.items.map(item => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${item.name} x ${item.quantity}`, flex: 2, size: "sm" }, { type: "text", text: formatPrice(item.price * item.quantity), flex: 1, align: "end", size: "sm" }], margin: "sm" })), { type: "separator", margin: "md" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold", size: "md" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e", size: "md" }], margin: "md" }] },
+            footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center", size: "sm", color: "#666666" }] }
+        }
+    };
+    
+    try { await liff.sendMessages([flexMessage]); } catch(e) { console.log("Send message error:", e); }
 }
 
 // ============================================
@@ -872,6 +888,7 @@ function closeAllModals() {
     document.getElementById("profileModal")?.classList.add("hidden");
     document.getElementById("editProfileModal")?.classList.add("hidden");
     document.getElementById("orderHistoryModal")?.classList.add("hidden");
+    document.getElementById("orderDetailModal")?.classList.add("hidden");
 }
 
 function setTab(tab) {
@@ -905,6 +922,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("cancelCheckout")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
     document.getElementById("checkoutOverlay")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
     document.getElementById("confirmOrder")?.addEventListener("click", submitOrder);
+    
+    // Modal close buttons
     document.getElementById("closeProfile")?.addEventListener("click", () => { document.getElementById("profileModal").classList.add("hidden"); });
     document.getElementById("profileOverlay")?.addEventListener("click", () => { document.getElementById("profileModal").classList.add("hidden"); });
     document.getElementById("closeEditProfile")?.addEventListener("click", () => { document.getElementById("editProfileModal").classList.add("hidden"); });
@@ -913,6 +932,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("saveEditProfile")?.addEventListener("click", saveEditedProfile);
     document.getElementById("closeOrderHistory")?.addEventListener("click", () => { document.getElementById("orderHistoryModal").classList.add("hidden"); });
     document.getElementById("orderHistoryOverlay")?.addEventListener("click", () => { document.getElementById("orderHistoryModal").classList.add("hidden"); });
+    document.getElementById("closeOrderDetail")?.addEventListener("click", () => { document.getElementById("orderDetailModal").classList.add("hidden"); });
+    document.getElementById("orderDetailOverlay")?.addEventListener("click", () => { document.getElementById("orderDetailModal").classList.add("hidden"); });
+    
     document.getElementById("fab")?.addEventListener("click", toggleRadialMenu);
     
     document.querySelectorAll(".radial-item").forEach(item => {
