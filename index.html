@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- LIFF SDK -->
+    <!-- LIFF SDK (เพิ่มแบบไม่กระทบระบบเดิม) -->
     <script src="https://static.line-sdk.net/liff/edge/2.1/sdk.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -52,13 +52,6 @@
         .dock-item i { font-size: 22px; }
         .dock-item span { font-size: 10px; }
         .dock-item.active { color: #f43f5e; transform: translateY(-2px); }
-        .profile-card { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border-radius: 20px; padding: 20px; margin: 16px; color: white; }
-        .order-history-card { background: white; border-radius: 16px; padding: 16px; margin: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; }
-        .order-history-card:active { transform: scale(0.98); }
-        .edit-profile-field { margin-bottom: 16px; }
-        .edit-profile-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151; }
-        .edit-profile-field input, .edit-profile-field textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; font-family: 'IBM Plex Sans Thai', sans-serif; }
-        .edit-profile-field input:focus, .edit-profile-field textarea:focus { outline: none; border-color: #f43f5e; ring: 2px solid #f43f5e; }
     </style>
 </head>
 <body>
@@ -216,10 +209,10 @@
 // CONFIGURATION
 // ============================================
 const API_URL = window.location.href;
-const LIFF_ID = "YOUR_LIFF_ID_HERE"; // 🔧 แก้ไขเป็น LIFF ID ของคุณ
+const LIFF_ID = "YOUR_LIFF_ID_HERE"; // แก้ไขเป็น LIFF ID ของคุณ
 
 // ============================================
-// Global Variables
+// Global Variables (ระบบเดิม)
 // ============================================
 let products = [];
 let cart = [];
@@ -227,6 +220,10 @@ let currentCategory = "all";
 let searchQuery = "";
 let currentTab = "all";
 let isRadialOpen = false;
+
+// ============================================
+// LIFF Variables (เพิ่มเติม)
+// ============================================
 let liffProfile = null;
 let userProfile = null;
 
@@ -241,274 +238,142 @@ function showToast(title, icon = "success") {
 }
 
 // ============================================
-// Google Apps Script Calls
-// ============================================
-function callGoogleScript(functionName, ...args) {
-    return new Promise((resolve, reject) => {
-        google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)
-            [functionName](...args);
-    });
-}
-
-async function saveUserProfileToDB(profile) {
-    try {
-        const result = await callGoogleScript('saveUserProfileWrapper', 
-            profile.lineId, profile.lineName, profile.displayName, 
-            profile.email, profile.phone, profile.address);
-        const data = JSON.parse(result);
-        return data.success;
-    } catch(error) {
-        console.error("Save profile error:", error);
-        return false;
-    }
-}
-
-async function loadUserProfileFromDB(lineId) {
-    try {
-        const result = await callGoogleScript('getUserProfileWrapper', lineId);
-        const data = JSON.parse(result);
-        return data;
-    } catch(error) {
-        console.error("Load profile error:", error);
-        return null;
-    }
-}
-
-async function loadUserOrdersFromDB(lineId) {
-    try {
-        const result = await callGoogleScript('getUserOrdersWrapper', lineId);
-        const orders = JSON.parse(result);
-        return orders;
-    } catch(error) {
-        console.error("Load orders error:", error);
-        return [];
-    }
-}
-
-// ============================================
-// LIFF Initialization
+// LIFF Functions (ไม่กระทบระบบเดิม)
 // ============================================
 async function initializeLIFF() {
+    if (!LIFF_ID || LIFF_ID === "YOUR_LIFF_ID_HERE") {
+        console.log("LIFF not configured, using demo mode");
+        liffProfile = { userId: "demo_user", displayName: "Demo User" };
+        userProfile = { displayName: "Demo User", email: "", phone: "", address: "" };
+        return;
+    }
+    
     try {
         await liff.init({ liffId: LIFF_ID });
-        console.log("LIFF initialized");
-        
         if (liff.isLoggedIn()) {
             liffProfile = await liff.getProfile();
-            console.log("LIFF Profile:", liffProfile);
-            
-            // Load user profile from database
-            userProfile = await loadUserProfileFromDB(liffProfile.userId);
-            
-            if (!userProfile) {
-                userProfile = {
-                    lineId: liffProfile.userId,
-                    lineName: liffProfile.displayName,
-                    displayName: liffProfile.displayName,
-                    email: "",
-                    phone: "",
-                    address: ""
-                };
-                await saveUserProfileToDB(userProfile);
-            }
-            
-            // Auto-fill checkout form
+            userProfile = {
+                displayName: liffProfile.displayName,
+                email: "",
+                phone: "",
+                address: ""
+            };
             autoFillCheckoutForm();
-            
-            // Update avatar
-            updateAvatar();
-        } else {
-            liff.login();
         }
     } catch (error) {
         console.error("LIFF error:", error);
-        // Demo mode
-        liffProfile = { userId: "demo_user", displayName: "Demo User" };
-        userProfile = {
-            lineId: "demo_user",
-            lineName: "Demo User",
-            displayName: "Demo User",
-            email: "",
-            phone: "",
-            address: ""
-        };
-    }
-}
-
-function updateAvatar() {
-    const avatar = document.getElementById("userAvatar");
-    if (avatar && liffProfile) {
-        avatar.innerHTML = `<i class="fas fa-user text-rose-500 text-sm"></i>`;
-        avatar.title = liffProfile.displayName;
+        liffProfile = { userId: "demo_user", displayName: "Guest" };
+        userProfile = { displayName: "Guest", email: "", phone: "", address: "" };
     }
 }
 
 function autoFillCheckoutForm() {
-    if (userProfile) {
-        if (document.getElementById("custName") && userProfile.displayName) 
-            document.getElementById("custName").value = userProfile.displayName;
-        if (document.getElementById("custEmail") && userProfile.email) 
-            document.getElementById("custEmail").value = userProfile.email;
-        if (document.getElementById("custPhone") && userProfile.phone) 
-            document.getElementById("custPhone").value = userProfile.phone;
-        if (document.getElementById("custAddress") && userProfile.address) 
-            document.getElementById("custAddress").value = userProfile.address;
+    if (userProfile && userProfile.displayName) {
+        const nameInput = document.getElementById("custName");
+        if (nameInput && !nameInput.value) nameInput.value = userProfile.displayName;
     }
 }
 
+async function saveUserProfile() {
+    if (!userProfile) return;
+    // เก็บใน localStorage แทนการเรียก Google Script
+    localStorage.setItem("userProfile", JSON.stringify(userProfile));
+}
+
+function loadUserProfileFromStorage() {
+    const saved = localStorage.getItem("userProfile");
+    if (saved) {
+        userProfile = JSON.parse(saved);
+        autoFillCheckoutForm();
+    }
+}
+
+async function sendFlexMessage(orderData) {
+    if (!liff.isInClient || !liff.isInClient()) return;
+    
+    try {
+        await liff.sendMessages([{
+            type: "flex",
+            altText: "ใบเสร็จการสั่งซื้อ",
+            contents: {
+                type: "bubble",
+                header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสัซื้อ", weight: "bold", size: "xl", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666", margin: "md" }] },
+                body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold", size: "md", margin: "md" }, { type: "separator", margin: "md" }, ...orderData.items.map(item => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${item.name} x ${item.quantity}`, flex: 2, size: "sm" }, { type: "text", text: formatPrice(item.price * item.quantity), flex: 1, align: "end", size: "sm" }], margin: "sm" })), { type: "separator", margin: "md" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold", size: "md" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e", size: "md" }], margin: "md" }] },
+                footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center", size: "sm", color: "#666666" }] }
+            }
+        }]);
+    } catch(e) { console.log("Send message failed:", e); }
+}
+
 // ============================================
-// Profile Modal
+// Profile Modal Functions (ใช้ localStorage)
 // ============================================
-async function showProfileModal() {
+function showProfileModal() {
     const profileContent = document.getElementById("profileContent");
-    const orders = await loadUserOrdersFromDB(liffProfile?.userId || "demo_user");
+    const savedProfile = JSON.parse(localStorage.getItem("userProfile") || "{}");
     
     profileContent.innerHTML = `
-        <div class="profile-card">
+        <div class="bg-gradient-to-r from-rose-500 to-rose-700 rounded-xl p-4 mb-4 text-white">
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
                     <i class="fas fa-user text-3xl text-rose-500"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-lg">${userProfile?.displayName || liffProfile?.displayName || "Guest"}</h3>
+                    <h3 class="font-bold text-lg">${savedProfile.displayName || userProfile?.displayName || "Guest"}</h3>
                     <p class="text-sm opacity-90">LINE: ${liffProfile?.displayName || "Not connected"}</p>
                 </div>
             </div>
         </div>
         
         <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
-            <h3 class="font-semibold mb-3 flex items-center gap-2"><i class="fas fa-envelope text-rose-500"></i>ข้อมูลติดต่อ</h3>
+            <h3 class="font-semibold mb-3"><i class="fas fa-envelope text-rose-500 mr-2"></i>ข้อมูลติดต่อ</h3>
             <div class="space-y-2 text-sm">
-                <p><i class="fas fa-envelope w-5 text-gray-400"></i> ${userProfile?.email || "ไม่ได้ระบุ"}</p>
-                <p><i class="fas fa-phone w-5 text-gray-400"></i> ${userProfile?.phone || "ไม่ได้ระบุ"}</p>
-                <p><i class="fas fa-map-marker-alt w-5 text-gray-400"></i> ${userProfile?.address || "ไม่ได้ระบุ"}</p>
+                <p><i class="fas fa-envelope w-5 text-gray-400"></i> ${savedProfile.email || "ไม่ได้ระบุ"}</p>
+                <p><i class="fas fa-phone w-5 text-gray-400"></i> ${savedProfile.phone || "ไม่ได้ระบุ"}</p>
+                <p><i class="fas fa-map-marker-alt w-5 text-gray-400"></i> ${savedProfile.address || "ไม่ได้ระบุ"}</p>
             </div>
-            <button id="editProfileBtn" class="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm transition"><i class="fas fa-edit mr-1"></i>แก้ไขโปรไฟล์</button>
+            <button id="editProfileBtn" class="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm"><i class="fas fa-edit mr-1"></i>แก้ไขโปรไฟล์</button>
         </div>
         
         <div class="bg-white rounded-xl p-4 shadow-sm">
-            <h3 class="font-semibold mb-3 flex items-center gap-2"><i class="fas fa-history text-rose-500"></i>ประวัติการสั่งซื้อ</h3>
+            <h3 class="font-semibold mb-3"><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</h3>
             <div id="orderHistoryPreview" class="max-h-64 overflow-y-auto">
-                ${orders.length === 0 ? '<p class="text-gray-400 text-center py-4">ยังไม่มีประวัติการสั่งซื้อ</p>' : ''}
-                ${orders.slice(0, 3).map(order => `
-                    <div class="border-b border-gray-100 py-3 cursor-pointer" onclick="viewOrderDetail('${order.orderId}')">
-                        <div class="flex justify-between items-center">
-                            <div><p class="font-medium text-sm">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div>
-                            <div class="text-right"><p class="text-rose-500 font-bold text-sm">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.items.length} รายการ</p></div>
-                        </div>
-                    </div>
-                `).join('')}
-                ${orders.length > 3 ? `<button id="viewAllOrdersBtn" class="w-full mt-3 text-rose-500 text-sm py-2">ดูทั้งหมด (${orders.length} รายการ)</button>` : ''}
+                <p class="text-gray-400 text-center py-4">ดูประวัติได้หลังจากสั่งซื้อ</p>
             </div>
         </div>
     `;
     
     document.getElementById("profileModal").classList.remove("hidden");
     document.getElementById("editProfileBtn")?.addEventListener("click", showEditProfileModal);
-    document.getElementById("viewAllOrdersBtn")?.addEventListener("click", () => showAllOrders(orders));
 }
 
 function showEditProfileModal() {
-    document.getElementById("editDisplayName").value = userProfile?.displayName || "";
-    document.getElementById("editEmail").value = userProfile?.email || "";
-    document.getElementById("editPhone").value = userProfile?.phone || "";
-    document.getElementById("editAddress").value = userProfile?.address || "";
+    const saved = JSON.parse(localStorage.getItem("userProfile") || "{}");
+    document.getElementById("editDisplayName").value = saved.displayName || "";
+    document.getElementById("editEmail").value = saved.email || "";
+    document.getElementById("editPhone").value = saved.phone || "";
+    document.getElementById("editAddress").value = saved.address || "";
     document.getElementById("editProfileModal").classList.remove("hidden");
     document.getElementById("profileModal").classList.add("hidden");
 }
 
-async function saveEditedProfile() {
-    userProfile = {
-        ...userProfile,
+function saveEditedProfile() {
+    const updatedProfile = {
         displayName: document.getElementById("editDisplayName").value,
         email: document.getElementById("editEmail").value,
         phone: document.getElementById("editPhone").value,
         address: document.getElementById("editAddress").value
     };
-    
-    showLoading();
-    const success = await saveUserProfileToDB(userProfile);
-    hideLoading();
-    
-    if (success) {
-        showToast("บันทึกข้อมูลเรียบร้อย");
-        autoFillCheckoutForm();
-        document.getElementById("editProfileModal").classList.add("hidden");
-        showProfileModal();
-    } else {
-        showToast("เกิดข้อผิดพลาด กรุณาลองใหม่", "error");
-    }
-}
-
-async function showAllOrders(orders) {
-    const content = document.getElementById("orderHistoryContent");
-    
-    if (orders.length === 0) {
-        content.innerHTML = '<p class="text-center text-gray-400 py-10">ยังไม่มีประวัติการสั่งซื้อ</p>';
-    } else {
-        content.innerHTML = orders.map(order => `
-            <div class="order-history-card" onclick="viewOrderDetail('${order.orderId}')">
-                <div class="flex justify-between items-start mb-2">
-                    <div><p class="font-semibold text-rose-500">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div>
-                    <div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.status || "Pending"}</p></div>
-                </div>
-                <div class="border-t border-gray-100 pt-2 mt-2">
-                    <p class="text-sm text-gray-600">สินค้าที่สั่งซื้อ:</p>
-                    ${order.items.slice(0, 2).map(item => `<div class="flex justify-between text-sm mt-1"><span>${item.name} x ${item.quantity}</span><span>${formatPrice(item.price * item.quantity)}</span></div>`).join('')}
-                    ${order.items.length > 2 ? `<p class="text-xs text-gray-400 mt-1">และอีก ${order.items.length - 2} รายการ</p>` : ''}
-                </div>
-                <button class="w-full mt-3 bg-rose-50 text-rose-500 py-2 rounded-xl text-sm transition" onclick="event.stopPropagation(); reorderItems('${order.orderId}')"><i class="fas fa-redo-alt mr-1"></i>สั่งซื้ออีกครั้ง</button>
-            </div>
-        `).join('');
-    }
-    
-    document.getElementById("orderHistoryModal").classList.remove("hidden");
-    document.getElementById("profileModal").classList.add("hidden");
-}
-
-function viewOrderDetail(orderId) {
-    Swal.fire({ title: "รายละเอียดคำสั่งซื้อ", text: "Order ID: " + orderId, icon: "info", confirmButtonText: "ปิด" });
-}
-
-async function reorderItems(orderId) {
-    const orders = await loadUserOrdersFromDB(liffProfile?.userId || "demo_user");
-    const order = orders.find(o => o.orderId === orderId);
-    if (order && order.items) {
-        order.items.forEach(item => {
-            const product = products.find(p => p.id === item.id);
-            if (product) addToCart(product);
-        });
-        showToast("เพิ่มสินค้าลงตะกร้าเรียบร้อย");
-        closeAllModals();
-    }
+    localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+    userProfile = updatedProfile;
+    autoFillCheckoutForm();
+    showToast("บันทึกข้อมูลเรียบร้อย");
+    document.getElementById("editProfileModal").classList.add("hidden");
+    showProfileModal();
 }
 
 // ============================================
-// Send Flex Message
-// ============================================
-async function sendFlexMessage(orderData) {
-    if (!liff.isInClient()) return;
-    
-    const flexMessage = {
-        type: "flex",
-        altText: "ใบเสร็จการสั่งซื้อ",
-        contents: {
-            type: "bubble",
-            header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", size: "xl", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666", margin: "md" }] },
-            body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียดคำสั่งซื้อ", weight: "bold", size: "md", margin: "md" }, { type: "separator", margin: "md" }, ...orderData.items.map(item => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${item.name} x ${item.quantity}`, flex: 2, size: "sm" }, { type: "text", text: formatPrice(item.price * item.quantity), flex: 1, align: "end", size: "sm" }], margin: "sm" })), { type: "separator", margin: "md" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold", size: "md" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e", size: "md" }], margin: "md" }] },
-            footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center", size: "sm", color: "#666666" }] }
-        }
-    };
-    
-    try {
-        await liff.sendMessages([flexMessage]);
-    } catch(error) { console.error("Send message error:", error); }
-}
-
-// ============================================
-// Load Products
+// Load Products (ระบบเดิม)
 // ============================================
 async function loadProducts() {
     showLoading();
@@ -560,6 +425,7 @@ function renderProducts() {
 function setupCategories() {
     const categories = ["all", ...new Set(products.map(p => p.category))];
     const container = document.getElementById("categoryFilter");
+    if (!container) return;
     container.innerHTML = categories.map(cat => `<button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm ${cat === "all" ? "bg-rose-500 text-white" : "bg-gray-100 text-gray-700"}"><i class="fas fa-tag mr-1"></i>${cat === "all" ? "ทั้งหมด" : cat}</button>`).join("");
     document.querySelectorAll(".cat-btn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -574,6 +440,8 @@ function setupCategories() {
 function updateCommandSuggestions() {
     const searchInput = document.getElementById("searchInput");
     const suggestionsDiv = document.getElementById("suggestions");
+    if (!searchInput || !suggestionsDiv) return;
+    
     searchInput.addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase();
         if (query.length < 1) { suggestionsDiv.classList.add("hidden"); return; }
@@ -590,7 +458,7 @@ function updateCommandSuggestions() {
 }
 
 // ============================================
-// Cart Functions
+// Cart Functions (ระบบเดิม)
 // ============================================
 function addToCart(product) {
     const existing = cart.find(item => item.id === product.id);
@@ -634,7 +502,7 @@ function showContextMenu(x, y, product) {
     menu.className = "context-menu";
     menu.style.left = x + "px";
     menu.style.top = y + "px";
-    menu.innerHTML = `<div class="context-menu-item" data-action="add"><i class="fas fa-cart-plus"></i><span>หยิบใส่ตะกร้า</span></div><div class="context-menu-item" data-action="detail"><i class="fas fa-info-circle"></i><span>รายละเอียดสินค้า</span></div><div class="context-menu-item danger" data-action="share"><i class="fas fa-share-alt"></i><span>แชร์สินค้า</span></div>`;
+    menu.innerHTML = `<div class="context-menu-item" data-action="add"><i class="fas fa-cart-plus"></i><span>หยิบใส่ตะกร้า</span></div><div class="context-menu-item" data-action="detail"><i class="fas fa-info-circle"></i><span>รายละเอียด</span></div><div class="context-menu-item danger" data-action="share"><i class="fas fa-share-alt"></i><span>แชร์</span></div>`;
     document.body.appendChild(menu);
     menu.querySelectorAll(".context-menu-item").forEach(item => {
         item.addEventListener("click", () => {
@@ -655,7 +523,7 @@ function toggleRadialMenu() {
 function closeRadialMenu() { document.getElementById("radialMenu").classList.add("hidden"); isRadialOpen = false; }
 
 // ============================================
-// Submit Order
+// Submit Order (ระบบเดิม + เพิ่ม LIFF)
 // ============================================
 async function submitOrder() {
     if (cart.length === 0) { showToast("กรุณาเลือกสินค้าก่อน", "error"); return; }
@@ -666,12 +534,17 @@ async function submitOrder() {
     const address = document.getElementById("custAddress").value.trim();
     if (!name || !email || !phone || !address) { showToast("กรุณากรอกข้อมูลให้ครบถ้วน", "error"); return; }
     
-    userProfile = { ...userProfile, displayName: name, email, phone, address };
-    await saveUserProfileToDB(userProfile);
+    // บันทึกโปรไฟล์
+    const profile = { displayName: name, email, phone, address };
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+    userProfile = profile;
     
     const formData = new FormData();
-    formData.append("name", name); formData.append("email", email); formData.append("phone", phone);
-    formData.append("address", address); formData.append("lineId", liffProfile?.userId || "demo_user");
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("phone", phone);
+    formData.append("address", address);
+    formData.append("lineId", liffProfile?.userId || "web_user");
     formData.append("lineName", liffProfile?.displayName || "");
     formData.append("items", JSON.stringify(cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity }))));
     formData.append("total", cart.reduce((sum, item) => sum + (item.price * item.quantity), 0));
@@ -685,14 +558,12 @@ async function submitOrder() {
         if (result.success) {
             const orderData = { orderId: result.orderId, items: cart.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })), total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) };
             await sendFlexMessage(orderData);
-            Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br>ขอบคุณที่ใช้บริการ`, icon: "success", confirmButtonText: "ตกลง" });
+            
+            Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่: <strong>${result.orderId}</strong><br>ขอบคุณที่ใช้บริการ`, icon: "success", confirmButtonText: "ตกลง" });
             cart = []; updateCartUI(); closeCart();
             document.getElementById("checkoutModal").classList.add("hidden");
-            document.getElementById("custName").value = ""; document.getElementById("custEmail").value = "";
-            document.getElementById("custPhone").value = ""; document.getElementById("custAddress").value = "";
-            autoFillCheckoutForm();
-        } else { Swal.fire("เกิดข้อผิดพลาด", result.error, "error"); }
-    } catch(error) { hideLoading(); Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error"); }
+        } else { Swal.fire("ผิดพลาด", result.error, "error"); }
+    } catch(error) { hideLoading(); Swal.fire("ผิดพลาด", "เชื่อมต่อไม่ได้", "error"); }
 }
 
 // ============================================
@@ -725,6 +596,7 @@ function setDock(dock) {
 // ============================================
 document.addEventListener("DOMContentLoaded", async () => {
     await initializeLIFF();
+    loadUserProfileFromStorage();
     await loadProducts();
     
     document.getElementById("searchInput")?.addEventListener("input", (e) => { searchQuery = e.target.value; renderProducts(); });
@@ -733,7 +605,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("closeCart")?.addEventListener("click", closeCart);
     document.getElementById("cartOverlay")?.addEventListener("click", closeCart);
     document.getElementById("userAvatar")?.addEventListener("click", showProfileModal);
-    document.getElementById("checkoutBtn")?.addEventListener("click", () => { if (cart.length === 0) showToast("ตะกร้าว่างเปล่า", "error"); else document.getElementById("checkoutModal").classList.remove("hidden"); closeRadialMenu(); });
+    document.getElementById("checkoutBtn")?.addEventListener("click", () => { if (cart.length === 0) showToast("ตะกร้าว่าง", "error"); else document.getElementById("checkoutModal").classList.remove("hidden"); closeRadialMenu(); });
     document.getElementById("cancelCheckout")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
     document.getElementById("checkoutOverlay")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
     document.getElementById("confirmOrder")?.addEventListener("click", submitOrder);
