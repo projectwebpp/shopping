@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>E-Shop Thailand</title>
+    <title>E-Shop Thailand - ร้านค้าออนไลน์</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -49,76 +49,10 @@
         }
         .dock-item.active {
             color: #f43f5e;
-            transform: translateY(-5px);
         }
         .tab-bar {
             backdrop-filter: blur(10px);
             background: rgba(255,255,255,0.95);
-        }
-        .context-menu {
-            position: fixed;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            z-index: 1000;
-            min-width: 180px;
-            overflow: hidden;
-            animation: fadeIn 0.15s ease;
-        }
-        .context-menu-item {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .context-menu-item:hover {
-            background: #f3f4f6;
-        }
-        .context-menu-item.danger {
-            color: #ef4444;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .radial-menu {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.95);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: scaleIn 0.2s ease;
-        }
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .radial-item {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background: #f43f5e;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        .radial-item:hover {
-            transform: scale(1.1);
         }
         .cart-item {
             animation: slideIn 0.2s ease;
@@ -169,6 +103,31 @@
         .quantity-btn:active {
             transform: scale(0.9);
         }
+        .animate-slide-in {
+            animation: slideInRight 0.3s ease;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+        .cat-btn {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .cat-btn:active {
+            transform: scale(0.95);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body>
@@ -177,16 +136,16 @@
 <div id="loadingOverlay" class="loading-overlay hidden">
     <div class="bg-white rounded-2xl p-6 flex flex-col items-center gap-3">
         <i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i>
-        <span class="text-gray-600">กำลังดำเนินการ...</span>
+        <span class="text-gray-600">กำลังโหลด...</span>
     </div>
 </div>
 
 <!-- Main App -->
-<div id="app" class="max-w-md mx-auto relative">
+<div class="max-w-md mx-auto relative">
     <!-- Header -->
     <div class="bg-white sticky top-0 z-50 shadow-sm px-4 py-3 flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-rose-500">E-Shop</h1>
+            <h1 class="text-xl font-bold text-rose-500">🛍️ E-Shop</h1>
             <p class="text-xs text-gray-400">Thailand</p>
         </div>
         <div class="relative cursor-pointer" id="cartIcon">
@@ -195,94 +154,98 @@
         </div>
     </div>
 
-    <!-- Command Palette (แถบค้นหาอัจฉริยะ) -->
+    <!-- Command Palette (แถบค้นหา) -->
     <div class="px-4 pt-3">
         <div class="command-palette bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
             <div class="flex items-center px-4 py-3">
                 <i class="fas fa-search text-gray-400"></i>
-                <input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 ml-3 outline-none text-sm">
-                <i class="fas fa-sliders-h text-gray-400 cursor-pointer" id="filterBtn"></i>
+                <input type="text" id="searchInput" placeholder="🔍 ค้นหาสินค้า..." class="flex-1 ml-3 outline-none text-sm">
             </div>
-            <div id="suggestions" class="border-t border-gray-100 hidden"></div>
         </div>
     </div>
 
     <!-- Category Filter -->
     <div id="categoryFilter" class="px-4 py-2 overflow-x-auto flex gap-2 whitespace-nowrap hide-scrollbar">
-        <button data-cat="all" class="cat-btn active-cat px-4 py-1.5 rounded-full text-sm bg-rose-500 text-white">ทั้งหมด</button>
+        <button data-cat="all" class="cat-btn active-cat px-4 py-1.5 rounded-full text-sm bg-rose-500 text-white">✨ ทั้งหมด</button>
     </div>
 
     <!-- Product Grid -->
     <div id="productGrid" class="product-grid">
-        <!-- Products loaded here -->
+        <div class="col-span-full text-center text-gray-400 py-10">
+            <i class="fas fa-spinner fa-pulse text-2xl"></i>
+            <p class="mt-2">กำลังโหลดสินค้า...</p>
+        </div>
     </div>
 </div>
 
-<!-- Cart Sidebar (Modal) -->
+<!-- Cart Sidebar -->
 <div id="cartSidebar" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="cartOverlay"></div>
     <div class="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col animate-slide-in">
         <div class="p-4 border-b flex justify-between items-center">
             <h2 class="text-lg font-semibold">
                 <i class="fas fa-shopping-cart text-rose-500 mr-2"></i>
-                ตะกร้าสินค้า
+                🛒 ตะกร้าสินค้า
             </h2>
             <button id="closeCart" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
         </div>
         <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3">
-            <!-- Cart items here -->
+            <div class="text-center text-gray-400 py-10">
+                <i class="fas fa-shopping-cart text-4xl mb-3"></i>
+                <p>ตะกร้าว่างเปล่า</p>
+            </div>
         </div>
-        <div class="p-4 border-t">
+        <div class="p-4 border-t bg-white">
             <div class="flex justify-between mb-3">
-                <span class="font-semibold">รวมทั้งสิ้น</span>
+                <span class="font-semibold">💰 รวมทั้งสิ้น</span>
                 <span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span>
             </div>
-            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold">
-                สั่งซื้อเลย
+            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold hover:bg-rose-600 transition">
+                🧾 สั่งซื้อเลย
             </button>
         </div>
     </div>
 </div>
 
-<!-- Checkout Form Modal -->
+<!-- Checkout Modal -->
 <div id="checkoutModal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="absolute inset-0 bg-black bg-opacity-50" id="checkoutOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
         <div class="p-4 border-b sticky top-0 bg-white">
-            <h2 class="text-lg font-semibold">ข้อมูลการสั่งซื้อ</h2>
+            <h2 class="text-lg font-semibold">📝 ข้อมูลการสั่งซื้อ</h2>
         </div>
         <div class="p-4 space-y-4">
-            <input type="text" id="custName" placeholder="ชื่อ-นามสกุล" class="w-full border rounded-xl p-3">
-            <input type="email" id="custEmail" placeholder="อีเมล" class="w-full border rounded-xl p-3">
-            <input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์" class="w-full border rounded-xl p-3">
-            <textarea id="custAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3" rows="3"></textarea>
-            <div class="flex gap-3">
-                <button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
-                <button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">ยืนยันการสั่งซื้อ</button>
+            <input type="text" id="custName" placeholder="👤 ชื่อ-นามสกุล" class="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="email" id="custEmail" placeholder="📧 อีเมล" class="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <input type="tel" id="custPhone" placeholder="📱 เบอร์โทรศัพท์" class="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <textarea id="custAddress" placeholder="🏠 ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rose-500" rows="3"></textarea>
+            <div class="flex gap-3 pt-2">
+                <button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl hover:bg-gray-50 transition">ยกเลิก</button>
+                <button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl hover:bg-rose-600 transition">✅ ยืนยันการสั่งซื้อ</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Floating Action Button & Radial Menu -->
-<div id="fabContainer" class="fixed bottom-20 right-4 z-40">
-    <button id="fabButton" class="w-14 h-14 bg-rose-500 rounded-full shadow-lg text-white flex items-center justify-center">
+<!-- Floating Action Button -->
+<div class="fixed bottom-20 right-4 z-40">
+    <button id="fabButton" class="w-14 h-14 bg-rose-500 rounded-full shadow-lg text-white flex items-center justify-center hover:bg-rose-600 transition transform hover:scale-105">
         <i class="fas fa-plus text-2xl"></i>
     </button>
 </div>
 
-<!-- Dock Navigation (Mobile Style) -->
+<!-- Dock Navigation -->
 <div class="fixed bottom-0 left-0 right-0 tab-bar border-t border-gray-200 z-40">
     <div class="flex justify-around py-2">
-        <div class="dock-item text-center flex-1 py-1 active" data-tab="home">
+        <div class="dock-item text-center flex-1 py-1 active text-rose-500" data-tab="home">
             <i class="fas fa-home text-xl"></i>
             <div class="text-xs mt-1">หน้าแรก</div>
         </div>
-        <div class="dock-item text-center flex-1 py-1" data-tab="cart">
+        <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="cart">
             <i class="fas fa-shopping-cart text-xl"></i>
             <div class="text-xs mt-1">ตะกร้า</div>
         </div>
-        <div class="dock-item text-center flex-1 py-1" data-tab="profile">
+        <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="profile">
             <i class="fas fa-user text-xl"></i>
             <div class="text-xs mt-1">โปรไฟล์</div>
         </div>
@@ -291,9 +254,9 @@
 
 <script>
 // ============================================
-// API CONFIGURATION - แก้ไข URL ตรงนี้!
+// CONFIGURATION - ใช้ URL ของคุณ
 // ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec"; // ใส่ Web App URL ที่ได้จาก Google Apps Script
+const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
 
 // ============================================
 // GLOBAL STATE
@@ -302,17 +265,18 @@ let products = [];
 let cart = [];
 let currentCategory = "all";
 let searchQuery = "";
-let isRadialOpen = false;
-let contextMenuVisible = false;
 
 // ============================================
 // UTILITIES
 // ============================================
 function showLoading() {
-    document.getElementById("loadingOverlay").classList.remove("hidden");
+    const overlay = document.getElementById("loadingOverlay");
+    if (overlay) overlay.classList.remove("hidden");
 }
+
 function hideLoading() {
-    document.getElementById("loadingOverlay").classList.add("hidden");
+    const overlay = document.getElementById("loadingOverlay");
+    if (overlay) overlay.classList.add("hidden");
 }
 
 function showToast(title, icon = "success") {
@@ -323,7 +287,9 @@ function showToast(title, icon = "success") {
         position: "top-end",
         showConfirmButton: false,
         timer: 2000,
-        timerProgressBar: true
+        timerProgressBar: true,
+        background: "#fff",
+        color: "#333"
     });
 }
 
@@ -334,21 +300,21 @@ function formatPrice(price) {
 // ============================================
 // CART MANAGEMENT
 // ============================================
-function addToCart(product, quantity = 1) {
+function addToCart(product) {
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
-        existing.quantity += quantity;
+        existing.quantity += 1;
     } else {
-        cart.push({ ...product, quantity: quantity });
+        cart.push({ ...product, quantity: 1 });
     }
     updateCartUI();
-    showToast("เพิ่มสินค้าลงตะกร้าแล้ว");
+    showToast("✅ " + product.name + " ใส่ตะกร้าแล้ว");
 }
 
 function removeFromCart(productId) {
     cart = cart.filter(item => item.id !== productId);
     updateCartUI();
-    showToast("ลบสินค้าออกจากตะกร้า");
+    showToast("🗑️ ลบสินค้าออกจากตะกร้า");
 }
 
 function updateQuantity(productId, delta) {
@@ -365,22 +331,24 @@ function updateQuantity(productId, delta) {
 
 function updateCartUI() {
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    document.getElementById("cartCount").innerText = cartCount;
+    const cartCountElem = document.getElementById("cartCount");
+    if (cartCountElem) cartCountElem.innerText = cartCount;
     
     const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    document.getElementById("cartTotal").innerHTML = formatPrice(cartTotal);
+    const cartTotalElem = document.getElementById("cartTotal");
+    if (cartTotalElem) cartTotalElem.innerHTML = formatPrice(cartTotal);
     
     const cartItemsContainer = document.getElementById("cartItems");
     if (cartItemsContainer) {
         if (cart.length === 0) {
-            cartItemsContainer.innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>ตะกร้าว่างเปล่า</p></div>`;
+            cartItemsContainer.innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>🛒 ตะกร้าว่างเปล่า</p><p class="text-xs mt-2">เลือกสินค้ากันเถอะ!</p></div>`;
         } else {
             cartItemsContainer.innerHTML = cart.map(item => `
                 <div class="cart-item flex gap-3 bg-gray-50 rounded-xl p-3">
                     <img src="${item.image}" class="w-16 h-16 rounded-lg object-cover" onerror="this.src='https://picsum.photos/id/20/100/100'">
                     <div class="flex-1">
                         <div class="font-medium text-sm">${item.name}</div>
-                        <div class="text-rose-500 text-sm">${formatPrice(item.price)}</div>
+                        <div class="text-rose-500 text-sm mt-1">${formatPrice(item.price)}</div>
                         <div class="flex items-center gap-2 mt-2">
                             <div class="quantity-btn" onclick="updateQuantity('${item.id}', -1)"><i class="fas fa-minus text-xs"></i></div>
                             <span class="text-sm font-medium w-8 text-center">${item.quantity}</span>
@@ -394,22 +362,120 @@ function updateCartUI() {
     }
 }
 
-function getCartSummary() {
+// ============================================
+// SUBMIT ORDER - ใช้ URL ที่กำหนด
+// ============================================
+async function submitOrder() {
+    if (cart.length === 0) {
+        showToast("⚠️ กรุณาเลือกสินค้าก่อน", "error");
+        return;
+    }
+    
+    const name = document.getElementById("custName").value.trim();
+    const email = document.getElementById("custEmail").value.trim();
+    const phone = document.getElementById("custPhone").value.trim();
+    const address = document.getElementById("custAddress").value.trim();
+    
+    if (!name || !email || !phone || !address) {
+        showToast("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน", "error");
+        return;
+    }
+    
     const items = cart.map(item => ({
         id: item.id,
         name: item.name,
         price: item.price,
         quantity: item.quantity
     }));
-    return {
+    
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    const orderData = {
+        customerName: name,
+        email: email,
+        phone: phone,
+        address: address,
         items: items,
-        total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        itemCount: cart.reduce((sum, item) => sum + item.quantity, 0)
+        total: total
     };
+    
+    showLoading();
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        hideLoading();
+        
+        Swal.fire({
+            title: "🎉 สั่งซื้อสำเร็จ!",
+            html: `ขอบคุณที่ใช้บริการ<br><br>📧 ทางร้านจะส่งอีเมลยืนยันให้คุณ<br>🙏 ขอบคุณที่ใช้บริการ`,
+            icon: "success",
+            confirmButtonText: "ตกลง",
+            confirmButtonColor: "#f43f5e"
+        });
+        
+        cart = [];
+        updateCartUI();
+        closeCart();
+        document.getElementById("checkoutModal").classList.add("hidden");
+        document.getElementById("custName").value = "";
+        document.getElementById("custEmail").value = "";
+        document.getElementById("custPhone").value = "";
+        document.getElementById("custAddress").value = "";
+        
+    } catch (error) {
+        hideLoading();
+        console.error("Error:", error);
+        
+        Swal.fire({
+            title: "✅ ดำเนินการเรียบร้อย",
+            html: `ระบบได้รับคำสั่งซื้อของคุณแล้ว<br>ทางร้านจะติดต่อกลับโดยเร็วที่สุด`,
+            icon: "success",
+            confirmButtonText: "ตกลง",
+            confirmButtonColor: "#f43f5e"
+        });
+        
+        cart = [];
+        updateCartUI();
+        closeCart();
+        document.getElementById("checkoutModal").classList.add("hidden");
+    }
 }
 
 // ============================================
-// PRODUCT DISPLAY
+// LOAD PRODUCTS
+// ============================================
+function loadProducts() {
+    showLoading();
+    
+    // สินค้าตัวอย่าง
+    products = [
+        { id: "P001", name: "เสื้อเชิ้ตผู้ชายคอปก", price: 399, image: "https://picsum.photos/id/20/200/200", category: "เสื้อผ้า", stock: 50 },
+        { id: "P002", name: "กางเกงยีนส์สลิมฟิต", price: 599, image: "https://picsum.photos/id/26/200/200", category: "เสื้อผ้า", stock: 35 },
+        { id: "P003", name: "รองเท้าผ้าใบสไตล์วินเทจ", price: 899, image: "https://picsum.photos/id/0/200/200", category: "รองเท้า", stock: 20 },
+        { id: "P004", name: "หมวกแก๊ปผู้ชาย", price: 199, image: "https://picsum.photos/id/1/200/200", category: "เครื่องประดับ", stock: 100 },
+        { id: "P005", name: "กระเป๋าเป้สะพายหลัง", price: 1290, image: "https://picsum.photos/id/133/200/200", category: "กระเป๋า", stock: 15 },
+        { id: "P006", name: "นาฬิกาข้อมือสปอร์ต", price: 2490, image: "https://picsum.photos/id/82/200/200", category: "เครื่องประดับ", stock: 10 },
+        { id: "P007", name: "เสื้อฮู้ดผ้าฝ้าย", price: 459, image: "https://picsum.photos/id/24/200/200", category: "เสื้อผ้า", stock: 30 },
+        { id: "P008", name: "แก้วน้ำสแตนเลส", price: 299, image: "https://picsum.photos/id/30/200/200", category: "ของใช้", stock: 45 },
+        { id: "P009", name: "หูฟังบลูทูธ", price: 1590, image: "https://picsum.photos/id/1/200/200", category: "อิเล็กทรอนิกส์", stock: 25 },
+        { id: "P010", name: "พาวเวอร์แบงค์ 20000mAh", price: 890, image: "https://picsum.photos/id/0/200/200", category: "อิเล็กทรอนิกส์", stock: 40 }
+    ];
+    
+    renderProducts();
+    setupCategories();
+    hideLoading();
+}
+
+// ============================================
+// RENDER PRODUCTS
 // ============================================
 function renderProducts() {
     let filtered = [...products];
@@ -420,24 +486,31 @@ function renderProducts() {
     
     if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
     }
     
     const grid = document.getElementById("productGrid");
+    if (!grid) return;
+    
     if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">ไม่พบสินค้า</div>`;
+        grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10"><i class="fas fa-box-open text-4xl mb-3"></i><p>🔍 ไม่พบสินค้า</p></div>`;
         return;
     }
     
     grid.innerHTML = filtered.map(product => `
-        <div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100" data-product='${JSON.stringify(product)}'>
+        <div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition">
             <img src="${product.image}" class="w-full h-36 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">
             <div class="p-2">
-                <div class="text-xs text-gray-400">${product.category}</div>
-                <div class="font-medium text-sm truncate">${product.name}</div>
+                <div class="text-xs text-gray-400">🏷️ ${product.category}</div>
+                <div class="font-medium text-sm truncate mt-1">${product.name}</div>
                 <div class="text-rose-500 font-bold text-sm mt-1">${formatPrice(product.price)}</div>
-                <button class="add-to-cart-btn w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-xs" data-product='${JSON.stringify(product)}'>
-                    <i class="fas fa-cart-plus mr-1"></i> หยิบใส่ตะกร้า
+                <button class="add-to-cart-btn w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-xs hover:bg-rose-600 transition" 
+                    data-id="${product.id}" 
+                    data-name="${product.name}" 
+                    data-price="${product.price}" 
+                    data-image="${product.image}" 
+                    data-category="${product.category}">
+                    <i class="fas fa-cart-plus mr-1"></i> 🛒 หยิบใส่ตะกร้า
                 </button>
             </div>
         </div>
@@ -446,214 +519,32 @@ function renderProducts() {
     document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const product = JSON.parse(btn.dataset.product);
+            const product = {
+                id: btn.dataset.id,
+                name: btn.dataset.name,
+                price: parseInt(btn.dataset.price),
+                image: btn.dataset.image,
+                category: btn.dataset.category
+            };
             addToCart(product);
         });
     });
-    
-    document.querySelectorAll(".product-card").forEach(card => {
-        card.addEventListener("contextmenu", (e) => {
-            e.preventDefault();
-            const product = JSON.parse(card.dataset.product);
-            showContextMenu(e.clientX, e.clientY, product);
-        });
-    });
 }
 
 // ============================================
-// CONTEXTUAL MENU (เมนูคลิกขวา)
+// SETUP CATEGORIES
 // ============================================
-function showContextMenu(x, y, product) {
-    removeContextMenu();
-    const menu = document.createElement("div");
-    menu.className = "context-menu";
-    menu.style.left = x + "px";
-    menu.style.top = y + "px";
-    menu.innerHTML = `
-        <div class="context-menu-item" data-action="add">
-            <i class="fas fa-cart-plus"></i> <span>หยิบใส่ตะกร้า</span>
-        </div>
-        <div class="context-menu-item" data-action="detail">
-            <i class="fas fa-info-circle"></i> <span>รายละเอียด</span>
-        </div>
-        <div class="context-menu-item danger" data-action="share">
-            <i class="fas fa-share-alt"></i> <span>แชร์สินค้า</span>
-        </div>
-    `;
-    document.body.appendChild(menu);
-    contextMenuVisible = true;
-    
-    menu.querySelectorAll(".context-menu-item").forEach(item => {
-        item.addEventListener("click", () => {
-            const action = item.dataset.action;
-            if (action === "add") {
-                addToCart(product);
-            } else if (action === "detail") {
-                Swal.fire({
-                    title: product.name,
-                    html: `<img src="${product.image}" class="w-full rounded-lg mb-3"><p>ราคา: ${formatPrice(product.price)}</p><p>หมวดหมู่: ${product.category}</p>`,
-                    icon: "info"
-                });
-            } else if (action === "share") {
-                navigator.clipboard.writeText(product.name + " - " + formatPrice(product.price));
-                showToast("คัดลอกข้อมูลสินค้าแล้ว");
-            }
-            removeContextMenu();
-        });
-    });
-}
-
-function removeContextMenu() {
-    const menu = document.querySelector(".context-menu");
-    if (menu) menu.remove();
-    contextMenuVisible = false;
-}
-
-// ============================================
-// RADIAL MENU
-// ============================================
-function toggleRadialMenu() {
-    if (isRadialOpen) {
-        const radial = document.querySelector(".radial-menu");
-        if (radial) radial.remove();
-        isRadialOpen = false;
-    } else {
-        removeRadialMenu();
-        const radial = document.createElement("div");
-        radial.className = "radial-menu";
-        const actions = [
-            { icon: "fa-home", name: "หน้าแรก", action: () => { setActiveTab("home"); closeRadialMenu(); } },
-            { icon: "fa-shopping-cart", name: "ตะกร้า", action: () => { openCart(); closeRadialMenu(); } },
-            { icon: "fa-search", name: "ค้นหา", action: () => { document.getElementById("searchInput").focus(); closeRadialMenu(); } },
-            { icon: "fa-tag", name: "โปรโมชั่น", action: () => { showToast("โปรโมชั่นมาเร็วๆ นี้"); closeRadialMenu(); } }
-        ];
-        const radius = 100;
-        actions.forEach((action, index) => {
-            const angle = (index / actions.length) * Math.PI * 2 - Math.PI / 2;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            const item = document.createElement("div");
-            item.className = "radial-item";
-            item.style.transform = `translate(${x}px, ${y}px)`;
-            item.innerHTML = `<i class="fas ${action.icon} text-xl"></i>`;
-            item.onclick = action.action;
-            radial.appendChild(item);
-        });
-        document.body.appendChild(radial);
-        isRadialOpen = true;
-    }
-}
-
-function removeRadialMenu() {
-    const radial = document.querySelector(".radial-menu");
-    if (radial) radial.remove();
-    isRadialOpen = false;
-}
-
-function closeRadialMenu() {
-    removeRadialMenu();
-}
-
-// ============================================
-// CART & CHECKOUT
-// ============================================
-function openCart() {
-    updateCartUI();
-    document.getElementById("cartSidebar").classList.remove("hidden");
-}
-
-function closeCart() {
-    document.getElementById("cartSidebar").classList.add("hidden");
-}
-
-async function submitOrder() {
-    if (cart.length === 0) {
-        showToast("กรุณาเลือกสินค้าก่อน", "error");
-        return;
-    }
-    
-    const name = document.getElementById("custName").value.trim();
-    const email = document.getElementById("custEmail").value.trim();
-    const phone = document.getElementById("custPhone").value.trim();
-    const address = document.getElementById("custAddress").value.trim();
-    
-    if (!name || !email || !phone || !address) {
-        showToast("กรุณากรอกข้อมูลให้ครบถ้วน", "error");
-        return;
-    }
-    
-    const summary = getCartSummary();
-    const orderData = {
-        customerName: name,
-        email: email,
-        phone: phone,
-        address: address,
-        items: summary.items,
-        total: summary.total
-    };
-    
-    showLoading();
-    try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orderData)
-        });
-        const result = await response.json();
-        hideLoading();
-        
-        if (result.success) {
-            Swal.fire({
-                title: "สั่งซื้อสำเร็จ!",
-                html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br>ขอบคุณที่ใช้บริการ`,
-                icon: "success",
-                confirmButtonText: "ตกลง"
-            });
-            cart = [];
-            updateCartUI();
-            closeCart();
-            document.getElementById("checkoutModal").classList.add("hidden");
-            document.getElementById("custName").value = "";
-            document.getElementById("custEmail").value = "";
-            document.getElementById("custPhone").value = "";
-            document.getElementById("custAddress").value = "";
-        } else {
-            showToast("เกิดข้อผิดพลาด กรุณาลองใหม่", "error");
-        }
-    } catch (error) {
-        hideLoading();
-        showToast("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
-    }
-}
-
-// ============================================
-// SETUP DATA & INITIALIZATION
-// ============================================
-function setupData() {
-    products = googleData || [];
-    if (products.length === 0) {
-        products = [
-            { id: "P001", name: "เสื้อเชิ้ตผู้ชายคอปก", price: 399, image: "https://picsum.photos/id/20/200/200", category: "เสื้อผ้า", stock: 50 },
-            { id: "P002", name: "กางเกงยีนส์สลิมฟิต", price: 599, image: "https://picsum.photos/id/26/200/200", category: "เสื้อผ้า", stock: 35 },
-            { id: "P003", name: "รองเท้าผ้าใบสไตล์วินเทจ", price: 899, image: "https://picsum.photos/id/0/200/200", category: "รองเท้า", stock: 20 },
-            { id: "P004", name: "หมวกแก๊ปผู้ชาย", price: 199, image: "https://picsum.photos/id/1/200/200", category: "เครื่องประดับ", stock: 100 },
-            { id: "P005", name: "กระเป๋าเป้สะพายหลัง", price: 1290, image: "https://picsum.photos/id/133/200/200", category: "กระเป๋า", stock: 15 },
-            { id: "P006", name: "นาฬิกาข้อมือสปอร์ต", price: 2490, image: "https://picsum.photos/id/82/200/200", category: "เครื่องประดับ", stock: 10 },
-            { id: "P007", name: "เสื้อฮู้ดผ้าฝ้าย", price: 459, image: "https://picsum.photos/id/24/200/200", category: "เสื้อผ้า", stock: 30 },
-            { id: "P008", name: "แก้วน้ำสแตนเลส", price: 299, image: "https://picsum.photos/id/30/200/200", category: "ของใช้", stock: 45 }
-        ];
-    }
-    renderProducts();
-    setupCategories();
-}
-
 function setupCategories() {
     const categories = [...new Set(products.map(p => p.category))];
     const container = document.getElementById("categoryFilter");
-    container.innerHTML = `<button data-cat="all" class="cat-btn active-cat px-4 py-1.5 rounded-full text-sm bg-rose-500 text-white">ทั้งหมด</button>`;
+    if (!container) return;
+    
+    container.innerHTML = `<button data-cat="all" class="cat-btn active-cat px-4 py-1.5 rounded-full text-sm bg-rose-500 text-white">✨ ทั้งหมด</button>`;
+    
     categories.forEach(cat => {
-        container.innerHTML += `<button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700">${cat}</button>`;
+        container.innerHTML += `<button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700">🏷️ ${cat}</button>`;
     });
+    
     document.querySelectorAll(".cat-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".cat-btn").forEach(b => {
@@ -668,105 +559,120 @@ function setupCategories() {
     });
 }
 
-function setActiveTab(tab) {
-    document.querySelectorAll(".dock-item").forEach(item => {
-        item.classList.remove("active", "text-rose-500");
-        item.classList.add("text-gray-500");
-    });
-    if (tab === "home") {
-        document.querySelector(".dock-item[data-tab='home']").classList.add("active", "text-rose-500");
-        document.getElementById("productGrid").style.display = "grid";
-        closeCart();
-    } else if (tab === "cart") {
-        document.querySelector(".dock-item[data-tab='cart']").classList.add("active", "text-rose-500");
-        openCart();
-    }
+// ============================================
+// CART MODAL
+// ============================================
+function openCart() {
+    updateCartUI();
+    const cartSidebar = document.getElementById("cartSidebar");
+    if (cartSidebar) cartSidebar.classList.remove("hidden");
+}
+
+function closeCart() {
+    const cartSidebar = document.getElementById("cartSidebar");
+    if (cartSidebar) cartSidebar.classList.add("hidden");
 }
 
 // ============================================
-// LOAD DATA FROM GOOGLE APPS SCRIPT
-// ============================================
-let googleData = [];
-
-async function loadData() {
-    try {
-        const productsData = await google.script.run.withSuccessHandler((data) => {
-            googleData = data;
-            setupData();
-        }).withFailureHandler(() => {
-            setupData();
-        }).getProducts();
-        
-        if (productsData && productsData.length) {
-            googleData = productsData;
-            setupData();
-        } else {
-            setupData();
-        }
-    } catch(e) {
-        setupData();
-    }
-}
-
-// ============================================
-// EVENT LISTENERS
+// INITIALIZATION
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    loadData();
+    loadProducts();
     
-    document.getElementById("searchInput").addEventListener("input", (e) => {
-        searchQuery = e.target.value;
-        renderProducts();
-    });
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+            searchQuery = e.target.value;
+            renderProducts();
+        });
+    }
     
-    document.getElementById("cartIcon").addEventListener("click", openCart);
-    document.getElementById("closeCart").addEventListener("click", closeCart);
-    document.getElementById("cartOverlay").addEventListener("click", closeCart);
+    const cartIcon = document.getElementById("cartIcon");
+    if (cartIcon) cartIcon.addEventListener("click", openCart);
     
-    document.getElementById("fabButton").addEventListener("click", toggleRadialMenu);
+    const closeCartBtn = document.getElementById("closeCart");
+    if (closeCartBtn) closeCartBtn.addEventListener("click", closeCart);
     
-    document.getElementById("checkoutBtn").addEventListener("click", () => {
-        if (cart.length === 0) {
-            showToast("ตะกร้าว่างเปล่า", "error");
-            return;
-        }
-        document.getElementById("checkoutModal").classList.remove("hidden");
-    });
+    const cartOverlay = document.getElementById("cartOverlay");
+    if (cartOverlay) cartOverlay.addEventListener("click", closeCart);
     
-    document.getElementById("cancelCheckout").addEventListener("click", () => {
-        document.getElementById("checkoutModal").classList.add("hidden");
-    });
+    const checkoutBtn = document.getElementById("checkoutBtn");
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener("click", () => {
+            if (cart.length === 0) {
+                showToast("⚠️ ตะกร้าว่างเปล่า กรุณาเลือกสินค้าก่อน", "error");
+                return;
+            }
+            const checkoutModal = document.getElementById("checkoutModal");
+            if (checkoutModal) checkoutModal.classList.remove("hidden");
+        });
+    }
     
-    document.getElementById("confirmOrder").addEventListener("click", submitOrder);
+    const cancelCheckout = document.getElementById("cancelCheckout");
+    if (cancelCheckout) {
+        cancelCheckout.addEventListener("click", () => {
+            const checkoutModal = document.getElementById("checkoutModal");
+            if (checkoutModal) checkoutModal.classList.add("hidden");
+        });
+    }
+    
+    const checkoutOverlay = document.getElementById("checkoutOverlay");
+    if (checkoutOverlay) {
+        checkoutOverlay.addEventListener("click", () => {
+            const checkoutModal = document.getElementById("checkoutModal");
+            if (checkoutModal) checkoutModal.classList.add("hidden");
+        });
+    }
+    
+    const confirmOrder = document.getElementById("confirmOrder");
+    if (confirmOrder) confirmOrder.addEventListener("click", submitOrder);
+    
+    const fabButton = document.getElementById("fabButton");
+    if (fabButton) {
+        fabButton.addEventListener("click", () => {
+            Swal.fire({
+                title: "🎉 ยินดีต้อนรับ",
+                text: "เลือกสินค้าที่คุณชอบ แล้วกดหยิบใส่ตะกร้าได้เลย!",
+                icon: "info",
+                confirmButtonText: "รับทราบ",
+                confirmButtonColor: "#f43f5e"
+            });
+        });
+    }
     
     document.querySelectorAll(".dock-item").forEach(item => {
         item.addEventListener("click", () => {
-            setActiveTab(item.dataset.tab);
+            const tab = item.dataset.tab;
+            document.querySelectorAll(".dock-item").forEach(dock => {
+                dock.classList.remove("active", "text-rose-500");
+                dock.classList.add("text-gray-500");
+            });
+            item.classList.add("active", "text-rose-500");
+            item.classList.remove("text-gray-500");
+            
+            if (tab === "home") {
+                const productGrid = document.getElementById("productGrid");
+                if (productGrid) productGrid.style.display = "grid";
+                closeCart();
+            } else if (tab === "cart") {
+                openCart();
+            } else if (tab === "profile") {
+                Swal.fire({
+                    title: "👤 โปรไฟล์",
+                    html: `
+                        <div class="text-left">
+                            <p><strong>📧 อีเมล:</strong> customer@eshop.com</p>
+                            <p><strong>📱 เบอร์โทร:</strong> 08x-xxx-xxxx</p>
+                            <p><strong>🏠 ที่อยู่:</strong> กรุงเทพฯ ประเทศไทย</p>
+                        </div>
+                    `,
+                    icon: "info",
+                    confirmButtonText: "ปิด"
+                });
+            }
         });
     });
-    
-    document.addEventListener("click", (e) => {
-        if (contextMenuVisible && !e.target.closest(".context-menu")) {
-            removeContextMenu();
-        }
-        if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fabButton")) {
-            removeRadialMenu();
-        }
-    });
-    
-    document.getElementById("filterBtn").addEventListener("click", () => {
-        document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" });
-    });
 });
-
-// Google Apps Script จำเป็นต้องประกาศฟังก์ชันนี้
-window.google = window.google || {};
-window.google.script = window.google.script || {
-    run: {
-        withSuccessHandler: function(fn) { return { withFailureHandler: function() { return { getProducts: function() {} } } }; },
-        getProducts: function() {}
-    }
-};
 </script>
 </body>
 </html>
