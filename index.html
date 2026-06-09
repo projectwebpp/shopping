@@ -59,6 +59,8 @@
         .order-history-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; }
         .order-history-card:active { transform: scale(0.98); }
         .profile-header { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border-radius: 20px; padding: 20px; margin-bottom: 16px; color: white; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; background: white; }
+        .user-avatar-small { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -79,8 +81,8 @@
             <p class="text-xs text-gray-400">Thailand</p>
         </div>
         <div class="flex items-center gap-3">
-            <div id="userAvatar" class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center cursor-pointer">
-                <i class="fas fa-user text-rose-500 text-sm"></i>
+            <div id="userAvatar" class="cursor-pointer">
+                <img id="profileImageSmall" class="user-avatar-small" src="https://via.placeholder.com/32?text=User" alt="profile">
             </div>
             <div id="cartIcon" class="relative cursor-pointer">
                 <i class="fas fa-shopping-cart text-2xl text-gray-700"></i>
@@ -230,6 +232,7 @@ let isRadialOpen = false;
 let liffProfile = null;
 let userProfile = null;
 let orderHistory = [];
+let userPictureUrl = null;
 
 // ============================================
 // Utility Functions
@@ -250,20 +253,45 @@ async function initializeLIFF() {
         console.log("LIFF initialized successfully");
         
         if (liff.isLoggedIn()) {
+            // ดึงโปรไฟล์ LINE
             liffProfile = await liff.getProfile();
             console.log("LIFF Profile:", liffProfile);
+            
+            // ดึงรูปโปรไฟล์
+            if (liffProfile.pictureUrl) {
+                userPictureUrl = liffProfile.pictureUrl;
+            }
+            
+            // ดึงอีเมล (ต้องขอ scope email)
+            let userEmail = "";
+            try {
+                if (liff.getDecodedIDToken) {
+                    const idToken = liff.getDecodedIDToken();
+                    if (idToken && idToken.email) {
+                        userEmail = idToken.email;
+                    }
+                }
+            } catch(e) {
+                console.log("Cannot get email:", e);
+            }
             
             // โหลดโปรไฟล์จาก localStorage
             const saved = localStorage.getItem(`user_${liffProfile.userId}`);
             if (saved) {
                 userProfile = JSON.parse(saved);
+                // อัพเดทอีเมลจาก LINE ถ้ามี
+                if (userEmail && !userProfile.email) {
+                    userProfile.email = userEmail;
+                    saveUserToLocal();
+                }
             } else {
                 userProfile = {
                     userId: liffProfile.userId,
                     displayName: liffProfile.displayName,
-                    email: liffProfile.email || "",
+                    email: userEmail,
                     phone: "",
-                    address: ""
+                    address: "",
+                    pictureUrl: liffProfile.pictureUrl || ""
                 };
                 saveUserToLocal();
             }
@@ -280,7 +308,7 @@ async function initializeLIFF() {
     } catch (error) {
         console.error("LIFF initialization failed:", error);
         // Fallback mode
-        userProfile = { userId: "guest", displayName: "Guest", email: "", phone: "", address: "" };
+        userProfile = { userId: "guest", displayName: "Guest", email: "", phone: "", address: "", pictureUrl: "" };
         updateUserUI();
     }
 }
@@ -292,10 +320,14 @@ function saveUserToLocal() {
 }
 
 function updateUserUI() {
-    const avatar = document.getElementById("userAvatar");
-    if (avatar && userProfile) {
-        avatar.innerHTML = `<i class="fas fa-user text-rose-500 text-sm"></i>`;
-        avatar.title = userProfile.displayName;
+    const avatarSmall = document.getElementById("profileImageSmall");
+    if (avatarSmall) {
+        if (userPictureUrl || userProfile?.pictureUrl) {
+            avatarSmall.src = userPictureUrl || userProfile.pictureUrl;
+            avatarSmall.onerror = () => { avatarSmall.src = "https://via.placeholder.com/32?text=User"; };
+        } else {
+            avatarSmall.src = "https://via.placeholder.com/32?text=User";
+        }
     }
 }
 
@@ -396,13 +428,12 @@ async function sendFlexMessage(orderData) {
 function showProfileModal() {
     const profileContent = document.getElementById("profileContent");
     const orders = orderHistory;
+    const profilePic = userPictureUrl || userProfile?.pictureUrl || "https://via.placeholder.com/80?text=User";
     
     profileContent.innerHTML = `
         <div class="profile-header">
             <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                    <i class="fas fa-user text-3xl text-rose-500"></i>
-                </div>
+                <img class="profile-avatar" src="${profilePic}" alt="profile" onerror="this.src='https://via.placeholder.com/80?text=User'">
                 <div>
                     <h3 class="font-bold text-lg">${userProfile?.displayName || "Guest"}</h3>
                     <p class="text-sm opacity-90">LINE ID: ${liffProfile?.userId || "Not connected"}</p>
