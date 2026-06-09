@@ -243,6 +243,7 @@
             <div class="form-field"><label>ชื่อสินค้า</label><input type="text" id="productName"></div>
             <div class="form-field"><label>หมวดหมู่</label><select id="productCategory"></select></div>
             <div class="form-field"><label>ราคา (บาท)</label><input type="number" id="productPrice"></div>
+            <div class="form-field"><label>จำนวนคงเหลือ</label><input type="number" id="productStock" min="0" step="1" placeholder="0"></div>
             <div class="form-field"><label>รูปภาพ</label><div class="flex gap-2"><input type="text" id="productImage" placeholder="URL รูปภาพ" class="flex-1"><button id="uploadImageBtn" class="bg-gray-500 text-white px-4 rounded-lg"><i class="fas fa-upload"></i></button></div><input type="file" id="imageFile" accept="image/*" class="hidden"><div id="imagePreview" class="mt-2 hidden"><img id="previewImg" class="w-20 h-20 object-cover rounded"></div></div>
             <div class="form-field"><label>สถานะ</label><select id="productStatus"><option value="active">แสดงสินค้า</option><option value="inactive">ซ่อนสินค้า</option></select></div>
             <div class="flex gap-3 pt-2"><button id="cancelProductFormBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="saveProductBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div>
@@ -384,7 +385,10 @@ function renderProducts() {
     if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     const grid = document.getElementById("productGrid");
     if (!filtered.length) { grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">ไม่พบสินค้า</div>`; return; }
-    grid.innerHTML = filtered.map(p => `<div class="product-card" data-product='${JSON.stringify(p)}'><img src="${p.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'"><div class="p-2"><div class="text-xs text-gray-400"><i class="fas fa-tag mr-1"></i>${p.category}</div><div class="font-medium text-sm">${p.name}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div><button class="add-to-cart-btn w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm" data-product='${JSON.stringify(p)}'><i class="fas fa-cart-plus mr-1"></i> หยิบใส่ตะกร้า</button></div></div>`).join("");
+    grid.innerHTML = filtered.map(p => {
+        const stock = Number(p.stock) || 0, soldOut = stock <= 0;
+        return `<div class="product-card ${soldOut ? 'opacity-70' : ''}" data-product='${JSON.stringify(p)}'><div class="relative"><img src="${p.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">${soldOut ? '<div class="absolute inset-0 bg-black/45 flex items-center justify-center text-white font-semibold">หมด</div>' : ''}</div><div class="p-2"><div class="text-xs text-gray-400"><i class="fas fa-tag mr-1"></i>${p.category}</div><div class="font-medium text-sm">${p.name}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div><div class="text-xs ${soldOut ? 'text-red-500' : 'text-gray-500'}">คงเหลือ ${stock} ชิ้น</div><button class="add-to-cart-btn w-full mt-2 ${soldOut ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-rose-500 text-white'} py-1.5 rounded-lg text-sm" data-product='${JSON.stringify(p)}' ${soldOut ? 'disabled' : ''}><i class="fas fa-cart-plus mr-1"></i> ${soldOut ? 'สินค้าหมด' : 'หยิบใส่ตะกร้า'}</button></div></div>`;
+    }).join("");
     document.querySelectorAll(".add-to-cart-btn").forEach(btn => btn.addEventListener("click", (e) => { e.stopPropagation(); addToCart(JSON.parse(btn.dataset.product)); }));
     document.querySelectorAll(".product-card").forEach(card => card.addEventListener("contextmenu", (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, JSON.parse(card.dataset.product)); }));
 }
@@ -418,9 +422,19 @@ function renderTabBar() {
 // ============================================
 // Cart Functions
 // ============================================
-function addToCart(p) { let exist = cart.find(i => i.id === p.id); if (exist) exist.quantity++; else cart.push({ ...p, quantity: 1 }); updateCartUI(); showToast(p.name + " ใส่ตะกร้าแล้ว"); }
+function addToCart(p) {
+    const stock = Number(p.stock) || 0;
+    if (stock <= 0) { showToast("สินค้าหมด", "error"); return; }
+    let exist = cart.find(i => i.id === p.id);
+    if (exist) {
+        if (exist.quantity >= stock) { showToast(`สินค้าเหลือ ${stock} ชิ้น`, "error"); return; }
+        exist.quantity++;
+    } else cart.push({ ...p, quantity: 1, stock });
+    updateCartUI();
+    showToast(p.name + " ใส่ตะกร้าแล้ว");
+}
 function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); }
-function updateQuantity(id, d) { let i = cart.find(i => i.id === id); if (i) { i.quantity += d; if (i.quantity <= 0) removeFromCart(id); else updateCartUI(); } }
+function updateQuantity(id, d) { let i = cart.find(i => i.id === id); if (i) { if (d > 0 && i.quantity >= (Number(i.stock) || 0)) { showToast(`สินค้าเหลือ ${i.stock} ชิ้น`, "error"); return; } i.quantity += d; if (i.quantity <= 0) removeFromCart(id); else updateCartUI(); } }
 function updateCartUI() {
     document.getElementById("cartCount").innerText = cart.reduce((s, i) => s + i.quantity, 0);
     document.getElementById("cartTotal").innerHTML = formatPrice(cart.reduce((s, i) => s + (i.price * i.quantity), 0));
@@ -460,7 +474,7 @@ async function updateOrderStatus() {
     const newStatus = document.getElementById("newOrderStatus").value;
     if (!currentEditingOrder) return; showLoading();
     try { const fd = new FormData(); fd.append("orderId", currentEditingOrder.orderId); fd.append("status", newStatus); fd.append("customerLineId", currentEditingOrder.customerLineId); fd.append("adminLineId", userProfile?.userId); const res = await fetchPostAPI("updateOrderStatus", fd);
-        if (res.success) { showToast("อัพเดทสถานะสำเร็จ"); document.getElementById("orderStatusModal").classList.add("hidden"); await loadAllOrders(); if (currentEditingOrder.customerLineId && newStatus !== currentEditingOrder.status) await sendOrderNotify(currentEditingOrder.customerLineId, currentEditingOrder.orderId, newStatus); }
+        if (res.success) { showToast("อัพเดทสถานะสำเร็จ"); document.getElementById("orderStatusModal").classList.add("hidden"); await loadAllOrders(); await loadProducts(); if (currentEditingOrder.customerLineId && newStatus !== currentEditingOrder.status) await sendOrderNotify(currentEditingOrder.customerLineId, currentEditingOrder.orderId, newStatus); }
         else Swal.fire("ผิดพลาด", res.error, "error");
     } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
     hideLoading();
@@ -474,15 +488,15 @@ async function sendOrderNotify(customerLineId, orderId, status) {
 async function loadAdminProducts() {
     const container = document.getElementById("adminProductsList");
     if (!products.length) { container.innerHTML = '<div class="text-center text-gray-400 py-10">ไม่มีสินค้า</div>'; return; }
-    container.innerHTML = products.map(p => `<div class="product-list-item"><img src="${p.image}" class="w-16 h-16 object-cover rounded"><div class="flex-1"><div class="font-medium">${p.name}</div><div class="text-sm text-gray-500">${p.category}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div></div><div class="flex gap-2"><button onclick="editProduct('${p.id}')" class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-edit"></i></button><button onclick="deleteProduct('${p.id}')" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-trash"></i></button></div></div>`).join("");
+    container.innerHTML = products.map(p => `<div class="product-list-item"><img src="${p.image}" class="w-16 h-16 object-cover rounded"><div class="flex-1"><div class="font-medium">${p.name}</div><div class="text-sm text-gray-500">${p.category}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div><div class="text-xs ${(Number(p.stock) || 0) <= 0 ? 'text-red-500' : 'text-gray-500'}">คงเหลือ ${Number(p.stock) || 0} ชิ้น</div></div><div class="flex gap-2"><button onclick="editProduct('${p.id}')" class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-edit"></i></button><button onclick="deleteProduct('${p.id}')" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-trash"></i></button></div></div>`).join("");
 }
-async function addNewProduct() { document.getElementById("productFormTitle").innerText = "เพิ่มสินค้า"; document.getElementById("productId").value = ""; document.getElementById("productName").value = ""; document.getElementById("productPrice").value = ""; document.getElementById("productImage").value = ""; document.getElementById("productStatus").value = "active"; document.getElementById("imagePreview").classList.add("hidden"); await loadCategoriesOptions(); document.getElementById("productFormModal").classList.remove("hidden"); }
+async function addNewProduct() { document.getElementById("productFormTitle").innerText = "เพิ่มสินค้า"; document.getElementById("productId").value = ""; document.getElementById("productName").value = ""; document.getElementById("productPrice").value = ""; document.getElementById("productStock").value = "0"; document.getElementById("productImage").value = ""; document.getElementById("productStatus").value = "active"; document.getElementById("imagePreview").classList.add("hidden"); await loadCategoriesOptions(); document.getElementById("productFormModal").classList.remove("hidden"); }
 async function loadCategoriesOptions() { const select = document.getElementById("productCategory"); select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join(""); }
-async function editProduct(id) { const p = products.find(p => p.id === id); if (!p) return; document.getElementById("productFormTitle").innerText = "แก้ไขสินค้า"; document.getElementById("productId").value = p.id; document.getElementById("productName").value = p.name; document.getElementById("productPrice").value = p.price; document.getElementById("productImage").value = p.image; document.getElementById("productStatus").value = "active"; await loadCategoriesOptions(); document.getElementById("productCategory").value = p.category; if (p.image) { document.getElementById("previewImg").src = p.image; document.getElementById("imagePreview").classList.remove("hidden"); } document.getElementById("productFormModal").classList.remove("hidden"); }
+async function editProduct(id) { const p = products.find(p => p.id === id); if (!p) return; document.getElementById("productFormTitle").innerText = "แก้ไขสินค้า"; document.getElementById("productId").value = p.id; document.getElementById("productName").value = p.name; document.getElementById("productPrice").value = p.price; document.getElementById("productStock").value = Number(p.stock) || 0; document.getElementById("productImage").value = p.image; document.getElementById("productStatus").value = "active"; await loadCategoriesOptions(); document.getElementById("productCategory").value = p.category; if (p.image) { document.getElementById("previewImg").src = p.image; document.getElementById("imagePreview").classList.remove("hidden"); } document.getElementById("productFormModal").classList.remove("hidden"); }
 async function saveProduct() {
-    const id = document.getElementById("productId").value, name = document.getElementById("productName").value, category = document.getElementById("productCategory").value, price = document.getElementById("productPrice").value, image = document.getElementById("productImage").value, status = document.getElementById("productStatus").value;
+    const id = document.getElementById("productId").value, name = document.getElementById("productName").value, category = document.getElementById("productCategory").value, price = document.getElementById("productPrice").value, stock = document.getElementById("productStock").value, image = document.getElementById("productImage").value, status = document.getElementById("productStatus").value;
     if (!name || !price) { showToast("กรุณากรอกชื่อสินค้าและราคา", "error"); return; } showLoading();
-    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("id", id || "P" + new Date().getTime()); fd.append("name", name); fd.append("category", category); fd.append("price", price); fd.append("image", image); fd.append("status", status); const action = id ? "updateProduct" : "addProduct"; const res = await fetchPostAPI(action, fd);
+    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("id", id || "P" + new Date().getTime()); fd.append("name", name); fd.append("category", category); fd.append("price", price); fd.append("stock", stock); fd.append("image", image); fd.append("status", status); const action = id ? "updateProduct" : "addProduct"; const res = await fetchPostAPI(action, fd);
         if (res.success) { showToast("บันทึกสินค้าสำเร็จ"); document.getElementById("productFormModal").classList.add("hidden"); await loadProducts(); if (isAdmin) loadAdminProducts(); }
         else Swal.fire("ผิดพลาด", res.error, "error");
     } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
@@ -652,6 +666,14 @@ async function reorderItems(orderId) {
 }
 async function submitOrder() {
     if (!cart.length) { showToast("ไม่มีสินค้าในตะกร้า", "error"); return; }
+    for (const item of cart) {
+        const latestProduct = products.find(p => p.id === item.id);
+        const stock = Number(latestProduct?.stock ?? item.stock) || 0;
+        if (stock <= 0 || item.quantity > stock) {
+            showToast(`สินค้า "${item.name}" เหลือ ${stock} ชิ้น`, "error");
+            return;
+        }
+    }
     const name = document.getElementById("custName").value.trim(), email = document.getElementById("custEmail").value.trim(), phone = document.getElementById("custPhone").value.trim(), address = document.getElementById("custAddress").value.trim();
     if (!name || !email || !phone || !address) { showToast("กรุณากรอกข้อมูลให้ครบ", "error"); return; }
     if (userProfile) { userProfile.displayName = name; userProfile.email = email; userProfile.phone = phone; userProfile.address = address; await updateUserProfile({ userId: userProfile.userId, displayName: name, email: email, phone: phone, address: address, pictureUrl: userProfile.pictureUrl }); }
@@ -664,6 +686,7 @@ async function submitOrder() {
         if (result.success) { await sendFlexMessage({ orderId: result.orderId, items, total });
             Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่: <strong>${result.orderId}</strong>`, icon: "success" });
             cart = []; updateCartUI(); closeCart(); document.getElementById("checkoutModal").classList.add("hidden");
+            await loadProducts();
             if (userProfile?.userId) { orderHistory = await fetchAPI("getUserOrders", { lineId: userProfile.userId }); userProfile = await fetchAPI("getUserProfile", { lineId: userProfile.userId }); }
         } else Swal.fire("ผิดพลาด", result.error, "error");
     } catch(e) { Swal.fire("ผิดพลาด", "เชื่อมต่อไม่ได้", "error"); }
