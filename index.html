@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- LIFF SDK -->
     <script src="https://static.line-scdn.net/liff/edge/versions/2.21.4/sdk.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -72,7 +71,6 @@
 </head>
 <body>
 
-<!-- Loading Overlay -->
 <div id="loadingOverlay" class="loading-overlay hidden">
     <div class="bg-white rounded-2xl p-6 flex flex-col items-center gap-3">
         <i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i>
@@ -80,15 +78,10 @@
     </div>
 </div>
 
-<!-- Main Content -->
 <div id="mainContent" class="max-w-md mx-auto relative">
     <div class="bg-white sticky top-0 z-40 shadow-sm px-4 py-3 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-bold text-rose-500">E-Shop</h1>
-            <p class="text-xs text-gray-400">Thailand</p>
-        </div>
+        <div><h1 class="text-xl font-bold text-rose-500">E-Shop</h1><p class="text-xs text-gray-400">Thailand</p></div>
         <div class="flex items-center gap-4">
-            <!-- User Info with Avatar and Name -->
             <div id="userAvatarContainer" class="user-info-header">
                 <img id="profileImageSmall" class="user-avatar-small" src="https://via.placeholder.com/36?text=User" alt="profile">
                 <div class="user-text-info hidden sm:block">
@@ -126,23 +119,15 @@
     <div id="productGrid" class="product-grid"><div class="col-span-full text-center text-gray-400 py-10"><i class="fas fa-spinner fa-pulse text-2xl"></i><p class="mt-2">กำลังโหลดสินค้า...</p></div></div>
 </div>
 
-<!-- Cart Sidebar -->
 <div id="cartSidebar" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="cartOverlay"></div>
     <div class="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-rose-500 mr-2"></i>ตะกร้าสินค้า</h2>
-            <button id="closeCart" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
-        </div>
+        <div class="p-4 border-b flex justify-between items-center"><h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-rose-500 mr-2"></i>ตะกร้าสินค้า</h2><button id="closeCart" class="text-gray-500"><i class="fas fa-times text-xl"></i></button></div>
         <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3"><div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>ตะกร้าว่างเปล่า</p></div></div>
-        <div class="p-4 border-t bg-white">
-            <div class="flex justify-between mb-3"><span class="font-semibold">รวมทั้งสิ้น</span><span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span></div>
-            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold transition"><i class="fas fa-receipt mr-2"></i>สั่งซื้อเลย</button>
-        </div>
+        <div class="p-4 border-t bg-white"><div class="flex justify-between mb-3"><span class="font-semibold">รวมทั้งสิ้น</span><span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span></div><button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold transition"><i class="fas fa-receipt mr-2"></i>สั่งซื้อเลย</button></div>
     </div>
 </div>
 
-<!-- Checkout Modal -->
 <div id="checkoutModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="checkoutOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
@@ -152,75 +137,51 @@
             <input type="email" id="custEmail" placeholder="อีเมล" class="w-full border rounded-xl p-3">
             <input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์" class="w-full border rounded-xl p-3">
             <textarea id="custAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3" rows="3"></textarea>
-            <div class="flex gap-3 pt-2">
-                <button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl transition">ยกเลิก</button>
-                <button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl transition"><i class="fas fa-check-circle mr-1"></i>ยืนยัน</button>
-            </div>
+            <div class="flex gap-3 pt-2"><button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl transition">ยกเลิก</button><button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl transition"><i class="fas fa-check-circle mr-1"></i>ยืนยัน</button></div>
         </div>
     </div>
 </div>
 
-<!-- Profile Modal -->
 <div id="profileModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="profileOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
-        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-user-circle text-rose-500 mr-2"></i>โปรไฟล์ของฉัน</h2>
-            <button id="closeProfile" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
-        </div>
+        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center"><h2 class="text-lg font-semibold"><i class="fas fa-user-circle text-rose-500 mr-2"></i>โปรไฟล์ของฉัน</h2><button id="closeProfile" class="text-gray-500"><i class="fas fa-times text-xl"></i></button></div>
         <div id="profileContent" class="p-4"></div>
     </div>
 </div>
 
-<!-- Edit Profile Modal -->
 <div id="editProfileModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="editProfileOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
-        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-edit text-rose-500 mr-2"></i>แก้ไขโปรไฟล์</h2>
-            <button id="closeEditProfile" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
-        </div>
+        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center"><h2 class="text-lg font-semibold"><i class="fas fa-edit text-rose-500 mr-2"></i>แก้ไขโปรไฟล์</h2><button id="closeEditProfile" class="text-gray-500"><i class="fas fa-times text-xl"></i></button></div>
         <div class="p-4">
             <div class="edit-profile-field"><label>ชื่อ-นามสกุล</label><input type="text" id="editDisplayName" placeholder="ชื่อ-นามสกุล"></div>
             <div class="edit-profile-field"><label>อีเมล</label><input type="email" id="editEmail" placeholder="อีเมล"></div>
             <div class="edit-profile-field"><label>เบอร์โทรศัพท์</label><input type="tel" id="editPhone" placeholder="เบอร์โทรศัพท์"></div>
             <div class="edit-profile-field"><label>ที่อยู่</label><textarea id="editAddress" rows="3" placeholder="ที่อยู่"></textarea></div>
-            <div class="flex gap-3 pt-2">
-                <button id="cancelEditProfile" class="flex-1 border border-gray-300 py-3 rounded-xl transition">ยกเลิก</button>
-                <button id="saveEditProfile" class="flex-1 bg-rose-500 text-white py-3 rounded-xl transition"><i class="fas fa-save mr-1"></i>บันทึก</button>
-            </div>
+            <div class="flex gap-3 pt-2"><button id="cancelEditProfile" class="flex-1 border border-gray-300 py-3 rounded-xl transition">ยกเลิก</button><button id="saveEditProfile" class="flex-1 bg-rose-500 text-white py-3 rounded-xl transition"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
         </div>
     </div>
 </div>
 
-<!-- Order History Modal -->
 <div id="orderHistoryModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="orderHistoryOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
-        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</h2>
-            <button id="closeOrderHistory" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
-        </div>
+        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center"><h2 class="text-lg font-semibold"><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</h2><button id="closeOrderHistory" class="text-gray-500"><i class="fas fa-times text-xl"></i></button></div>
         <div id="orderHistoryContent" class="p-4"></div>
     </div>
 </div>
 
-<!-- Order Detail Modal -->
 <div id="orderDetailModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="orderDetailOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
-        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center">
-            <h2 class="text-lg font-semibold"><i class="fas fa-receipt text-rose-500 mr-2"></i>รายละเอียดคำสั่งซื้อ</h2>
-            <button id="closeOrderDetail" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
-        </div>
+        <div class="p-4 border-b sticky top-0 bg-white flex justify-between items-center"><h2 class="text-lg font-semibold"><i class="fas fa-receipt text-rose-500 mr-2"></i>รายละเอียดคำสั่งซื้อ</h2><button id="closeOrderDetail" class="text-gray-500"><i class="fas fa-times text-xl"></i></button></div>
         <div id="orderDetailContent" class="p-4"></div>
     </div>
 </div>
 
-<!-- Floating Action Button -->
 <div id="fab" class="fixed bottom-24 right-4 z-40 fab"><i class="fas fa-plus text-2xl"></i></div>
 
-<!-- Radial Menu -->
 <div id="radialMenu" class="radial-menu hidden">
     <div class="radial-item" data-action="home" style="transform: translate(0px, -100px);"><i class="fas fa-home text-xl"></i></div>
     <div class="radial-item" data-action="search" style="transform: translate(70px, -70px);"><i class="fas fa-search text-xl"></i></div>
@@ -229,7 +190,6 @@
     <div class="radial-item" data-action="category" style="transform: translate(0px, 100px);"><i class="fas fa-tags text-xl"></i></div>
 </div>
 
-<!-- Dock Navigation -->
 <div class="dock-nav">
     <div class="dock-item active" data-dock="home"><i class="fas fa-home"></i><span>หน้าแรก</span></div>
     <div class="dock-item" data-dock="shop"><i class="fas fa-store"></i><span>ร้านค้า</span></div>
@@ -238,15 +198,9 @@
 </div>
 
 <script>
-// ============================================
-// CONFIGURATION
-// ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
+const API_URL = window.location.href;
 const LIFF_ID = "2006974084-pCKlrYsc";
 
-// ============================================
-// Global Variables
-// ============================================
 let products = [];
 let cart = [];
 let currentCategory = "all";
@@ -257,39 +211,23 @@ let liffProfile = null;
 let userProfile = null;
 let orderHistory = [];
 
-// ============================================
-// Utility Functions
-// ============================================
 function showLoading() { document.getElementById("loadingOverlay")?.classList.remove("hidden"); }
 function hideLoading() { document.getElementById("loadingOverlay")?.classList.add("hidden"); }
 function formatPrice(price) { return price.toLocaleString("th-TH") + " บาท"; }
-function showToast(title, icon = "success") {
-    Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 2000 });
-}
+function showToast(title, icon = "success") { Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 2000 }); }
 
-// ============================================
-// Google Apps Script Calls
-// ============================================
 function callGoogleScript(functionName, ...args) {
     return new Promise((resolve, reject) => {
-        google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)
-            [functionName](...args);
+        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[functionName](...args);
     });
 }
 
 async function saveUserToSheet(profile) {
     try {
-        const result = await callGoogleScript('saveUserProfileWrapper',
-            profile.userId, profile.lineName, profile.displayName,
-            profile.email, profile.phone, profile.address, profile.pictureUrl || "");
+        const result = await callGoogleScript('saveUserProfileWrapper', profile.userId, profile.lineName, profile.displayName, profile.email, profile.phone, profile.address, profile.pictureUrl || "");
         const data = JSON.parse(result);
         return data.success;
-    } catch(error) {
-        console.error("Save profile error:", error);
-        return false;
-    }
+    } catch(error) { console.error("Save error:", error); return false; }
 }
 
 async function loadUserFromSheet(lineId) {
@@ -297,10 +235,7 @@ async function loadUserFromSheet(lineId) {
         const result = await callGoogleScript('getUserProfileWrapper', lineId);
         const data = JSON.parse(result);
         return data;
-    } catch(error) {
-        console.error("Load profile error:", error);
-        return null;
-    }
+    } catch(error) { console.error("Load error:", error); return null; }
 }
 
 async function loadOrdersFromSheet(lineId) {
@@ -308,204 +243,83 @@ async function loadOrdersFromSheet(lineId) {
         const result = await callGoogleScript('getUserOrdersWrapper', lineId);
         const orders = JSON.parse(result);
         return orders;
-    } catch(error) {
-        console.error("Load orders error:", error);
-        return [];
-    }
+    } catch(error) { console.error("Load orders error:", error); return []; }
 }
 
 async function updateUserStats(lineId, amount) {
     try {
         await callGoogleScript('updateUserStatsWrapper', lineId, amount);
-    } catch(error) {
-        console.error("Update stats error:", error);
-    }
+    } catch(error) { console.error("Update stats error:", error); }
 }
 
-// ============================================
-// LIFF Functions
-// ============================================
 async function initializeLIFF() {
     try {
         await liff.init({ liffId: LIFF_ID });
-        console.log("LIFF initialized successfully");
-        
         if (liff.isLoggedIn()) {
             liffProfile = await liff.getProfile();
-            console.log("LIFF Profile:", liffProfile);
-            
-            // Try to get email from ID token
             let userEmail = "";
             try {
                 if (liff.getDecodedIDToken) {
                     const idToken = liff.getDecodedIDToken();
-                    if (idToken && idToken.email) {
-                        userEmail = idToken.email;
-                        console.log("Email retrieved:", userEmail);
-                    }
+                    if (idToken && idToken.email) userEmail = idToken.email;
                 }
-            } catch(e) {
-                console.log("Cannot get email:", e);
-            }
+            } catch(e) {}
             
-            // Load user profile from Sheet
             let sheetProfile = await loadUserFromSheet(liffProfile.userId);
-            
             if (sheetProfile && sheetProfile.displayName) {
                 userProfile = {
-                    userId: sheetProfile.lineId,
-                    lineName: sheetProfile.lineName,
-                    displayName: sheetProfile.displayName,
-                    email: sheetProfile.email || userEmail,
-                    phone: sheetProfile.phone || "",
-                    address: sheetProfile.address || "",
+                    userId: sheetProfile.lineId, lineName: sheetProfile.lineName,
+                    displayName: sheetProfile.displayName, email: sheetProfile.email || userEmail,
+                    phone: sheetProfile.phone || "", address: sheetProfile.address || "",
                     pictureUrl: liffProfile.pictureUrl || sheetProfile.pictureUrl || "",
-                    totalSpent: sheetProfile.totalSpent || 0,
-                    orderCount: sheetProfile.orderCount || 0
+                    totalSpent: sheetProfile.totalSpent || 0, orderCount: sheetProfile.orderCount || 0
                 };
             } else {
                 userProfile = {
-                    userId: liffProfile.userId,
-                    lineName: liffProfile.displayName,
-                    displayName: liffProfile.displayName,
-                    email: userEmail,
-                    phone: "",
-                    address: "",
-                    pictureUrl: liffProfile.pictureUrl || "",
-                    totalSpent: 0,
-                    orderCount: 0
+                    userId: liffProfile.userId, lineName: liffProfile.displayName,
+                    displayName: liffProfile.displayName, email: userEmail, phone: "", address: "",
+                    pictureUrl: liffProfile.pictureUrl || "", totalSpent: 0, orderCount: 0
                 };
             }
-            
-            // Save to Sheet
             await saveUserToSheet(userProfile);
-            
-            // Update UI
             updateUserUI();
             autoFillCheckoutForm();
-            
-            // Load order history
             orderHistory = await loadOrdersFromSheet(liffProfile.userId);
-        } else {
-            liff.login();
-        }
-    } catch (error) {
-        console.error("LIFF initialization failed:", error);
+        } else { liff.login(); }
+    } catch(error) {
         userProfile = { userId: "guest", lineName: "Guest", displayName: "Guest", email: "", phone: "", address: "", pictureUrl: "", totalSpent: 0, orderCount: 0 };
         updateUserUI();
     }
 }
 
 function updateUserUI() {
-    const avatarSmall = document.getElementById("profileImageSmall");
-    const userNameSpan = document.getElementById("userDisplayName");
-    const userLineSpan = document.getElementById("userLineName");
-    
-    if (avatarSmall && userProfile) {
-        if (userProfile.pictureUrl) {
-            avatarSmall.src = userProfile.pictureUrl;
-            avatarSmall.onerror = () => { avatarSmall.src = "https://via.placeholder.com/36?text=User"; };
-        }
-    }
-    
-    if (userNameSpan && userProfile) {
-        userNameSpan.innerText = userProfile.displayName || "Guest";
-    }
-    
-    if (userLineSpan && userProfile) {
-        userLineSpan.innerText = userProfile.lineName || "Not connected";
-    }
+    const avatar = document.getElementById("profileImageSmall");
+    if (avatar && userProfile?.pictureUrl) { avatar.src = userProfile.pictureUrl; avatar.onerror = () => { avatar.src = "https://via.placeholder.com/36?text=User"; }; }
+    document.getElementById("userDisplayName").innerText = userProfile?.displayName || "Guest";
+    document.getElementById("userLineName").innerText = userProfile?.lineName || "Not connected";
 }
 
 function autoFillCheckoutForm() {
     if (userProfile) {
-        const nameInput = document.getElementById("custName");
-        if (nameInput && !nameInput.value) nameInput.value = userProfile.displayName;
-        const emailInput = document.getElementById("custEmail");
-        if (emailInput && !emailInput.value && userProfile.email) emailInput.value = userProfile.email;
-        const phoneInput = document.getElementById("custPhone");
-        if (phoneInput && !phoneInput.value && userProfile.phone) phoneInput.value = userProfile.phone;
-        const addressInput = document.getElementById("custAddress");
-        if (addressInput && !addressInput.value && userProfile.address) addressInput.value = userProfile.address;
+        if (document.getElementById("custName") && !document.getElementById("custName").value) document.getElementById("custName").value = userProfile.displayName;
+        if (document.getElementById("custEmail") && !document.getElementById("custEmail").value && userProfile.email) document.getElementById("custEmail").value = userProfile.email;
+        if (document.getElementById("custPhone") && !document.getElementById("custPhone").value && userProfile.phone) document.getElementById("custPhone").value = userProfile.phone;
+        if (document.getElementById("custAddress") && !document.getElementById("custAddress").value && userProfile.address) document.getElementById("custAddress").value = userProfile.address;
     }
 }
 
-// ============================================
-// Profile Modal Functions
-// ============================================
 function showProfileModal() {
     const profileContent = document.getElementById("profileContent");
-    const orders = orderHistory;
     const profilePic = userProfile?.pictureUrl || "https://via.placeholder.com/80?text=User";
-    
     profileContent.innerHTML = `
-        <div class="profile-header">
-            <div class="flex items-center gap-4">
-                <img class="profile-avatar" src="${profilePic}" alt="profile" onerror="this.src='https://via.placeholder.com/80?text=User'">
-                <div>
-                    <h3 class="font-bold text-lg">${userProfile?.displayName || "Guest"}</h3>
-                    <p class="text-sm opacity-90">LINE: ${userProfile?.lineName || "Not connected"}</p>
-                    <p class="text-xs opacity-75 mt-1">ID: ${userProfile?.userId || "-"}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="flex gap-3 mb-4">
-            <div class="stat-card">
-                <div class="stat-value">${userProfile?.orderCount || 0}</div>
-                <div class="stat-label"><i class="fas fa-shopping-bag mr-1"></i>คำสั่งซื้อ</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${formatPrice(userProfile?.totalSpent || 0)}</div>
-                <div class="stat-label"><i class="fas fa-coins mr-1"></i>ยอดรวม</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${orderHistory.length}</div>
-                <div class="stat-label"><i class="fas fa-clock mr-1"></i>รายการ</div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
-            <h3 class="font-semibold mb-3"><i class="fas fa-envelope text-rose-500 mr-2"></i>ข้อมูลติดต่อ</h3>
-            <div class="space-y-2 text-sm">
-                <p><i class="fas fa-envelope w-5 text-gray-400"></i> ${userProfile?.email || "ไม่ได้ระบุ"}</p>
-                <p><i class="fas fa-phone w-5 text-gray-400"></i> ${userProfile?.phone || "ไม่ได้ระบุ"}</p>
-                <p><i class="fas fa-map-marker-alt w-5 text-gray-400"></i> ${userProfile?.address || "ไม่ได้ระบุ"}</p>
-            </div>
-            <button id="editProfileBtn" class="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm"><i class="fas fa-edit mr-1"></i>แก้ไขโปรไฟล์</button>
-        </div>
-        
-        <div class="bg-white rounded-xl p-4 shadow-sm">
-            <h3 class="font-semibold mb-3 flex justify-between items-center">
-                <span><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</span>
-                <button id="refreshOrdersBtn" class="text-xs text-rose-500"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
-            </h3>
-            <div id="orderHistoryPreview" class="max-h-64 overflow-y-auto">
-                ${orders.length === 0 ? '<p class="text-gray-400 text-center py-4">ยังไม่มีประวัติการสั่งซื้อ</p>' : orders.slice(0, 5).map(order => `
-                    <div class="border-b border-gray-100 py-3 cursor-pointer" onclick="viewOrderDetail('${order.orderId}')">
-                        <div class="flex justify-between items-center">
-                            <div><p class="font-medium text-sm">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div>
-                            <div class="text-right"><p class="text-rose-500 font-bold text-sm">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.items.length} รายการ</p></div>
-                        </div>
-                    </div>
-                `).join('')}
-                ${orders.length > 5 ? `<button id="viewAllOrdersBtn" class="w-full mt-3 text-rose-500 text-sm py-2">ดูทั้งหมด (${orders.length} รายการ)</button>` : ''}
-            </div>
-        </div>
-    `;
-    
+        <div class="profile-header"><div class="flex items-center gap-4"><img class="profile-avatar" src="${profilePic}" onerror="this.src='https://via.placeholder.com/80?text=User'"><div><h3 class="font-bold text-lg">${userProfile?.displayName || "Guest"}</h3><p class="text-sm opacity-90">LINE: ${userProfile?.lineName || "Not connected"}</p><p class="text-xs opacity-75 mt-1">ID: ${userProfile?.userId || "-"}</p></div></div></div>
+        <div class="flex gap-3 mb-4"><div class="stat-card"><div class="stat-value">${userProfile?.orderCount || 0}</div><div class="stat-label"><i class="fas fa-shopping-bag mr-1"></i>คำสั่งซื้อ</div></div><div class="stat-card"><div class="stat-value">${formatPrice(userProfile?.totalSpent || 0)}</div><div class="stat-label"><i class="fas fa-coins mr-1"></i>ยอดรวม</div></div><div class="stat-card"><div class="stat-value">${orderHistory.length}</div><div class="stat-label"><i class="fas fa-clock mr-1"></i>รายการ</div></div></div>
+        <div class="bg-white rounded-xl p-4 mb-4 shadow-sm"><h3 class="font-semibold mb-3"><i class="fas fa-envelope text-rose-500 mr-2"></i>ข้อมูลติดต่อ</h3><div class="space-y-2 text-sm"><p><i class="fas fa-envelope w-5 text-gray-400"></i> ${userProfile?.email || "ไม่ได้ระบุ"}</p><p><i class="fas fa-phone w-5 text-gray-400"></i> ${userProfile?.phone || "ไม่ได้ระบุ"}</p><p><i class="fas fa-map-marker-alt w-5 text-gray-400"></i> ${userProfile?.address || "ไม่ได้ระบุ"}</p></div><button id="editProfileBtn" class="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm"><i class="fas fa-edit mr-1"></i>แก้ไขโปรไฟล์</button></div>
+        <div class="bg-white rounded-xl p-4 shadow-sm"><h3 class="font-semibold mb-3 flex justify-between items-center"><span><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</span><button id="refreshOrdersBtn" class="text-xs text-rose-500"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button></h3><div id="orderHistoryPreview" class="max-h-64 overflow-y-auto">${orderHistory.length === 0 ? '<p class="text-gray-400 text-center py-4">ยังไม่มีประวัติการสั่งซื้อ</p>' : orderHistory.slice(0, 5).map(order => `<div class="border-b border-gray-100 py-3 cursor-pointer" onclick="viewOrderDetail('${order.orderId}')"><div class="flex justify-between items-center"><div><p class="font-medium text-sm">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div><div class="text-right"><p class="text-rose-500 font-bold text-sm">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.items.length} รายการ</p></div></div></div>`).join('')}${orderHistory.length > 5 ? `<button id="viewAllOrdersBtn" class="w-full mt-3 text-rose-500 text-sm py-2">ดูทั้งหมด (${orderHistory.length} รายการ)</button>` : ''}</div></div>`;
     document.getElementById("profileModal").classList.remove("hidden");
     document.getElementById("editProfileBtn")?.addEventListener("click", showEditProfileModal);
     document.getElementById("viewAllOrdersBtn")?.addEventListener("click", () => showAllOrders());
-    document.getElementById("refreshOrdersBtn")?.addEventListener("click", async () => {
-        if (userProfile?.userId) {
-            showLoading();
-            orderHistory = await loadOrdersFromSheet(userProfile.userId);
-            hideLoading();
-            showProfileModal();
-            showToast("อัปเดตประวัติเรียบร้อย");
-        }
-    });
+    document.getElementById("refreshOrdersBtn")?.addEventListener("click", async () => { if (userProfile?.userId) { showLoading(); orderHistory = await loadOrdersFromSheet(userProfile.userId); hideLoading(); showProfileModal(); showToast("อัปเดตประวัติเรียบร้อย"); } });
 }
 
 function showEditProfileModal() {
@@ -523,46 +337,20 @@ async function saveEditedProfile() {
         userProfile.email = document.getElementById("editEmail").value;
         userProfile.phone = document.getElementById("editPhone").value;
         userProfile.address = document.getElementById("editAddress").value;
-        
         showLoading();
         const success = await saveUserToSheet(userProfile);
         hideLoading();
-        
-        if (success) {
-            updateUserUI();
-            autoFillCheckoutForm();
-            showToast("บันทึกข้อมูลเรียบร้อย");
-            document.getElementById("editProfileModal").classList.add("hidden");
-            showProfileModal();
-        } else {
-            showToast("เกิดข้อผิดพลาด กรุณาลองใหม่", "error");
-        }
+        if (success) { updateUserUI(); autoFillCheckoutForm(); showToast("บันทึกข้อมูลเรียบร้อย"); document.getElementById("editProfileModal").classList.add("hidden"); showProfileModal(); }
+        else { showToast("เกิดข้อผิดพลาด กรุณาลองใหม่", "error"); }
     }
 }
 
 function showAllOrders() {
     const content = document.getElementById("orderHistoryContent");
-    const orders = orderHistory;
-    
-    if (orders.length === 0) {
-        content.innerHTML = '<p class="text-center text-gray-400 py-10">ยังไม่มีประวัติการสั่งซื้อ</p>';
-    } else {
-        content.innerHTML = orders.map(order => `
-            <div class="order-history-card" onclick="viewOrderDetail('${order.orderId}')">
-                <div class="flex justify-between items-start mb-2">
-                    <div><p class="font-semibold text-rose-500">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div>
-                    <div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.status || "สำเร็จ"}</p></div>
-                </div>
-                <div class="border-t border-gray-100 pt-2 mt-2">
-                    <p class="text-sm text-gray-600">สินค้าที่สั่งซื้อ:</p>
-                    ${order.items.slice(0, 3).map(item => `<div class="flex justify-between text-sm mt-1"><span>${item.name} x ${item.quantity}</span><span>${formatPrice(item.price * item.quantity)}</span></div>`).join('')}
-                    ${order.items.length > 3 ? `<p class="text-xs text-gray-400 mt-1">และอีก ${order.items.length - 3} รายการ</p>` : ''}
-                </div>
-                <button class="w-full mt-3 bg-rose-50 text-rose-500 py-2 rounded-xl text-sm transition" onclick="event.stopPropagation(); reorderItems('${order.orderId}')"><i class="fas fa-redo-alt mr-1"></i>สั่งซื้ออีกครั้ง</button>
-            </div>
-        `).join('');
+    if (orderHistory.length === 0) { content.innerHTML = '<p class="text-center text-gray-400 py-10">ยังไม่มีประวัติการสั่งซื้อ</p>'; }
+    else {
+        content.innerHTML = orderHistory.map(order => `<div class="order-history-card" onclick="viewOrderDetail('${order.orderId}')"><div class="flex justify-between items-start mb-2"><div><p class="font-semibold text-rose-500">${order.orderId}</p><p class="text-xs text-gray-400">${order.timestamp}</p></div><div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(order.total)}</p><p class="text-xs text-gray-400">${order.status || "สำเร็จ"}</p></div></div><div class="border-t border-gray-100 pt-2 mt-2"><p class="text-sm text-gray-600">สินค้าที่สั่งซื้อ:</p>${order.items.slice(0, 3).map(item => `<div class="flex justify-between text-sm mt-1"><span>${item.name} x ${item.quantity}</span><span>${formatPrice(item.price * item.quantity)}</span></div>`).join('')}${order.items.length > 3 ? `<p class="text-xs text-gray-400 mt-1">และอีก ${order.items.length - 3} รายการ</p>` : ''}</div><button class="w-full mt-3 bg-rose-50 text-rose-500 py-2 rounded-xl text-sm transition" onclick="event.stopPropagation(); reorderItems('${order.orderId}')"><i class="fas fa-redo-alt mr-1"></i>สั่งซื้ออีกครั้ง</button></div>`).join('');
     }
-    
     document.getElementById("orderHistoryModal").classList.remove("hidden");
     document.getElementById("profileModal").classList.add("hidden");
 }
@@ -570,128 +358,45 @@ function showAllOrders() {
 function viewOrderDetail(orderId) {
     const order = orderHistory.find(o => o.orderId === orderId);
     if (order) {
-        const content = document.getElementById("orderDetailContent");
-        content.innerHTML = `
-            <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <p class="text-xs text-gray-500">เลขที่คำสั่งซื้อ</p>
-                        <p class="font-semibold text-rose-500">${order.orderId}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-gray-500">วันที่สั่งซื้อ</p>
-                        <p class="text-sm">${order.timestamp}</p>
-                    </div>
-                </div>
-                <div class="border-t border-gray-200 pt-3">
-                    <p class="text-xs text-gray-500 mb-2">ข้อมูลผู้รับ</p>
-                    <p class="text-sm font-medium">${order.name || "-"}</p>
-                    <p class="text-sm">${order.phone || "-"}</p>
-                    <p class="text-sm">${order.address || "-"}</p>
-                </div>
-            </div>
-            
-            <div class="mb-4">
-                <p class="font-semibold mb-2"><i class="fas fa-box text-rose-500 mr-2"></i>รายการสินค้า</p>
-                <div class="space-y-2">
-                    ${order.items.map(item => `
-                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                            <div>
-                                <p class="text-sm font-medium">${item.name}</p>
-                                <p class="text-xs text-gray-400">จำนวน x ${item.quantity}</p>
-                            </div>
-                            <p class="text-rose-500 font-medium">${formatPrice(item.price * item.quantity)}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <div class="bg-gray-50 rounded-xl p-3">
-                <div class="flex justify-between items-center">
-                    <span class="font-semibold">ยอดรวมทั้งสิ้น</span>
-                    <span class="text-xl font-bold text-rose-500">${formatPrice(order.total)}</span>
-                </div>
-                <div class="flex justify-between text-sm mt-2">
-                    <span class="text-gray-500">สถานะ</span>
-                    <span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>${order.status || "สำเร็จ"}</span>
-                </div>
-            </div>
-            
-            <button id="reorderFromDetailBtn" class="w-full mt-4 bg-rose-500 text-white py-3 rounded-xl font-semibold transition">
-                <i class="fas fa-redo-alt mr-2"></i>สั่งซื้ออีกครั้ง
-            </button>
-        `;
-        
+        document.getElementById("orderDetailContent").innerHTML = `
+            <div class="bg-gray-50 rounded-xl p-4 mb-4"><div class="flex justify-between items-start mb-3"><div><p class="text-xs text-gray-500">เลขที่คำสั่งซื้อ</p><p class="font-semibold text-rose-500">${order.orderId}</p></div><div class="text-right"><p class="text-xs text-gray-500">วันที่สั่งซื้อ</p><p class="text-sm">${order.timestamp}</p></div></div><div class="border-t border-gray-200 pt-3"><p class="text-xs text-gray-500 mb-2">ข้อมูลผู้รับ</p><p class="text-sm font-medium">${order.name || "-"}</p><p class="text-sm">${order.phone || "-"}</p><p class="text-sm">${order.address || "-"}</p></div></div>
+            <div class="mb-4"><p class="font-semibold mb-2"><i class="fas fa-box text-rose-500 mr-2"></i>รายการสินค้า</p><div class="space-y-2">${order.items.map(item => `<div class="flex justify-between items-center py-2 border-b border-gray-100"><div><p class="text-sm font-medium">${item.name}</p><p class="text-xs text-gray-400">จำนวน x ${item.quantity}</p></div><p class="text-rose-500 font-medium">${formatPrice(item.price * item.quantity)}</p></div>`).join('')}</div></div>
+            <div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between items-center"><span class="font-semibold">ยอดรวมทั้งสิ้น</span><span class="text-xl font-bold text-rose-500">${formatPrice(order.total)}</span></div><div class="flex justify-between text-sm mt-2"><span class="text-gray-500">สถานะ</span><span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>${order.status || "สำเร็จ"}</span></div></div>
+            <button id="reorderFromDetailBtn" class="w-full mt-4 bg-rose-500 text-white py-3 rounded-xl font-semibold transition"><i class="fas fa-redo-alt mr-2"></i>สั่งซื้ออีกครั้ง</button>`;
         document.getElementById("orderDetailModal").classList.remove("hidden");
-        document.getElementById("closeAllModals");
-        
-        document.getElementById("reorderFromDetailBtn")?.addEventListener("click", () => {
-            reorderItems(orderId);
-            document.getElementById("orderDetailModal").classList.add("hidden");
-        });
+        document.getElementById("reorderFromDetailBtn")?.addEventListener("click", () => { reorderItems(orderId); document.getElementById("orderDetailModal").classList.add("hidden"); });
     }
 }
 
 async function reorderItems(orderId) {
     const order = orderHistory.find(o => o.orderId === orderId);
     if (order && order.items) {
-        order.items.forEach(item => {
-            const product = products.find(p => p.id === item.id);
-            if (product) addToCart(product);
-        });
+        order.items.forEach(item => { const product = products.find(p => p.id === item.id); if (product) addToCart(product); });
         showToast("เพิ่มสินค้าลงตะกร้าเรียบร้อย");
         closeAllModals();
     }
 }
 
-// ============================================
-// Load Products
-// ============================================
 async function loadProducts() {
     showLoading();
     try {
         const response = await fetch(API_URL + "?action=getProducts");
         const result = await response.json();
-        if (result.success && result.products) {
-            products = result.products;
-            renderProducts();
-            setupCategories();
-            updateCommandSuggestions();
-        }
+        if (result.success && result.products) { products = result.products; renderProducts(); setupCategories(); updateCommandSuggestions(); }
     } catch(error) { console.error(error); }
     hideLoading();
 }
 
 function renderProducts() {
     let filtered = [...products];
-    if (currentTab !== "all") {
-        const categoryMap = { clothing: ["เสื้อผ้า"], shoes: ["รองเท้า"], accessories: ["เครื่องประดับ"], bags: ["กระเป๋า"] };
-        filtered = filtered.filter(p => categoryMap[currentTab]?.includes(p.category) || p.category === currentTab);
-    }
+    if (currentTab !== "all") { const categoryMap = { clothing: ["เสื้อผ้า"], shoes: ["รองเท้า"], accessories: ["เครื่องประดับ"], bags: ["กระเป๋า"] }; filtered = filtered.filter(p => categoryMap[currentTab]?.includes(p.category) || p.category === currentTab); }
     if (currentCategory !== "all") filtered = filtered.filter(p => p.category === currentCategory);
     if (searchQuery.trim()) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    
     const grid = document.getElementById("productGrid");
     if (filtered.length === 0) { grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">ไม่พบสินค้า</div>`; return; }
-    
-    grid.innerHTML = filtered.map(product => `
-        <div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100" data-product='${JSON.stringify(product)}'>
-            <img src="${product.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">
-            <div class="p-2">
-                <div class="text-xs text-gray-400"><i class="fas fa-tag mr-1"></i>${product.category}</div>
-                <div class="font-medium text-sm truncate mt-1">${product.name}</div>
-                <div class="text-rose-500 font-bold text-sm mt-1">${formatPrice(product.price)}</div>
-                <button class="add-to-cart-btn w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-xs transition" data-product='${JSON.stringify(product)}'><i class="fas fa-cart-plus mr-1"></i> หยิบใส่ตะกร้า</button>
-            </div>
-        </div>
-    `).join("");
-    
-    document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => { e.stopPropagation(); addToCart(JSON.parse(btn.dataset.product)); });
-    });
-    document.querySelectorAll(".product-card").forEach(card => {
-        card.addEventListener("contextmenu", (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, JSON.parse(card.dataset.product)); });
-    });
+    grid.innerHTML = filtered.map(product => `<div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100" data-product='${JSON.stringify(product)}'><img src="${product.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'"><div class="p-2"><div class="text-xs text-gray-400"><i class="fas fa-tag mr-1"></i>${product.category}</div><div class="font-medium text-sm truncate mt-1">${product.name}</div><div class="text-rose-500 font-bold text-sm mt-1">${formatPrice(product.price)}</div><button class="add-to-cart-btn w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-xs transition" data-product='${JSON.stringify(product)}'><i class="fas fa-cart-plus mr-1"></i> หยิบใส่ตะกร้า</button></div></div>`).join("");
+    document.querySelectorAll(".add-to-cart-btn").forEach(btn => { btn.addEventListener("click", (e) => { e.stopPropagation(); addToCart(JSON.parse(btn.dataset.product)); }); });
+    document.querySelectorAll(".product-card").forEach(card => { card.addEventListener("contextmenu", (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, JSON.parse(card.dataset.product)); }); });
 }
 
 function setupCategories() {
@@ -699,21 +404,13 @@ function setupCategories() {
     const container = document.getElementById("categoryFilter");
     if (!container) return;
     container.innerHTML = categories.map(cat => `<button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm ${cat === "all" ? "bg-rose-500 text-white" : "bg-gray-100 text-gray-700"}"><i class="fas fa-tag mr-1"></i>${cat === "all" ? "ทั้งหมด" : cat}</button>`).join("");
-    document.querySelectorAll(".cat-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".cat-btn").forEach(b => { b.classList.remove("bg-rose-500", "text-white"); b.classList.add("bg-gray-100", "text-gray-700"); });
-            btn.classList.add("bg-rose-500", "text-white");
-            currentCategory = btn.dataset.cat;
-            renderProducts();
-        });
-    });
+    document.querySelectorAll(".cat-btn").forEach(btn => { btn.addEventListener("click", () => { document.querySelectorAll(".cat-btn").forEach(b => { b.classList.remove("bg-rose-500", "text-white"); b.classList.add("bg-gray-100", "text-gray-700"); }); btn.classList.add("bg-rose-500", "text-white"); currentCategory = btn.dataset.cat; renderProducts(); }); });
 }
 
 function updateCommandSuggestions() {
     const searchInput = document.getElementById("searchInput");
     const suggestionsDiv = document.getElementById("suggestions");
     if (!searchInput || !suggestionsDiv) return;
-    
     searchInput.addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase();
         if (query.length < 1) { suggestionsDiv.classList.add("hidden"); return; }
@@ -721,17 +418,12 @@ function updateCommandSuggestions() {
         if (matches.length > 0) {
             suggestionsDiv.innerHTML = matches.map(p => `<div class="suggestion-item" data-name="${p.name}"><i class="fas fa-box text-gray-400"></i><div><div>${p.name}</div><div class="text-xs text-gray-400">${p.category} - ${formatPrice(p.price)}</div></div></div>`).join("");
             suggestionsDiv.classList.remove("hidden");
-            document.querySelectorAll(".suggestion-item").forEach(item => {
-                item.addEventListener("click", () => { searchInput.value = item.dataset.name; searchQuery = item.dataset.name; suggestionsDiv.classList.add("hidden"); renderProducts(); });
-            });
+            document.querySelectorAll(".suggestion-item").forEach(item => { item.addEventListener("click", () => { searchInput.value = item.dataset.name; searchQuery = item.dataset.name; suggestionsDiv.classList.add("hidden"); renderProducts(); }); });
         } else { suggestionsDiv.classList.add("hidden"); }
     });
     document.addEventListener("click", (e) => { if (!suggestionsDiv.contains(e.target) && e.target !== searchInput) suggestionsDiv.classList.add("hidden"); });
 }
 
-// ============================================
-// Cart Functions
-// ============================================
 function addToCart(product) {
     const existing = cart.find(item => item.id === product.id);
     if (existing) existing.quantity += 1;
@@ -741,31 +433,14 @@ function addToCart(product) {
 }
 
 function removeFromCart(productId) { cart = cart.filter(item => item.id !== productId); updateCartUI(); showToast("ลบสินค้าออกจากตะกร้า"); }
-function updateQuantity(productId, delta) {
-    const item = cart.find(item => item.id === productId);
-    if (item) { item.quantity += delta; if (item.quantity <= 0) removeFromCart(productId); else updateCartUI(); }
-}
+function updateQuantity(productId, delta) { const item = cart.find(item => item.id === productId); if (item) { item.quantity += delta; if (item.quantity <= 0) removeFromCart(productId); else updateCartUI(); } }
 
 function updateCartUI() {
     document.getElementById("cartCount").innerText = cart.reduce((sum, item) => sum + item.quantity, 0);
     document.getElementById("cartTotal").innerHTML = formatPrice(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0));
     const container = document.getElementById("cartItems");
     if (cart.length === 0) { container.innerHTML = `<div class="text-center text-gray-400 py-10"><i class="fas fa-shopping-cart text-4xl mb-3"></i><p>ตะกร้าว่างเปล่า</p></div>`; return; }
-    container.innerHTML = cart.map(item => `
-        <div class="cart-item flex gap-3 bg-gray-50 rounded-xl p-3">
-            <img src="${item.image}" class="w-16 h-16 rounded-lg object-cover">
-            <div class="flex-1">
-                <div class="font-medium text-sm">${item.name}</div>
-                <div class="text-rose-500 text-sm">${formatPrice(item.price)}</div>
-                <div class="flex items-center gap-2 mt-2">
-                    <div class="quantity-btn" onclick="updateQuantity('${item.id}', -1)"><i class="fas fa-minus text-xs"></i></div>
-                    <span class="text-sm font-medium w-8 text-center">${item.quantity}</span>
-                    <div class="quantity-btn" onclick="updateQuantity('${item.id}', 1)"><i class="fas fa-plus text-xs"></i></div>
-                    <button onclick="removeFromCart('${item.id}')" class="ml-auto text-red-400 text-sm"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            </div>
-        </div>
-    `).join("");
+    container.innerHTML = cart.map(item => `<div class="cart-item flex gap-3 bg-gray-50 rounded-xl p-3"><img src="${item.image}" class="w-16 h-16 rounded-lg object-cover"><div class="flex-1"><div class="font-medium text-sm">${item.name}</div><div class="text-rose-500 text-sm">${formatPrice(item.price)}</div><div class="flex items-center gap-2 mt-2"><div class="quantity-btn" onclick="updateQuantity('${item.id}', -1)"><i class="fas fa-minus text-xs"></i></div><span class="text-sm font-medium w-8 text-center">${item.quantity}</span><div class="quantity-btn" onclick="updateQuantity('${item.id}', 1)"><i class="fas fa-plus text-xs"></i></div><button onclick="removeFromCart('${item.id}')" class="ml-auto text-red-400 text-sm"><i class="fas fa-trash-alt"></i></button></div></div></div>`).join("");
 }
 
 function showContextMenu(x, y, product) {
@@ -776,87 +451,37 @@ function showContextMenu(x, y, product) {
     menu.style.top = y + "px";
     menu.innerHTML = `<div class="context-menu-item" data-action="add"><i class="fas fa-cart-plus"></i><span>หยิบใส่ตะกร้า</span></div><div class="context-menu-item" data-action="detail"><i class="fas fa-info-circle"></i><span>รายละเอียด</span></div><div class="context-menu-item danger" data-action="share"><i class="fas fa-share-alt"></i><span>แชร์</span></div>`;
     document.body.appendChild(menu);
-    menu.querySelectorAll(".context-menu-item").forEach(item => {
-        item.addEventListener("click", () => {
-            if (item.dataset.action === "add") addToCart(product);
-            else if (item.dataset.action === "detail") Swal.fire({ title: product.name, html: `<img src="${product.image}" class="w-full rounded-lg mb-3"><p>ราคา: ${formatPrice(product.price)}</p><p>หมวดหมู่: ${product.category}</p>`, icon: "info" });
-            else if (item.dataset.action === "share") { navigator.clipboard.writeText(product.name + " - " + formatPrice(product.price)); showToast("คัดลอกข้อมูลสินค้าแล้ว"); }
-            removeContextMenu();
-        });
-    });
+    menu.querySelectorAll(".context-menu-item").forEach(item => { item.addEventListener("click", () => { if (item.dataset.action === "add") addToCart(product); else if (item.dataset.action === "detail") Swal.fire({ title: product.name, html: `<img src="${product.image}" class="w-full rounded-lg mb-3"><p>ราคา: ${formatPrice(product.price)}</p><p>หมวดหมู่: ${product.category}</p>`, icon: "info" }); else if (item.dataset.action === "share") { navigator.clipboard.writeText(product.name + " - " + formatPrice(product.price)); showToast("คัดลอกข้อมูลสินค้าแล้ว"); } removeContextMenu(); }); });
 }
 function removeContextMenu() { const menu = document.querySelector(".context-menu"); if (menu) menu.remove(); }
 
-function toggleRadialMenu() {
-    const radialMenu = document.getElementById("radialMenu");
-    if (isRadialOpen) { radialMenu.classList.add("hidden"); isRadialOpen = false; }
-    else { radialMenu.classList.remove("hidden"); isRadialOpen = true; }
-}
+function toggleRadialMenu() { const radialMenu = document.getElementById("radialMenu"); if (isRadialOpen) { radialMenu.classList.add("hidden"); isRadialOpen = false; } else { radialMenu.classList.remove("hidden"); isRadialOpen = true; } }
 function closeRadialMenu() { document.getElementById("radialMenu").classList.add("hidden"); isRadialOpen = false; }
 
-// ============================================
-// Submit Order
-// ============================================
 async function submitOrder() {
     if (cart.length === 0) { showToast("กรุณาเลือกสินค้าก่อน", "error"); return; }
-    
     const name = document.getElementById("custName").value.trim();
     const email = document.getElementById("custEmail").value.trim();
     const phone = document.getElementById("custPhone").value.trim();
     const address = document.getElementById("custAddress").value.trim();
     if (!name || !email || !phone || !address) { showToast("กรุณากรอกข้อมูลให้ครบถ้วน", "error"); return; }
-    
-    // Update profile
-    if (userProfile) {
-        userProfile.displayName = name;
-        userProfile.email = email;
-        userProfile.phone = phone;
-        userProfile.address = address;
-        await saveUserToSheet(userProfile);
-    }
-    
+    if (userProfile) { userProfile.displayName = name; userProfile.email = email; userProfile.phone = phone; userProfile.address = address; await saveUserToSheet(userProfile); }
     const items = cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity }));
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
     const formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", email);
-    formData.append("phone", phone);
-    formData.append("address", address);
-    formData.append("lineId", userProfile?.userId || "web_user");
-    formData.append("lineName", userProfile?.lineName || "");
-    formData.append("items", JSON.stringify(items));
-    formData.append("total", total);
-    
+    formData.append("name", name); formData.append("email", email); formData.append("phone", phone); formData.append("address", address);
+    formData.append("lineId", userProfile?.userId || "web_user"); formData.append("lineName", userProfile?.lineName || "");
+    formData.append("items", JSON.stringify(items)); formData.append("total", total);
     showLoading();
     try {
         const response = await fetch(API_URL, { method: "POST", body: formData });
         const result = await response.json();
-        
         if (result.success) {
-            // Update user stats
-            if (userProfile?.userId) {
-                await updateUserStats(userProfile.userId, total);
-            }
-            
-            // Send Flex Message to LINE
+            if (userProfile?.userId) await updateUserStats(userProfile.userId, total);
             await sendFlexMessage({ orderId: result.orderId, items: items, total: total });
-            
-            Swal.fire({ 
-                title: "สั่งซื้อสำเร็จ!", 
-                html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br>ขอบคุณที่ใช้บริการ`, 
-                icon: "success", 
-                confirmButtonText: "ตกลง" 
-            });
-            
-            cart = []; updateCartUI(); closeCart();
-            document.getElementById("checkoutModal").classList.add("hidden");
-            
-            // Reload orders
-            if (userProfile?.userId) {
-                orderHistory = await loadOrdersFromSheet(userProfile.userId);
-                userProfile = await loadUserFromSheet(userProfile.userId);
-            }
+            Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br>ขอบคุณที่ใช้บริการ`, icon: "success", confirmButtonText: "ตกลง" });
+            cart = []; updateCartUI(); closeCart(); document.getElementById("checkoutModal").classList.add("hidden");
+            if (userProfile?.userId) { orderHistory = await loadOrdersFromSheet(userProfile.userId); userProfile = await loadUserFromSheet(userProfile.userId); }
         } else { Swal.fire("ผิดพลาด", result.error, "error"); }
     } catch(error) { console.error(error); }
     hideLoading();
@@ -864,54 +489,19 @@ async function submitOrder() {
 
 async function sendFlexMessage(orderData) {
     if (!liff.isInClient || !liff.isInClient()) return;
-    
-    const flexMessage = {
-        type: "flex",
-        altText: "ใบเสร็จการสั่งซื้อ",
-        contents: {
-            type: "bubble",
-            header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", size: "xl", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666", margin: "md" }] },
-            body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold", size: "md", margin: "md" }, { type: "separator", margin: "md" }, ...orderData.items.map(item => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${item.name} x ${item.quantity}`, flex: 2, size: "sm" }, { type: "text", text: formatPrice(item.price * item.quantity), flex: 1, align: "end", size: "sm" }], margin: "sm" })), { type: "separator", margin: "md" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold", size: "md" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e", size: "md" }], margin: "md" }] },
-            footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center", size: "sm", color: "#666666" }] }
-        }
-    };
-    
-    try { await liff.sendMessages([flexMessage]); } catch(e) { console.log("Send message error:", e); }
+    try { await liff.sendMessages([{ type: "flex", altText: "ใบเสร็จการสั่งซื้อ", contents: { type: "bubble", header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", size: "xl", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666", margin: "md" }] }, body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold", size: "md", margin: "md" }, { type: "separator", margin: "md" }, ...orderData.items.map(item => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${item.name} x ${item.quantity}`, flex: 2, size: "sm" }, { type: "text", text: formatPrice(item.price * item.quantity), flex: 1, align: "end", size: "sm" }], margin: "sm" })), { type: "separator", margin: "md" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold", size: "md" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e", size: "md" }], margin: "md" }] }, footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center", size: "sm", color: "#666666" }] } } }]); } catch(e) { console.log("Send message error:", e); }
 }
 
-// ============================================
-// Modal Functions
-// ============================================
 function openCart() { updateCartUI(); document.getElementById("cartSidebar").classList.remove("hidden"); closeRadialMenu(); }
 function closeCart() { document.getElementById("cartSidebar").classList.add("hidden"); }
-function closeAllModals() {
-    document.getElementById("profileModal")?.classList.add("hidden");
-    document.getElementById("editProfileModal")?.classList.add("hidden");
-    document.getElementById("orderHistoryModal")?.classList.add("hidden");
-    document.getElementById("orderDetailModal")?.classList.add("hidden");
-}
+function closeAllModals() { document.getElementById("profileModal")?.classList.add("hidden"); document.getElementById("editProfileModal")?.classList.add("hidden"); document.getElementById("orderHistoryModal")?.classList.add("hidden"); document.getElementById("orderDetailModal")?.classList.add("hidden"); }
 
-function setTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll(".tab-item").forEach(t => { if (t.dataset.tab === tab) t.classList.add("active"); else t.classList.remove("active"); });
-    renderProducts();
-}
+function setTab(tab) { currentTab = tab; document.querySelectorAll(".tab-item").forEach(t => { if (t.dataset.tab === tab) t.classList.add("active"); else t.classList.remove("active"); }); renderProducts(); }
+function setDock(dock) { document.querySelectorAll(".dock-item").forEach(d => { if (d.dataset.dock === dock) d.classList.add("active"); else d.classList.remove("active"); }); if (dock === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (dock === "shop") { closeCart(); closeAllModals(); } else if (dock === "cart") { openCart(); } else if (dock === "profile") { showProfileModal(); } }
 
-function setDock(dock) {
-    document.querySelectorAll(".dock-item").forEach(d => { if (d.dataset.dock === dock) d.classList.add("active"); else d.classList.remove("active"); });
-    if (dock === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0, behavior: "smooth" }); }
-    else if (dock === "shop") { closeCart(); closeAllModals(); }
-    else if (dock === "cart") { openCart(); }
-    else if (dock === "profile") { showProfileModal(); }
-}
-
-// ============================================
-// Initialize
-// ============================================
 document.addEventListener("DOMContentLoaded", async () => {
     await initializeLIFF();
     await loadProducts();
-    
     document.getElementById("searchInput")?.addEventListener("input", (e) => { searchQuery = e.target.value; renderProducts(); });
     document.getElementById("filterBtn")?.addEventListener("click", () => { document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); });
     document.getElementById("cartIcon")?.addEventListener("click", openCart);
@@ -922,8 +512,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("cancelCheckout")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
     document.getElementById("checkoutOverlay")?.addEventListener("click", () => { document.getElementById("checkoutModal").classList.add("hidden"); });
     document.getElementById("confirmOrder")?.addEventListener("click", submitOrder);
-    
-    // Modal close buttons
     document.getElementById("closeProfile")?.addEventListener("click", () => { document.getElementById("profileModal").classList.add("hidden"); });
     document.getElementById("profileOverlay")?.addEventListener("click", () => { document.getElementById("profileModal").classList.add("hidden"); });
     document.getElementById("closeEditProfile")?.addEventListener("click", () => { document.getElementById("editProfileModal").classList.add("hidden"); });
@@ -934,26 +522,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("orderHistoryOverlay")?.addEventListener("click", () => { document.getElementById("orderHistoryModal").classList.add("hidden"); });
     document.getElementById("closeOrderDetail")?.addEventListener("click", () => { document.getElementById("orderDetailModal").classList.add("hidden"); });
     document.getElementById("orderDetailOverlay")?.addEventListener("click", () => { document.getElementById("orderDetailModal").classList.add("hidden"); });
-    
     document.getElementById("fab")?.addEventListener("click", toggleRadialMenu);
-    
-    document.querySelectorAll(".radial-item").forEach(item => {
-        item.addEventListener("click", () => {
-            const action = item.dataset.action;
-            if (action === "home") { window.scrollTo({ top: 0, behavior: "smooth" }); closeCart(); closeAllModals(); }
-            else if (action === "search") { document.getElementById("searchInput")?.focus(); }
-            else if (action === "cart") { openCart(); }
-            else if (action === "profile") { showProfileModal(); }
-            else if (action === "category") { document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); }
-            closeRadialMenu();
-        });
-    });
-    
-    document.addEventListener("click", (e) => {
-        if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fab")) closeRadialMenu();
-        if (!e.target.closest(".context-menu")) removeContextMenu();
-    });
-    
+    document.querySelectorAll(".radial-item").forEach(item => { item.addEventListener("click", () => { const action = item.dataset.action; if (action === "home") { window.scrollTo({ top: 0, behavior: "smooth" }); closeCart(); closeAllModals(); } else if (action === "search") { document.getElementById("searchInput")?.focus(); } else if (action === "cart") { openCart(); } else if (action === "profile") { showProfileModal(); } else if (action === "category") { document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); } closeRadialMenu(); }); });
+    document.addEventListener("click", (e) => { if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fab")) closeRadialMenu(); if (!e.target.closest(".context-menu")) removeContextMenu(); });
     document.querySelectorAll(".tab-item").forEach(tab => { tab.addEventListener("click", () => setTab(tab.dataset.tab)); });
     document.querySelectorAll(".dock-item").forEach(dock => { dock.addEventListener("click", () => setDock(dock.dataset.dock)); });
 });
