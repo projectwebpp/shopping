@@ -48,7 +48,8 @@
         .context-menu-item.danger { color: #ef4444; }
         .fab { width: 56px; height: 56px; background: #f43f5e; border-radius: 50%; box-shadow: 0 4px 12px rgba(244,63,94,0.4); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: white; }
         .fab:active { transform: scale(0.92); }
-        .dock-nav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 40px; padding: 8px 20px; display: flex; gap: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 100; }
+        .dock-nav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 40px; padding: 8px 20px; display: flex; gap: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 100; transition: opacity 0.2s ease, transform 0.2s ease; }
+        .dock-nav.is-hidden { opacity: 0; pointer-events: none; transform: translate(-50%, 18px); }
         .dock-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s; color: #9ca3af; }
         .dock-item i { font-size: 22px; }
         .dock-item span { font-size: 10px; }
@@ -307,7 +308,7 @@
 </div>
 
 <!-- Dock Navigation -->
-<div class="dock-nav">
+<div id="dockNav" class="dock-nav">
     <div class="dock-item active" data-dock="home"><i class="fas fa-home"></i><span>หน้าแรก</span></div>
     <div class="dock-item" data-dock="shop"><i class="fas fa-store"></i><span>ร้านค้า</span></div>
     <div class="dock-item" data-dock="cart"><i class="fas fa-shopping-cart"></i><span>ตะกร้า</span></div>
@@ -324,7 +325,7 @@ const LIFF_ID = "2006974084-pCKlrYsc";
 // ============================================
 // Global Variables
 // ============================================
-let products = [], cart = [], categories = [], allUsers = [], allOrders = [], orderHistory = [];
+let products = [], cart = [], categories = [], adminCategories = [], allUsers = [], allOrders = [], orderHistory = [];
 let currentCategory = "all", searchQuery = "", currentTab = "all", isRadialOpen = false;
 let liffProfile = null, userProfile = null, isAdmin = false;
 let currentEditingOrder = null, currentEditingUser = null;
@@ -336,6 +337,13 @@ function showLoading() { document.getElementById("loadingOverlay").classList.rem
 function hideLoading() { document.getElementById("loadingOverlay").classList.add("hidden"); }
 function formatPrice(p) { return p.toLocaleString("th-TH") + " บาท"; }
 function showToast(title, icon = "success") { Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 2000 }); }
+function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch])); }
+function isModalVisible() { return Array.from(document.querySelectorAll(".modal-container")).some(modal => !modal.classList.contains("hidden")); }
+function updateDockVisibility() {
+    const dock = document.getElementById("dockNav");
+    if (!dock) return;
+    dock.classList.toggle("is-hidden", isModalVisible());
+}
 
 // ============================================
 // API Calls
@@ -403,9 +411,8 @@ function updateCommandSuggestions() {
 
 function renderTabBar() {
     const tabBar = document.getElementById("tabBar"), tabs = [{ id: "all", icon: "th-large", name: "ทั้งหมด" }, { id: "clothing", icon: "tshirt", name: "เสื้อผ้า" }, { id: "shoes", icon: "shoe-prints", name: "รองเท้า" }, { id: "accessories", icon: "gem", name: "เครื่องประดับ" }, { id: "bags", icon: "bag-shopping", name: "กระเป๋า" }];
-    if (isAdmin) tabs.push({ id: "admin", icon: "user-shield", name: "แอดมิน" });
     tabBar.innerHTML = tabs.map(t => `<div class="tab-item ${currentTab === t.id ? "active" : ""}" data-tab="${t.id}"><i class="fas fa-${t.icon}"></i><span>${t.name}</span></div>`).join("");
-    document.querySelectorAll(".tab-item").forEach(tab => tab.addEventListener("click", () => { currentTab = tab.dataset.tab; document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active")); tab.classList.add("active"); if (currentTab === "admin") openAdminPanel(); else renderProducts(); }));
+    document.querySelectorAll(".tab-item").forEach(tab => tab.addEventListener("click", () => { currentTab = tab.dataset.tab; document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active")); tab.classList.add("active"); renderProducts(); }));
 }
 
 // ============================================
@@ -433,7 +440,7 @@ function removeContextMenu() { const menu = document.querySelector(".context-men
 // Admin Functions
 // ============================================
 async function checkAdminStatus(lineId) {
-    try { const res = await fetchAPI("checkAdmin", { lineId: lineId }); isAdmin = res.isAdmin || false; if (isAdmin) { document.getElementById("radialAdminBtn").classList.remove("hidden"); renderTabBar(); } return isAdmin; }
+    try { const res = await fetchAPI("checkAdmin", { lineId: lineId }); isAdmin = res.isAdmin || false; document.getElementById("radialAdminBtn").classList.toggle("hidden", !isAdmin); renderTabBar(); return isAdmin; }
     catch(e) { return false; }
 }
 async function loadAllOrders() {
@@ -486,21 +493,44 @@ async function deleteProduct(id) {
 }
 async function loadAdminCategories() {
     const container = document.getElementById("adminCategoriesList");
-    container.innerHTML = categories.map(c => `<div class="product-list-item"><div class="flex-1"><div class="font-medium">${c}</div></div><div class="flex gap-2"><button onclick="editCategory('${c}')" class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-edit"></i></button><button onclick="deleteCategory('${c}')" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-trash"></i></button></div></div>`).join("");
+    try {
+        const res = await fetchAPI("getAllCategories", { lineId: userProfile?.userId });
+        adminCategories = res?.success && Array.isArray(res.categories)
+            ? res.categories
+            : categories.map((name, index) => ({ id: `LOCAL${index + 1}`, name, status: "active" }));
+    } catch(e) {
+        adminCategories = categories.map((name, index) => ({ id: `LOCAL${index + 1}`, name, status: "active" }));
+    }
+    if (!adminCategories.length) {
+        container.innerHTML = '<div class="text-center text-gray-400 py-10">ยังไม่มีหมวดหมู่</div>';
+        return;
+    }
+    container.innerHTML = adminCategories.map(c => `<div class="product-list-item"><div class="flex-1"><div class="font-medium">${escapeHtml(c.name)}</div><div class="text-xs ${c.status === "active" ? "text-green-600" : "text-gray-400"}">${c.status === "active" ? "ใช้งาน" : "ปิดใช้งาน"}</div></div><div class="flex gap-2"><button data-category-id="${escapeHtml(c.id)}" class="edit-category-btn bg-blue-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-edit"></i></button><button data-category-id="${escapeHtml(c.id)}" class="delete-category-btn bg-red-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-trash"></i></button></div></div>`).join("");
+    container.querySelectorAll(".edit-category-btn").forEach(btn => btn.addEventListener("click", () => editCategory(btn.dataset.categoryId)));
+    container.querySelectorAll(".delete-category-btn").forEach(btn => btn.addEventListener("click", () => deleteCategory(btn.dataset.categoryId)));
 }
 async function addNewCategory() { document.getElementById("categoryFormTitle").innerText = "เพิ่มหมวดหมู่"; document.getElementById("categoryId").value = ""; document.getElementById("categoryName").value = ""; document.getElementById("categoryStatus").value = "active"; document.getElementById("categoryFormModal").classList.remove("hidden"); }
-async function editCategory(cat) { document.getElementById("categoryFormTitle").innerText = "แก้ไขหมวดหมู่"; document.getElementById("categoryId").value = cat; document.getElementById("categoryName").value = cat; document.getElementById("categoryStatus").value = "active"; document.getElementById("categoryFormModal").classList.remove("hidden"); }
+async function editCategory(categoryId) {
+    const cat = adminCategories.find(c => String(c.id) === String(categoryId)) || { id: "", name: categoryId, status: "active" };
+    document.getElementById("categoryFormTitle").innerText = "แก้ไขหมวดหมู่";
+    document.getElementById("categoryId").value = cat.id;
+    document.getElementById("categoryName").value = cat.name;
+    document.getElementById("categoryStatus").value = cat.status || "active";
+    document.getElementById("categoryFormModal").classList.remove("hidden");
+}
 async function saveCategory() {
-    const oldName = document.getElementById("categoryId").value, newName = document.getElementById("categoryName").value, status = document.getElementById("categoryStatus").value;
+    const categoryId = document.getElementById("categoryId").value, newName = document.getElementById("categoryName").value.trim(), status = document.getElementById("categoryStatus").value;
+    const oldCategory = adminCategories.find(c => String(c.id) === String(categoryId));
     if (!newName) { showToast("กรุณากรอกชื่อหมวดหมู่", "error"); return; } showLoading();
-    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("oldName", oldName); fd.append("newName", newName); fd.append("status", status); const res = await fetchPostAPI(oldName ? "updateCategory" : "addCategory", fd);
+    try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("categoryId", categoryId); fd.append("oldName", oldCategory?.name || ""); fd.append("newName", newName); fd.append("status", status); const res = await fetchPostAPI(categoryId ? "updateCategory" : "addCategory", fd);
         if (res.success) { showToast("บันทึกหมวดหมู่สำเร็จ"); document.getElementById("categoryFormModal").classList.add("hidden"); await loadCategories(); if (isAdmin) loadAdminCategories(); await loadProducts(); }
         else Swal.fire("ผิดพลาด", res.error, "error");
     } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
     hideLoading();
 }
-async function deleteCategory(cat) {
-    Swal.fire({ title: "ยืนยันการลบ", text: `ต้องการลบหมวดหมู่ "${cat}" ใช่หรือไม่?`, icon: "warning", showCancelButton: true }).then(async (result) => { if (result.isConfirmed) { showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("name", cat); const res = await fetchPostAPI("deleteCategory", fd); if (res.success) { showToast("ลบหมวดหมู่สำเร็จ"); await loadCategories(); if (isAdmin) loadAdminCategories(); await loadProducts(); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); } });
+async function deleteCategory(categoryId) {
+    const cat = adminCategories.find(c => String(c.id) === String(categoryId));
+    Swal.fire({ title: "ยืนยันการลบ", text: `ต้องการปิดใช้งานหมวดหมู่ "${cat?.name || categoryId}" ใช่หรือไม่?`, icon: "warning", showCancelButton: true }).then(async (result) => { if (result.isConfirmed) { showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("categoryId", categoryId); fd.append("name", cat?.name || ""); const res = await fetchPostAPI("deleteCategory", fd); if (res.success) { showToast("ปิดใช้งานหมวดหมู่สำเร็จ"); await loadCategories(); if (isAdmin) loadAdminCategories(); await loadProducts(); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); } });
 }
 function renderAdminUsers() {
     const container = document.getElementById("adminUsersList");
@@ -518,7 +548,7 @@ async function saveUserRole() {
     hideLoading();
 }
 async function loadCategories() {
-    try { const res = await fetchAPI("getCategories"); if (res.categories) categories = res.categories; else categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; }
+    try { const res = await fetchAPI("getCategories"); if (Array.isArray(res)) categories = res; else if (res.categories) categories = res.categories; else categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; }
     catch(e) { categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; }
     if (isAdmin) loadAdminCategories();
 }
@@ -527,8 +557,32 @@ async function loadAllUsers() {
     try { const res = await fetchAPI("getAllUsers", { lineId: userProfile?.userId }); allUsers = res.users || []; renderAdminUsers(); }
     catch(e) { console.error(e); }
 }
-async function saveBotTokenSetting() { const token = document.getElementById("botToken").value; localStorage.setItem("botToken", token); showToast("บันทึก Token เรียบร้อย"); }
-async function saveAdminIdsSetting() { const ids = document.getElementById("adminIds").value; localStorage.setItem("adminIds", ids); showToast("บันทึก Admin IDs เรียบร้อย"); await checkAdminStatus(userProfile?.userId); }
+async function saveBotTokenSetting() {
+    const token = document.getElementById("botToken").value.trim();
+    showLoading();
+    try {
+        const fd = new FormData();
+        fd.append("adminLineId", userProfile?.userId);
+        fd.append("token", token);
+        const res = await fetchPostAPI("saveBotToken", fd);
+        if (res.success) showToast("บันทึก Token เรียบร้อย");
+        else Swal.fire("ผิดพลาด", res.error, "error");
+    } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
+    hideLoading();
+}
+async function saveAdminIdsSetting() {
+    const ids = document.getElementById("adminIds").value.trim();
+    showLoading();
+    try {
+        const fd = new FormData();
+        fd.append("adminLineId", userProfile?.userId);
+        fd.append("ids", ids);
+        const res = await fetchPostAPI("saveAdminIds", fd);
+        if (res.success) { showToast("บันทึก Admin IDs เรียบร้อย"); await checkAdminStatus(userProfile?.userId); }
+        else Swal.fire("ผิดพลาด", res.error, "error");
+    } catch(e) { Swal.fire("ผิดพลาด", e.message, "error"); }
+    hideLoading();
+}
 async function testNotify() { if (!liff.isInClient()) { showToast("ไม่ได้อยู่ในแอป LINE", "error"); return; } try { await liff.sendMessages([{ type: "text", text: "ทดสอบการแจ้งเตือนจาก E-Shop" }]); showToast("ส่งข้อความทดสอบสำเร็จ"); } catch(e) { showToast("ส่งไม่สำเร็จ", "error"); } }
 async function uploadImageToDrive() {
     const file = document.getElementById("imageFile").files[0];
@@ -632,6 +686,10 @@ async function openAdminPanel() { if (!isAdmin) { showToast("ไม่มีส�
 // ============================================
 document.addEventListener("DOMContentLoaded", async () => {
     await initializeLIFF();
+    document.querySelectorAll(".modal-container").forEach(modal => {
+        new MutationObserver(updateDockVisibility).observe(modal, { attributes: true, attributeFilter: ["class"] });
+    });
+    updateDockVisibility();
     document.getElementById("searchInput")?.addEventListener("input", (e) => { searchQuery = e.target.value; renderProducts(); });
     document.getElementById("filterBtn")?.addEventListener("click", () => document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }));
     document.getElementById("cartIcon")?.addEventListener("click", openCart);
@@ -692,8 +750,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.addEventListener("click", (e) => { if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fab")) closeRadialMenu(); if (!e.target.closest(".context-menu")) removeContextMenu(); });
     document.querySelectorAll(".dock-item").forEach(d => d.addEventListener("click", () => { document.querySelectorAll(".dock-item").forEach(dd => dd.classList.remove("active")); d.classList.add("active"); const dck = d.dataset.dock; if (dck === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0 }); } else if (dck === "shop") { closeCart(); closeAllModals(); } else if (dck === "cart") openCart(); else if (dck === "profile") showProfileModal(); }));
 });
-function loadBotTokenSetting() { const token = localStorage.getItem("botToken") || ""; document.getElementById("botToken").value = token; }
-function loadAdminIdsSetting() { const ids = localStorage.getItem("adminIds") || ""; document.getElementById("adminIds").value = ids; }
+async function loadBotTokenSetting() {
+    try {
+        const settings = await fetchAPI("getSettings");
+        document.getElementById("botToken").value = settings.BOT_TOKEN || "";
+    } catch(e) { document.getElementById("botToken").value = ""; }
+}
+async function loadAdminIdsSetting() {
+    try {
+        const settings = await fetchAPI("getSettings");
+        document.getElementById("adminIds").value = settings.ADMIN_IDS || "";
+    } catch(e) { document.getElementById("adminIds").value = ""; }
+}
 </script>
 </body>
 </html>
