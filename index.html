@@ -24,44 +24,52 @@
 <body>
 
 <div id="loading" class="loading hidden">
-    <div class="bg-white rounded-2xl p-6"><i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i><p class="mt-2">กำลังโหลด...</p></div>
+    <div class="bg-white rounded-2xl p-6"><i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i><p class="mt-2">กำลังโหลดสินค้า...</p></div>
 </div>
 
 <div class="max-w-md mx-auto">
+    <!-- Header -->
     <div class="bg-white sticky top-0 z-50 shadow-sm px-4 py-3 flex justify-between items-center">
         <div><h1 class="text-xl font-bold text-rose-500">🛍️ E-Shop</h1><p class="text-xs text-gray-400">Thailand</p></div>
         <div id="cartIcon" class="relative cursor-pointer"><i class="fas fa-shopping-cart text-2xl"></i><span id="cartCount" class="cart-badge">0</span></div>
     </div>
 
-    <div class="p-4"><div class="bg-white rounded-xl shadow-sm border p-3"><input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." class="w-full outline-none"></div></div>
+    <!-- Search -->
+    <div class="p-4"><div class="bg-white rounded-xl shadow-sm border p-3"><input type="text" id="searchInput" placeholder="🔍 ค้นหาสินค้า..." class="w-full outline-none"></div></div>
 
+    <!-- Categories -->
     <div id="categoryFilter" class="px-4 flex gap-2 overflow-x-auto pb-2"></div>
+
+    <!-- Products -->
     <div id="productGrid" class="product-grid"><div class="col-span-full text-center py-10">กำลังโหลดสินค้า...</div></div>
 </div>
 
+<!-- Cart Sidebar -->
 <div id="cartSidebar" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="cartOverlay"></div>
     <div class="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl flex flex-col">
-        <div class="p-4 border-b flex justify-between"><h2 class="font-semibold">ตะกร้าสินค้า</h2><button id="closeCart"><i class="fas fa-times"></i></button></div>
+        <div class="p-4 border-b flex justify-between"><h2 class="font-semibold">🛒 ตะกร้าสินค้า</h2><button id="closeCart"><i class="fas fa-times"></i></button></div>
         <div id="cartItems" class="flex-1 overflow-auto p-3"></div>
-        <div class="p-4 border-t"><div class="flex justify-between mb-3"><span>รวมทั้งสิ้น</span><span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span></div><button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl">สั่งซื้อเลย</button></div>
+        <div class="p-4 border-t"><div class="flex justify-between mb-3"><span>💰 รวมทั้งสิ้น</span><span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span></div><button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl">🧾 สั่งซื้อเลย</button></div>
     </div>
 </div>
 
+<!-- Checkout Modal -->
 <div id="checkoutModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="checkoutOverlay"></div>
     <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
-        <h2 class="text-lg font-semibold mb-4">ข้อมูลการสั่งซื้อ</h2>
+        <h2 class="text-lg font-semibold mb-4">📝 ข้อมูลการสั่งซื้อ</h2>
         <div class="space-y-3">
-            <input type="text" id="custName" placeholder="ชื่อ-นามสกุล" class="w-full border rounded-xl p-3">
-            <input type="email" id="custEmail" placeholder="อีเมล" class="w-full border rounded-xl p-3">
-            <input type="tel" id="custPhone" placeholder="เบอร์โทร" class="w-full border rounded-xl p-3">
-            <textarea id="custAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3" rows="3"></textarea>
-            <div class="flex gap-3"><button id="cancelCheckout" class="flex-1 border py-3 rounded-xl">ยกเลิก</button><button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">ยืนยัน</button></div>
+            <input type="text" id="custName" placeholder="👤 ชื่อ-นามสกุล" class="w-full border rounded-xl p-3">
+            <input type="email" id="custEmail" placeholder="📧 อีเมล" class="w-full border rounded-xl p-3">
+            <input type="tel" id="custPhone" placeholder="📱 เบอร์โทร" class="w-full border rounded-xl p-3">
+            <textarea id="custAddress" placeholder="🏠 ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3" rows="3"></textarea>
+            <div class="flex gap-3"><button id="cancelCheckout" class="flex-1 border py-3 rounded-xl">ยกเลิก</button><button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">✅ ยืนยัน</button></div>
         </div>
     </div>
 </div>
 
+<!-- Bottom Navigation -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2">
     <div class="dock-item text-center flex-1 py-1 active text-rose-500" data-tab="home"><i class="fas fa-home text-xl"></i><div class="text-xs">หน้าแรก</div></div>
     <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="cart"><i class="fas fa-shopping-cart text-xl"></i><div class="text-xs">ตะกร้า</div></div>
@@ -77,21 +85,32 @@ let products = [], cart = [], currentCategory = "all", searchQuery = "";
 function showLoading() { document.getElementById("loading").classList.remove("hidden"); }
 function hideLoading() { document.getElementById("loading").classList.add("hidden"); }
 function formatPrice(p) { return p.toLocaleString() + " บาท"; }
+function showToast(title, icon = "success") {
+    Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 1500 });
+}
 
-// โหลดสินค้าจาก Google Sheet
+// โหลดสินค้าจาก Sheet Products
 async function loadProducts() {
     showLoading();
     try {
         const res = await fetch(API_URL + "?action=getProducts");
         const data = await res.json();
+        
         if (data.success) {
             products = data.products;
-            console.log("โหลดสินค้าสำเร็จ:", products.length, "รายการ");
+            console.log("✅ โหลดสินค้าสำเร็จ:", products.length, "รายการ");
+            if (products.length === 0) {
+                showToast("⚠️ ไม่พบสินค้าในระบบ", "warning");
+            }
         } else {
-            console.error(data.error);
+            console.error("❌ Error:", data.error);
+            showToast("❌ " + data.error, "error");
+            products = [];
         }
     } catch(e) {
-        console.error(e);
+        console.error("❌ Fetch error:", e);
+        showToast("❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
+        products = [];
     }
     renderProducts();
     setupCategories();
@@ -100,17 +119,25 @@ async function loadProducts() {
 
 function renderProducts() {
     let filtered = products.filter(p => currentCategory === "all" || p.category === currentCategory);
-    if (searchQuery) filtered = filtered.filter(p => p.name.includes(searchQuery));
+    if (searchQuery.trim()) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
     const grid = document.getElementById("productGrid");
-    if (!filtered.length) { grid.innerHTML = `<div class="col-span-full text-center py-10">ไม่มีสินค้า</div>`; return; }
+    if (!grid) return;
+    if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">🔍 ไม่พบสินค้า</div>`;
+        return;
+    }
     grid.innerHTML = filtered.map(p => `
         <div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border">
-            <img src="${p.image}" class="w-full h-32 object-cover">
+            <img src="${p.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">
             <div class="p-2">
-                <div class="text-xs text-gray-400">${p.category}</div>
-                <div class="font-medium">${p.name}</div>
-                <div class="text-rose-500 font-bold">${formatPrice(p.price)}</div>
-                <button onclick='addToCart(${JSON.stringify(p)})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm">🛒 หยิบใส่ตะกร้า</button>
+                <div class="text-xs text-gray-400">🏷️ ${p.category}</div>
+                <div class="font-medium text-sm">${p.name}</div>
+                <div class="text-rose-500 font-bold text-sm">${formatPrice(p.price)}</div>
+                <button onclick='addToCart(${JSON.stringify(p)})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm hover:bg-rose-600 transition">
+                    <i class="fas fa-cart-plus mr-1"></i> 🛒 หยิบใส่ตะกร้า
+                </button>
             </div>
         </div>
     `).join("");
@@ -118,7 +145,13 @@ function renderProducts() {
 
 function setupCategories() {
     const cats = ["all", ...new Set(products.map(p => p.category))];
-    document.getElementById("categoryFilter").innerHTML = cats.map(cat => `<button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm ${cat === "all" ? "bg-rose-500 text-white" : "bg-gray-200"}">${cat === "all" ? "ทั้งหมด" : cat}</button>`).join("");
+    const container = document.getElementById("categoryFilter");
+    if (!container) return;
+    container.innerHTML = cats.map(cat => `
+        <button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm ${cat === "all" ? "bg-rose-500 text-white" : "bg-gray-200"}">
+            ${cat === "all" ? "✨ ทั้งหมด" : cat}
+        </button>
+    `).join("");
     document.querySelectorAll("[data-cat]").forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll("[data-cat]").forEach(b => b.classList.remove("bg-rose-500", "text-white"));
@@ -134,7 +167,7 @@ function addToCart(p) {
     if (exist) exist.quantity++;
     else cart.push({ ...p, quantity: 1 });
     updateCartUI();
-    Swal.fire({ title: "✅ " + p.name, text: "ใส่ตะกร้าแล้ว", icon: "success", toast: true, timer: 1500, showConfirmButton: false });
+    showToast("✅ " + p.name + " ใส่ตะกร้าแล้ว");
 }
 
 function updateCartUI() {
@@ -143,27 +176,35 @@ function updateCartUI() {
     let total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
     document.getElementById("cartTotal").innerHTML = formatPrice(total);
     let container = document.getElementById("cartItems");
-    if (!cart.length) { container.innerHTML = `<div class="text-center py-10">ตะกร้าว่างเปล่า</div>`; return; }
+    if (!cart.length) { container.innerHTML = `<div class="text-center text-gray-400 py-10">🛒 ตะกร้าว่างเปล่า</div>`; return; }
     container.innerHTML = cart.map(i => `
         <div class="flex gap-3 bg-gray-50 rounded-xl p-3 mb-2">
             <img src="${i.image}" class="w-16 h-16 rounded object-cover">
-            <div class="flex-1"><div class="font-medium">${i.name}</div><div class="text-rose-500">${formatPrice(i.price)}</div>
-            <div class="flex gap-2 mt-2"><button class="w-8 h-8 rounded-full bg-gray-200" onclick="updateQty('${i.id}', -1)">-</button><span>${i.quantity}</span><button class="w-8 h-8 rounded-full bg-gray-200" onclick="updateQty('${i.id}', 1)">+</button><button class="ml-auto text-red-500" onclick="removeFromCart('${i.id}')"><i class="fas fa-trash"></i></button></div></div>
+            <div class="flex-1">
+                <div class="font-medium text-sm">${i.name}</div>
+                <div class="text-rose-500 text-sm">${formatPrice(i.price)}</div>
+                <div class="flex gap-2 mt-2">
+                    <button class="w-8 h-8 rounded-full bg-gray-200" onclick="updateQty('${i.id}', -1)">-</button>
+                    <span class="w-8 text-center">${i.quantity}</span>
+                    <button class="w-8 h-8 rounded-full bg-gray-200" onclick="updateQty('${i.id}', 1)">+</button>
+                    <button class="ml-auto text-red-500" onclick="removeFromCart('${i.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
         </div>
     `).join("");
 }
 
 function updateQty(id, d) { let i = cart.find(i => i.id === id); if (i) { i.quantity += d; if (i.quantity <= 0) removeFromCart(id); else updateCartUI(); } }
-function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); }
+function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); showToast("🗑️ ลบสินค้า"); }
 
-// บันทึกคำสั่งซื้อไปยัง Google Sheet ผ่าน doPost
+// บันทึกคำสั่งซื้อไปยัง Google Sheet
 async function submitOrder() {
-    if (!cart.length) { Swal.fire("ผิดพลาด", "ไม่มีสินค้าในตะกร้า", "error"); return; }
+    if (!cart.length) { showToast("⚠️ ไม่มีสินค้าในตะกร้า", "error"); return; }
     let name = document.getElementById("custName").value.trim();
     let email = document.getElementById("custEmail").value.trim();
     let phone = document.getElementById("custPhone").value.trim();
     let address = document.getElementById("custAddress").value.trim();
-    if (!name || !email || !phone || !address) { Swal.fire("ผิดพลาด", "กรุณากรอกข้อมูลให้ครบ", "error"); return; }
+    if (!name || !email || !phone || !address) { showToast("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน", "error"); return; }
     
     let items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
     let total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
@@ -178,18 +219,18 @@ async function submitOrder() {
         let result = await res.json();
         hideLoading();
         if (result.success) {
-            Swal.fire({ title: "🎉 สั่งซื้อสำเร็จ!", text: "ขอบคุณที่ใช้บริการ", icon: "success" });
+            Swal.fire({ title: "🎉 สั่งซื้อสำเร็จ!", html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br><br>🙏 ขอบคุณที่ใช้บริการ`, icon: "success" });
             cart = [];
             updateCartUI();
             closeCart();
             document.getElementById("checkoutModal").classList.add("hidden");
             ["custName", "custEmail", "custPhone", "custAddress"].forEach(id => document.getElementById(id).value = "");
         } else {
-            Swal.fire("ผิดพลาด", result.error, "error");
+            Swal.fire("❌ ผิดพลาด", result.error, "error");
         }
     } catch(e) {
         hideLoading();
-        Swal.fire("ผิดพลาด", "ไม่สามารถเชื่อมต่อได้", "error");
+        Swal.fire("❌ ผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
     }
 }
 
@@ -202,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cartIcon").onclick = openCart;
     document.getElementById("closeCart").onclick = closeCart;
     document.getElementById("cartOverlay").onclick = closeCart;
-    document.getElementById("checkoutBtn").onclick = () => cart.length ? document.getElementById("checkoutModal").classList.remove("hidden") : Swal.fire("ตะกร้าว่าง", "กรุณาเลือกสินค้าก่อน", "error");
+    document.getElementById("checkoutBtn").onclick = () => cart.length ? document.getElementById("checkoutModal").classList.remove("hidden") : showToast("⚠️ ตะกร้าว่างเปล่า", "error");
     document.getElementById("cancelCheckout").onclick = () => document.getElementById("checkoutModal").classList.add("hidden");
     document.getElementById("checkoutOverlay").onclick = () => document.getElementById("checkoutModal").classList.add("hidden");
     document.getElementById("confirmOrder").onclick = submitOrder;
@@ -212,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
             item.classList.add("active", "text-rose-500");
             if (item.dataset.tab === "cart") openCart();
             else if (item.dataset.tab === "home") closeCart();
-            else if (item.dataset.tab === "profile") Swal.fire("โปรไฟล์", "ยินดีต้อนรับสู่ E-Shop", "info");
+            else if (item.dataset.tab === "profile") Swal.fire("👤 โปรไฟล์", "ยินดีต้อนรับสู่ E-Shop Thailand", "info");
         };
     });
 });
