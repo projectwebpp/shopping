@@ -10,30 +10,20 @@
     <style>
         body { background: #f5f5f5; padding-bottom: 70px; }
         .product-card { transition: transform 0.2s; cursor: pointer; }
-        .product-card:active { transform: scale(0.98); }
         .cart-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; display: flex; align-items: center; justify-content: center; }
         .dock-item { cursor: pointer; }
         .dock-item.active { color: #f43f5e; }
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; }
         @media (min-width: 640px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
         .loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .cat-btn { cursor: pointer; transition: all 0.3s; }
-        .debug-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px; max-height: 150px; overflow-y: auto; z-index: 10000; display: none; }
-        .debug-panel.show { display: block; }
     </style>
 </head>
 <body>
-
-<!-- Debug Panel -->
-<div id="debugPanel" class="debug-panel">
-    <div id="debugLog"></div>
-</div>
 
 <div id="loading" class="loading hidden">
     <div class="bg-white rounded-2xl p-6 text-center">
         <i class="fas fa-spinner fa-pulse text-3xl text-rose-500"></i>
         <p class="mt-2">กำลังโหลดสินค้า...</p>
-        <p id="loadingStatus" class="text-xs text-gray-400 mt-2"></p>
     </div>
 </div>
 
@@ -49,11 +39,6 @@
         </div>
     </div>
 
-    <!-- Debug Toggle Button -->
-    <div class="px-4 py-2 text-right">
-        <button id="debugToggle" class="text-xs text-gray-400">🔧 Show Debug</button>
-    </div>
-
     <div class="p-4">
         <div class="bg-white rounded-xl shadow-sm border p-3">
             <input type="text" id="searchInput" placeholder="🔍 ค้นหาสินค้า..." class="w-full outline-none">
@@ -67,7 +52,7 @@
     </div>
 </div>
 
-<!-- Cart Sidebar (เหมือนเดิม) -->
+<!-- Cart Sidebar -->
 <div id="cartSidebar" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="cartOverlay"></div>
     <div class="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl flex flex-col">
@@ -81,15 +66,15 @@
                 <span>💰 รวมทั้งสิ้น</span>
                 <span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span>
             </div>
-            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl hover:bg-rose-600 transition">🧾 สั่งซื้อเลย</button>
+            <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl">🧾 สั่งซื้อเลย</button>
         </div>
     </div>
 </div>
 
-<!-- Checkout Modal (เหมือนเดิม) -->
+<!-- Checkout Modal -->
 <div id="checkoutModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black bg-opacity-50" id="checkoutOverlay"></div>
-    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4 max-h-[90vh] overflow-auto">
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
         <h2 class="text-lg font-semibold mb-4">📝 ข้อมูลการสั่งซื้อ</h2>
         <div class="space-y-3">
             <input type="text" id="custName" placeholder="👤 ชื่อ-นามสกุล" class="w-full border rounded-xl p-3">
@@ -106,159 +91,63 @@
 
 <!-- Bottom Navigation -->
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around py-2">
-    <div class="dock-item text-center flex-1 py-1 active text-rose-500" data-tab="home">
-        <i class="fas fa-home text-xl"></i>
-        <div class="text-xs">หน้าแรก</div>
-    </div>
-    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="cart">
-        <i class="fas fa-shopping-cart text-xl"></i>
-        <div class="text-xs">ตะกร้า</div>
-    </div>
-    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="profile">
-        <i class="fas fa-user text-xl"></i>
-        <div class="text-xs">โปรไฟล์</div>
-    </div>
+    <div class="dock-item text-center flex-1 py-1 active text-rose-500" data-tab="home"><i class="fas fa-home text-xl"></i><div class="text-xs">หน้าแรก</div></div>
+    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="cart"><i class="fas fa-shopping-cart text-xl"></i><div class="text-xs">ตะกร้า</div></div>
+    <div class="dock-item text-center flex-1 py-1 text-gray-500" data-tab="profile"><i class="fas fa-user text-xl"></i><div class="text-xs">โปรไฟล์</div></div>
 </div>
 
 <script>
 // ============================================
-// 🔧 แก้ไขตรงนี้: ใส่ URL ของ Web App ที่ Deploy แล้ว
+// 🔧 ใส่ URL ของคุณตรงนี้
 // ============================================
-const API_URL = "https://script.google.com/macros/s/AKfycbz-Eeftf2a057_Nu7kNivs41eAHH0EqvGzs4Z3spO3jS3QiuGUjyKMaafxF0DUarLb9/exec";
+const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 // ============================================
 
 let products = [], cart = [], currentCategory = "all", searchQuery = "";
 
-// Debug function
-function debugLog(msg) {
-    const debugDiv = document.getElementById('debugLog');
-    const timestamp = new Date().toLocaleTimeString();
-    const logMsg = `[${timestamp}] ${msg}<br>`;
-    debugDiv.innerHTML = logMsg + debugDiv.innerHTML;
-    console.log(msg);
-}
-
-function showLoading(statusMsg = '') {
-    document.getElementById("loading").classList.remove("hidden");
-    if (statusMsg) {
-        document.getElementById("loadingStatus").innerText = statusMsg;
-    }
-}
-
-function hideLoading() { 
-    document.getElementById("loading").classList.add("hidden");
-    document.getElementById("loadingStatus").innerText = '';
-}
-
-function formatPrice(p) { 
-    return p.toLocaleString() + " บาท"; 
-}
+function showLoading() { document.getElementById("loading").classList.remove("hidden"); }
+function hideLoading() { document.getElementById("loading").classList.add("hidden"); }
+function formatPrice(p) { return p.toLocaleString() + " บาท"; }
 
 function showToast(title, icon = "success") {
     Swal.fire({ title, icon, toast: true, position: "top-end", showConfirmButton: false, timer: 1500 });
 }
 
-// ทดสอบ API ก่อน
-async function testAPI() {
-    debugLog('🔍 Testing API connection...');
-    try {
-        const testUrl = `${API_URL}?test=1`;
-        debugLog(`📡 Testing: ${testUrl}`);
-        
-        const response = await fetch(testUrl, {
-            method: 'GET',
-            mode: 'cors'
-        });
-        
-        debugLog(`📡 Response status: ${response.status}`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            debugLog(`✅ API Test Success: ${JSON.stringify(data)}`);
-            return true;
-        } else {
-            debugLog(`❌ API Test Failed: ${response.status} ${response.statusText}`);
-            return false;
-        }
-    } catch(error) {
-        debugLog(`❌ API Test Error: ${error.message}`);
-        return false;
-    }
-}
-
-// โหลดสินค้าโดยใช้ fetch
+// โหลดสินค้า
 async function loadProducts() {
-    showLoading('กำลังเชื่อมต่อ API...');
-    debugLog('🚀 Starting loadProducts...');
-    debugLog(`📡 API_URL: ${API_URL}`);
-    
-    // ทดสอบ API ก่อน
-    const apiWorking = await testAPI();
-    if (!apiWorking) {
-        hideLoading();
-        document.getElementById("productGrid").innerHTML = `
-            <div class="col-span-full text-center py-10">
-                <div class="text-red-500 mb-2">❌ ไม่สามารถเชื่อมต่อ API ได้</div>
-                <div class="text-xs text-gray-400 mt-2">URL: ${API_URL}</div>
-                <div class="text-xs text-gray-400">ตรวจสอบว่า Deploy Web App แล้วและตั้งค่า Anyone</div>
-                <button onclick="location.reload()" class="mt-4 bg-rose-500 text-white px-4 py-2 rounded-lg">🔄 ลองใหม่</button>
-            </div>
-        `;
-        return;
-    }
+    showLoading();
+    console.log("Loading products from:", API_URL);
     
     try {
         const url = `${API_URL}?action=getProducts`;
-        debugLog(`📡 Fetching products from: ${url}`);
-        showLoading('กำลังโหลดสินค้า...');
+        console.log("Fetching:", url);
         
-        const response = await fetch(url, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Accept': 'application/json',
-            }
-        });
-        
-        debugLog(`📡 Response status: ${response.status} ${response.statusText}`);
+        const response = await fetch(url);
+        console.log("Response status:", response.status);
         
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
         const data = await response.json();
-        debugLog(`📦 Data received: ${JSON.stringify(data).substring(0, 200)}...`);
+        console.log("Data:", data);
         
         if (data.success) {
             products = data.products;
-            debugLog(`✅ Load success: ${products.length} products`);
-            
-            if (products.length === 0) {
-                document.getElementById("productGrid").innerHTML = `
-                    <div class="col-span-full text-center py-10">
-                        <div class="text-yellow-500 mb-2">⚠️ ไม่มีสินค้าในระบบ</div>
-                        <div class="text-xs text-gray-400">กรุณาเพิ่มสินค้าใน Sheet "Products"</div>
-                    </div>
-                `;
-            } else {
-                renderProducts();
-                setupCategories();
-                debugLog(`✅ UI updated with ${products.length} products`);
-            }
+            renderProducts();
+            setupCategories();
         } else {
-            throw new Error(data.error || "Unknown error");
+            throw new Error(data.error);
         }
     } catch(error) {
-        debugLog(`❌ Error: ${error.message}`);
+        console.error("Error:", error);
         document.getElementById("productGrid").innerHTML = `
             <div class="col-span-full text-center py-10">
                 <div class="text-red-500 mb-2">❌ ${error.message}</div>
-                <div class="text-xs text-gray-400 mt-2">API URL: ${API_URL}</div>
-                <div class="text-xs text-gray-400">เปิด Console (F12) เพื่อดูรายละเอียด</div>
+                <div class="text-xs text-gray-400">URL: ${API_URL}</div>
                 <button onclick="loadProducts()" class="mt-4 bg-rose-500 text-white px-4 py-2 rounded-lg">🔄 ลองใหม่</button>
             </div>
         `;
-        showToast("❌ " + error.message, "error");
     }
     hideLoading();
 }
@@ -268,11 +157,13 @@ function renderProducts() {
     if (searchQuery.trim()) {
         filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
+    
     const grid = document.getElementById("productGrid");
     if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">🔍 ไม่พบสินค้า</div>`;
+        grid.innerHTML = `<div class="col-span-full text-center py-10">🔍 ไม่พบสินค้า</div>`;
         return;
     }
+    
     grid.innerHTML = filtered.map(p => `
         <div class="product-card bg-white rounded-xl overflow-hidden shadow-sm border">
             <img src="${p.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">
@@ -280,7 +171,7 @@ function renderProducts() {
                 <div class="text-xs text-gray-400">🏷️ ${p.category}</div>
                 <div class="font-medium text-sm">${p.name}</div>
                 <div class="text-rose-500 font-bold text-sm">${formatPrice(p.price)}</div>
-                <button onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm hover:bg-rose-600 transition">
+                <button onclick='addToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="w-full mt-2 bg-rose-500 text-white py-1.5 rounded-lg text-sm">
                     🛒 หยิบใส่ตะกร้า
                 </button>
             </div>
@@ -289,21 +180,17 @@ function renderProducts() {
 }
 
 function setupCategories() {
-    if (!products.length) return;
     const cats = ["all", ...new Set(products.map(p => p.category))];
     const container = document.getElementById("categoryFilter");
     container.innerHTML = cats.map(cat => `
-        <button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition ${cat === currentCategory ? "bg-rose-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}">
+        <button data-cat="${cat}" class="cat-btn px-4 py-1.5 rounded-full text-sm ${cat === "all" ? "bg-rose-500 text-white" : "bg-gray-200"}">
             ${cat === "all" ? "✨ ทั้งหมด" : cat}
         </button>
     `).join("");
+    
     document.querySelectorAll("[data-cat]").forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll("[data-cat]").forEach(b => {
-                b.classList.remove("bg-rose-500", "text-white");
-                b.classList.add("bg-gray-200", "text-gray-700");
-            });
-            btn.classList.remove("bg-gray-200", "text-gray-700");
+            document.querySelectorAll("[data-cat]").forEach(b => b.classList.remove("bg-rose-500", "text-white"));
             btn.classList.add("bg-rose-500", "text-white");
             currentCategory = btn.dataset.cat;
             renderProducts();
@@ -324,47 +211,49 @@ function updateCartUI() {
     document.getElementById("cartCount").innerText = count;
     let total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
     document.getElementById("cartTotal").innerHTML = formatPrice(total);
-    let container = document.getElementById("cartItems");
-    if (!cart.length) { 
-        container.innerHTML = `<div class="text-center text-gray-400 py-10">🛒 ตะกร้าว่างเปล่า</div>`; 
-        return; 
+    
+    const container = document.getElementById("cartItems");
+    if (!cart.length) {
+        container.innerHTML = `<div class="text-center text-gray-400 py-10">🛒 ตะกร้าว่างเปล่า</div>`;
+        return;
     }
+    
     container.innerHTML = cart.map(i => `
         <div class="flex gap-3 bg-gray-50 rounded-xl p-3 mb-2">
             <img src="${i.image}" class="w-16 h-16 rounded object-cover">
             <div class="flex-1">
                 <div class="font-medium text-sm">${i.name}</div>
                 <div class="text-rose-500 text-sm">${formatPrice(i.price)}</div>
-                <div class="flex gap-2 mt-2 items-center">
-                    <button class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition" onclick="updateQty('${i.id}', -1)">-</button>
-                    <span class="w-8 text-center font-medium">${i.quantity}</span>
-                    <button class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition" onclick="updateQty('${i.id}', 1)">+</button>
-                    <button class="ml-auto text-red-500 hover:text-red-700 transition" onclick="removeFromCart('${i.id}')"><i class="fas fa-trash"></i></button>
+                <div class="flex gap-2 mt-2">
+                    <button class="w-8 h-8 rounded-full bg-gray-200" onclick="updateQty('${i.id}', -1)">-</button>
+                    <span class="w-8 text-center">${i.quantity}</span>
+                    <button class="w-8 h-8 rounded-full bg-gray-200" onclick="updateQty('${i.id}', 1)">+</button>
+                    <button class="ml-auto text-red-500" onclick="removeFromCart('${i.id}')"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>
     `).join("");
 }
 
-function updateQty(id, d) { 
-    let i = cart.find(i => i.id === id); 
-    if (i) { 
-        i.quantity += d; 
-        if (i.quantity <= 0) removeFromCart(id); 
-        else updateCartUI(); 
-    } 
+function updateQty(id, d) {
+    let i = cart.find(i => i.id === id);
+    if (i) {
+        i.quantity += d;
+        if (i.quantity <= 0) removeFromCart(id);
+        else updateCartUI();
+    }
 }
 
-function removeFromCart(id) { 
-    cart = cart.filter(i => i.id !== id); 
-    updateCartUI(); 
-    showToast("🗑️ ลบสินค้าเรียบร้อย", "info"); 
+function removeFromCart(id) {
+    cart = cart.filter(i => i.id !== id);
+    updateCartUI();
+    showToast("🗑️ ลบสินค้า");
 }
 
 async function submitOrder() {
-    if (!cart.length) { 
-        showToast("⚠️ ไม่มีสินค้าในตะกร้า", "error"); 
-        return; 
+    if (!cart.length) {
+        showToast("⚠️ ไม่มีสินค้าในตะกร้า", "error");
+        return;
     }
     
     const name = document.getElementById("custName").value.trim();
@@ -372,132 +261,63 @@ async function submitOrder() {
     const phone = document.getElementById("custPhone").value.trim();
     const address = document.getElementById("custAddress").value.trim();
     
-    if (!name || !email || !phone || !address) { 
-        showToast("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน", "error"); 
-        return; 
-    }
-    
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-        showToast("⚠️ กรุณากรอกอีเมลให้ถูกต้อง", "error");
+    if (!name || !email || !phone || !address) {
+        showToast("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน", "error");
         return;
     }
     
     const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }));
     const total = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
-    const orderData = { name, email, phone, address, items, total };
     
-    debugLog(`📦 Sending order: ${JSON.stringify(orderData)}`);
-    showLoading('กำลังบันทึกคำสั่งซื้อ...');
+    showLoading();
     
     try {
         const response = await fetch(API_URL, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(orderData)
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, phone, address, items, total })
         });
         
-        debugLog(`📡 Response status: ${response.status}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
         const result = await response.json();
-        debugLog(`📦 Response: ${JSON.stringify(result)}`);
         hideLoading();
         
         if (result.success) {
-            Swal.fire({ 
-                title: "🎉 สั่งซื้อสำเร็จ!", 
-                html: `เลขที่คำสั่งซื้อ: <strong>${result.orderId}</strong><br><br>🙏 ขอบคุณที่ใช้บริการ`, 
-                icon: "success",
-                confirmButtonColor: "#f43f5e"
-            });
+            Swal.fire({ title: "🎉 สั่งซื้อสำเร็จ!", html: `เลขที่: ${result.orderId}`, icon: "success" });
             cart = [];
             updateCartUI();
             closeCart();
             document.getElementById("checkoutModal").classList.add("hidden");
             ["custName", "custEmail", "custPhone", "custAddress"].forEach(id => document.getElementById(id).value = "");
         } else {
-            Swal.fire("❌ ผิดพลาด", result.error || "ไม่สามารถบันทึกคำสั่งซื้อได้", "error");
+            Swal.fire("❌ ผิดพลาด", result.error, "error");
         }
     } catch(error) {
         hideLoading();
-        debugLog(`❌ Submit error: ${error.message}`);
-        Swal.fire("❌ ผิดพลาด", `ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ${error.message}`, "error");
+        Swal.fire("❌ ผิดพลาด", error.message, "error");
     }
 }
 
-function openCart() { 
-    updateCartUI(); 
-    document.getElementById("cartSidebar").classList.remove("hidden"); 
-}
-
-function closeCart() { 
-    document.getElementById("cartSidebar").classList.add("hidden"); 
-}
+function openCart() { updateCartUI(); document.getElementById("cartSidebar").classList.remove("hidden"); }
+function closeCart() { document.getElementById("cartSidebar").classList.add("hidden"); }
 
 // Event Listeners
 document.addEventListener("DOMContentLoaded", () => {
-    debugLog('🚀 App started');
-    debugLog(`📡 API_URL: ${API_URL}`);
-    
     loadProducts();
-    
-    // Debug toggle
-    const debugToggle = document.getElementById('debugToggle');
-    const debugPanel = document.getElementById('debugPanel');
-    debugToggle.onclick = () => {
-        debugPanel.classList.toggle('show');
-        debugToggle.innerText = debugPanel.classList.contains('show') ? '🔧 Hide Debug' : '🔧 Show Debug';
-    };
-    
-    document.getElementById("searchInput").oninput = e => { 
-        searchQuery = e.target.value; 
-        renderProducts(); 
-    };
-    
+    document.getElementById("searchInput").oninput = e => { searchQuery = e.target.value; renderProducts(); };
     document.getElementById("cartIcon").onclick = openCart;
     document.getElementById("closeCart").onclick = closeCart;
     document.getElementById("cartOverlay").onclick = closeCart;
-    
-    document.getElementById("checkoutBtn").onclick = () => {
-        if (cart.length) {
-            document.getElementById("checkoutModal").classList.remove("hidden");
-        } else {
-            showToast("⚠️ ตะกร้าว่างเปล่า", "error");
-        }
-    };
-    
-    document.getElementById("cancelCheckout").onclick = () => {
-        document.getElementById("checkoutModal").classList.add("hidden");
-    };
-    
-    document.getElementById("checkoutOverlay").onclick = () => {
-        document.getElementById("checkoutModal").classList.add("hidden");
-    };
-    
+    document.getElementById("checkoutBtn").onclick = () => cart.length ? document.getElementById("checkoutModal").classList.remove("hidden") : showToast("⚠️ ตะกร้าว่างเปล่า", "error");
+    document.getElementById("cancelCheckout").onclick = () => document.getElementById("checkoutModal").classList.add("hidden");
+    document.getElementById("checkoutOverlay").onclick = () => document.getElementById("checkoutModal").classList.add("hidden");
     document.getElementById("confirmOrder").onclick = submitOrder;
     
     document.querySelectorAll(".dock-item").forEach(item => {
         item.onclick = () => {
-            document.querySelectorAll(".dock-item").forEach(d => {
-                d.classList.remove("active", "text-rose-500");
-                d.classList.add("text-gray-500");
-            });
+            document.querySelectorAll(".dock-item").forEach(d => d.classList.remove("active", "text-rose-500"));
             item.classList.add("active", "text-rose-500");
-            item.classList.remove("text-gray-500");
-            
             if (item.dataset.tab === "cart") openCart();
-            else if (item.dataset.tab === "home") closeCart();
-            else if (item.dataset.tab === "profile") {
-                Swal.fire("👤 โปรไฟล์", "ยินดีต้อนรับสู่ E-Shop Thailand", "info");
-            }
+            else if (item.dataset.tab === "profile") Swal.fire("👤 โปรไฟล์", "ยินดีต้อนรับ", "info");
         };
     });
 });
