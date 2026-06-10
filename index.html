@@ -875,7 +875,7 @@
         </div>
     </div>
 
-    <div id="fab" class="fixed bottom-24 right-4 z-40 fab"><i class="fas fa-plus text-2xl"></i></div>
+    <div id="fab" class="fixed bottom-24 right-4 fab"><i class="fas fa-plus text-2xl"></i></div>
     <div id="radialMenu" class="radial-menu hidden">
         <div class="radial-item" data-action="home" style="transform: translate(0px, -100px);"><i
                 class="fas fa-home"></i></div>
@@ -1350,6 +1350,8 @@
             document.querySelectorAll(".radial-item").forEach(i => i.addEventListener("click", () => { const a = i.dataset.action; if (a === "home") { window.scrollTo({ top: 0 }); closeCart(); closeAllModals(); } else if (a === "search") document.getElementById("searchInput")?.focus(); else if (a === "cart") openCart(); else if (a === "profile") showProfileModal(); else if (a === "category") document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); else if (a === "admin") openAdminPanel(); closeRadialMenu(); }));
             document.addEventListener("click", (e) => { if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fab")) closeRadialMenu(); if (!e.target.closest(".context-menu")) removeContextMenu(); });
             document.querySelectorAll(".dock-item").forEach(d => d.addEventListener("click", () => { document.querySelectorAll(".dock-item").forEach(dd => dd.classList.remove("active")); d.classList.add("active"); const dck = d.dataset.dock; if (dck === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0 }); } else if (dck === "shop") { closeCart(); closeAllModals(); } else if (dck === "cart") openCart(); else if (dck === "profile") showProfileModal(); }));
+            
+            await initializeLIFF();
         });
     </script>
     <div id="dockNav" class="dock-nav">
@@ -1358,6 +1360,9 @@
         <div class="dock-item" data-dock="cart"><i class="fas fa-shopping-cart"></i><span>ตะกร้า</span></div>
         <div class="dock-item" data-dock="profile"><i class="fas fa-user"></i><span>โปรไฟล์</span></div>
     </div>
+</body>
+
+</html>
 </body>
 
 </html>
