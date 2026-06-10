@@ -14,528 +14,75 @@
     <script src="https://static.line-scdn.net/liff/edge/versions/2.21.4/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #f5f5f5;
-            font-family: 'IBM Plex Sans Thai', sans-serif;
-            padding-bottom: 75px;
-        }
-
-        .command-palette {
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .command-palette:focus-within {
-            transform: scale(1.01);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .command-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            z-index: 50;
-            max-height: 250px;
-            overflow-y: auto;
-            margin-top: 8px;
-        }
-
-        .suggestion-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .suggestion-item:hover {
-            background: #f8f9fa;
-        }
-
-        .tab-bar {
-            background: white;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-            overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .tab-bar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tab-item {
-            display: inline-block;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #9ca3af;
-            font-size: 13px;
-        }
-
-        .tab-item i {
-            font-size: 18px;
-            margin-right: 6px;
-        }
-
-        .tab-item.active {
-            color: #f43f5e;
-            border-bottom: 2px solid #f43f5e;
-        }
-
-        .product-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-card:active {
-            transform: scale(0.98);
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 12px;
-        }
-
-        @media (min-width: 640px) {
-            .product-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .cart-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .quantity-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .quantity-btn:active {
-            transform: scale(0.9);
-        }
-
-        .cart-item {
-            animation: slideIn 0.2s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .cat-btn {
-            transition: all 0.2s;
-            cursor: pointer;
-            white-space: nowrap;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            background: #f3f4f6;
-            color: #4b5563;
-        }
-
-        .cat-btn.active {
-            background: #f43f5e;
-            color: white;
-        }
-
-        .cat-btn:active {
-            transform: scale(0.95);
-        }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .radial-menu {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: scaleIn 0.2s ease;
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .radial-item {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background: #f43f5e;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .radial-item:active {
-            transform: scale(1.1);
-        }
-
-        .context-menu {
-            position: fixed;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            z-index: 2000;
-            min-width: 180px;
-            overflow: hidden;
-            animation: fadeIn 0.15s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .context-menu-item {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-size: 14px;
-        }
-
-        .context-menu-item:hover {
-            background: #f3f4f6;
-        }
-
-        .context-menu-item.danger {
-            color: #ef4444;
-        }
-
-        .fab {
-            width: 56px;
-            height: 56px;
-            background: #f43f5e;
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: white;
-        }
-
-        .fab:active {
-            transform: scale(0.92);
-        }
-
-        .dock-nav {
-            position: fixed;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 40px;
-            padding: 8px 20px;
-            display: flex;
-            gap: 32px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            z-index: 100;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-
-        .dock-nav.is-hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: translate(-50%, 18px);
-        }
-
-        .dock-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #9ca3af;
-        }
-
-        .dock-item i {
-            font-size: 22px;
-        }
-
-        .dock-item span {
-            font-size: 10px;
-        }
-
-        .dock-item.active {
-            color: #f43f5e;
-            transform: translateY(-2px);
-        }
-
-        .modal-container {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            display: flex;
-            align-items: flex-end;
-        }
-
-        .modal-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            position: relative;
-            background: white;
-            border-radius: 24px 24px 0 0;
-            max-height: 85vh;
-            overflow-y: auto;
-            width: 100%;
-        }
-
-        .modal-header {
-            padding: 16px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            background: white;
-        }
-
-        .modal-body {
-            padding: 16px;
-        }
-
-        .form-field {
-            margin-bottom: 16px;
-        }
-
-        .form-field label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 6px;
-            color: #374151;
-        }
-
-        .form-field input,
-        .form-field select,
-        .form-field textarea {
-            width: 100%;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 12px;
-            font-family: 'IBM Plex Sans Thai', sans-serif;
-        }
-
-        .form-field input:focus,
-        .form-field select:focus,
-        .form-field textarea:focus {
-            outline: none;
-            border-color: #f43f5e;
-            ring: 2px solid #f43f5e;
-        }
-
-        .admin-card {
-            background: white;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-left: 4px solid #f43f5e;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .admin-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .status-pending {
-            color: #f59e0b;
-        }
-
-        .status-paid {
-            color: #3b82f6;
-        }
-
-        .status-processing {
-            color: #8b5cf6;
-        }
-
-        .status-shipped {
-            color: #06b6d4;
-        }
-
-        .status-delivered {
-            color: #10b981;
-        }
-
-        .status-cancelled {
-            color: #ef4444;
-        }
-
-        .profile-header {
-            background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            color: white;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid white;
-            background: white;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            flex: 1;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #f43f5e;
-        }
-
-        .order-history-card {
-            background: white;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-        }
-
-        .product-list-item {
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            gap: 12px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .admin-sub-tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #6b7280;
-            border-bottom: 2px solid transparent;
-        }
-
-        .admin-sub-tab.active {
-            color: #f43f5e;
-            border-bottom-color: #f43f5e;
-            font-weight: 500;
-        }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { background: #f5f5f5; font-family: 'IBM Plex Sans Thai', sans-serif; padding-bottom: 75px; }
+        .command-palette { transition: all 0.3s ease; position: relative; }
+        .command-palette:focus-within { transform: scale(1.01); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .command-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); z-index: 50; max-height: 250px; overflow-y: auto; margin-top: 8px; }
+        .suggestion-item { padding: 12px 16px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f0f0f0; }
+        .suggestion-item:hover { background: #f8f9fa; }
+        .tab-bar { background: white; border-radius: 20px 20px 0 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .tab-bar::-webkit-scrollbar { display: none; }
+        .tab-item { display: inline-block; padding: 12px 16px; cursor: pointer; transition: all 0.2s; color: #9ca3af; font-size: 13px; }
+        .tab-item i { font-size: 18px; margin-right: 6px; }
+        .tab-item.active { color: #f43f5e; border-bottom: 2px solid #f43f5e; }
+        .product-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .product-card:active { transform: scale(0.98); }
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; }
+        @media (min-width: 640px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+        .cart-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .quantity-btn { width: 32px; height: 32px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .quantity-btn:active { transform: scale(0.9); }
+        .cart-item { animation: slideIn 0.2s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .cat-btn { transition: all 0.2s; cursor: pointer; white-space: nowrap; padding: 6px 14px; border-radius: 20px; font-size: 13px; background: #f3f4f6; color: #4b5563; }
+        .cat-btn.active { background: #f43f5e; color: white; }
+        .cat-btn:active { transform: scale(0.95); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .radial-menu { position: fixed; bottom: 80px; right: 20px; width: 280px; height: 280px; border-radius: 50%; background: rgba(255,255,255,0.95); box-shadow: 0 8px 32px rgba(0,0,0,0.2); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: scaleIn 0.2s ease; }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+        .radial-item { position: absolute; width: 50px; height: 50px; background: #f43f5e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .radial-item:active { transform: scale(1.1); }
+        .context-menu { position: fixed; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 2000; min-width: 180px; overflow: hidden; animation: fadeIn 0.15s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .context-menu-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; font-size: 14px; }
+        .context-menu-item:hover { background: #f3f4f6; }
+        .context-menu-item.danger { color: #ef4444; }
+        .fab { width: 56px; height: 56px; background: #f43f5e; border-radius: 50%; box-shadow: 0 4px 12px rgba(244,63,94,0.4); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: white; }
+        .fab:active { transform: scale(0.92); }
+        .dock-nav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 40px; padding: 8px 20px; display: flex; gap: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 100; transition: opacity 0.2s ease, transform 0.2s ease; }
+        .dock-nav.is-hidden { opacity: 0; pointer-events: none; transform: translate(-50%, 18px); }
+        .dock-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s; color: #9ca3af; }
+        .dock-item i { font-size: 22px; }
+        .dock-item span { font-size: 10px; }
+        .dock-item.active { color: #f43f5e; transform: translateY(-2px); }
+        .modal-container { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; }
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+        .modal-content { position: relative; background: white; border-radius: 24px 24px 0 0; max-height: 85vh; overflow-y: auto; width: 100%; }
+        .modal-header { padding: 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; }
+        .modal-body { padding: 16px; }
+        .form-field { margin-bottom: 16px; }
+        .form-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: #374151; }
+        .form-field input, .form-field select, .form-field textarea { width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; font-family: 'IBM Plex Sans Thai', sans-serif; }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: #f43f5e; ring: 2px solid #f43f5e; }
+        .admin-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #f43f5e; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .admin-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .status-pending { color: #f59e0b; }
+        .status-paid { color: #3b82f6; }
+        .status-processing { color: #8b5cf6; }
+        .status-shipped { color: #06b6d4; }
+        .status-delivered { color: #10b981; }
+        .status-cancelled { color: #ef4444; }
+        .profile-header { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border-radius: 20px; padding: 20px; margin-bottom: 16px; color: white; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; background: white; }
+        .stat-card { background: white; border-radius: 12px; padding: 12px; text-align: center; flex: 1; }
+        .stat-value { font-size: 20px; font-weight: bold; color: #f43f5e; }
+        .order-history-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; }
+        .product-list-item { background: white; border-radius: 12px; padding: 12px; display: flex; gap: 12px; margin-bottom: 10px; align-items: center; }
+        .admin-sub-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; color: #6b7280; border-bottom: 2px solid transparent; }
+        .admin-sub-tab.active { color: #f43f5e; border-bottom-color: #f43f5e; font-weight: 500; }
     </style>
 </head>
 
@@ -555,20 +102,14 @@
                 <p class="text-xs text-gray-400">Thailand</p>
             </div>
             <div class="flex items-center gap-3">
-                <div id="userAvatar"
-                    class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center cursor-pointer"><i
-                        class="fas fa-user text-rose-500 text-sm"></i></div>
-                <div id="cartIcon" class="relative cursor-pointer"><i
-                        class="fas fa-shopping-cart text-2xl text-gray-700"></i><span id="cartCount"
-                        class="cart-badge">0</span></div>
+                <div id="userAvatar" class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center cursor-pointer"><i class="fas fa-user text-rose-500 text-sm"></i></div>
+                <div id="cartIcon" class="relative cursor-pointer"><i class="fas fa-shopping-cart text-2xl text-gray-700"></i><span id="cartCount" class="cart-badge">0</span></div>
             </div>
         </div>
 
         <div class="px-4 pt-3">
             <div class="command-palette bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-                <div class="flex items-center px-4 py-3"><i class="fas fa-search text-gray-400"></i><input type="text"
-                        id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 ml-3 outline-none text-sm"><i
-                        class="fas fa-sliders-h text-gray-400 cursor-pointer" id="filterBtn"></i></div>
+                <div class="flex items-center px-4 py-3"><i class="fas fa-search text-gray-400"></i><input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 ml-3 outline-none text-sm"><i class="fas fa-sliders-h text-gray-400 cursor-pointer" id="filterBtn"></i></div>
                 <div id="suggestions" class="command-suggestions hidden"></div>
             </div>
         </div>
@@ -576,9 +117,7 @@
         <div id="tabBar" class="tab-bar bg-white mx-4 mt-3 flex rounded-2xl shadow-sm border border-gray-100"></div>
         <div id="categoryFilter" class="px-4 py-2 overflow-x-auto flex gap-2 hide-scrollbar"></div>
         <div id="productGrid" class="product-grid">
-            <div class="col-span-full text-center text-gray-400 py-10"><i class="fas fa-spinner fa-pulse text-2xl"></i>
-                <p class="mt-2">กำลังโหลดสินค้า...</p>
-            </div>
+            <div class="col-span-full text-center text-gray-400 py-10"><i class="fas fa-spinner fa-pulse text-2xl"></i><p class="mt-2">กำลังโหลดสินค้า...</p></div>
         </div>
     </div>
 
@@ -587,15 +126,13 @@
         <div class="modal-overlay" id="cartOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-rose-500 mr-2"></i>ตะกร้าสินค้า
-                </h2><button id="closeCart" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-rose-500 mr-2"></i>ตะกร้าสินค้า</h2>
+                <button id="closeCart" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
             </div>
             <div id="cartItems" class="modal-body space-y-3"></div>
             <div class="border-t p-4 bg-white">
-                <div class="flex justify-between mb-3"><span class="font-semibold">รวมทั้งสิ้น</span><span
-                        id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span></div><button
-                    id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold"><i
-                        class="fas fa-receipt mr-2"></i>สั่งซื้อเลย</button>
+                <div class="flex justify-between mb-3"><span class="font-semibold">รวมทั้งสิ้น</span><span id="cartTotal" class="text-xl font-bold text-rose-500">0 บาท</span></div>
+                <button id="checkoutBtn" class="w-full bg-rose-500 text-white py-3 rounded-xl font-semibold"><i class="fas fa-receipt mr-2"></i>สั่งซื้อเลย</button>
             </div>
         </div>
     </div>
@@ -605,23 +142,25 @@
         <div class="modal-overlay" id="checkoutOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i
-                        class="fas fa-file-invoice mr-2 text-rose-500"></i>ข้อมูลการสั่งซื้อ</h2><button
-                    id="closeCheckoutModal" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-file-invoice mr-2 text-rose-500"></i>ข้อมูลการสั่งซื้อ</h2>
+                <button id="closeCheckoutModal" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body space-y-4"><input type="text" id="custName" placeholder="ชื่อ-นามสกุล"
-                    class="w-full border rounded-xl p-3"><input type="email" id="custEmail" placeholder="อีเมล"
-                    class="w-full border rounded-xl p-3"><input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์"
-                    class="w-full border rounded-xl p-3"><textarea id="custAddress" placeholder="ที่อยู่จัดส่ง"
-                    class="w-full border rounded-xl p-3" rows="3"></textarea>
-                <div class="form-field"><label>วิธีการชำระเงิน</label><select id="paymentMethod"
-                        class="w-full border rounded-xl p-3">
+            <div class="modal-body space-y-4">
+                <input type="text" id="custName" placeholder="ชื่อ-นามสกุล" class="w-full border rounded-xl p-3">
+                <input type="email" id="custEmail" placeholder="อีเมล" class="w-full border rounded-xl p-3">
+                <input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์" class="w-full border rounded-xl p-3">
+                <textarea id="custAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border rounded-xl p-3" rows="3"></textarea>
+                <div class="form-field">
+                    <label>วิธีการชำระเงิน</label>
+                    <select id="paymentMethod" class="w-full border rounded-xl p-3">
                         <option value="cash">💰 เงินสด (ชำระเมื่อรับสินค้า)</option>
                         <option value="promptpay">📱 โอนผ่าน PromptPay (แสดง QR Code)</option>
-                    </select></div>
-                <div class="flex gap-3 pt-2"><button id="cancelCheckout"
-                        class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmOrder"
-                        class="flex-1 bg-rose-500 text-white py-3 rounded-xl">✅ ยืนยัน</button></div>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button id="cancelCheckout" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
+                    <button id="confirmOrder" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">✅ ยืนยัน</button>
+                </div>
             </div>
         </div>
     </div>
@@ -631,8 +170,8 @@
         <div class="modal-overlay" id="qrOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-qrcode text-rose-500 mr-2"></i>ชำระเงินผ่าน PromptPay
-                </h2><button id="closeQrModal" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-qrcode text-rose-500 mr-2"></i>ชำระเงินผ่าน PromptPay</h2>
+                <button id="closeQrModal" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body text-center">
                 <div id="qrCodeContainer" class="flex justify-center mb-4"></div>
@@ -641,9 +180,8 @@
                     <p id="qrAmount" class="text-2xl text-rose-500 font-bold">0 บาท</p>
                 </div>
                 <div id="qrTimer" class="text-sm text-red-500 font-semibold mb-3">⏱️ QR Code จะหมดอายุใน 60 วินาที</div>
-                <div class="bg-yellow-50 rounded-lg p-3 text-sm"><i class="fas fa-info-circle mr-1"></i> กรุณาสแกน QR
-                    Code เพื่อชำระเงิน<br>หลังจากโอนแล้ว รายการสั่งซื้อจะถูกดำเนินการเมื่อแอดมินยืนยัน</div><button
-                    id="closeQrModalBtn" class="w-full mt-4 bg-gray-500 text-white py-3 rounded-xl">ปิด</button>
+                <div class="bg-yellow-50 rounded-lg p-3 text-sm"><i class="fas fa-info-circle mr-1"></i> กรุณาสแกน QR Code เพื่อชำระเงิน<br>หลังจากโอนแล้ว รายการสั่งซื้อจะถูกดำเนินการเมื่อแอดมินยืนยัน</div>
+                <button id="closeQrModalBtn" class="w-full mt-4 bg-gray-500 text-white py-3 rounded-xl">ปิด</button>
             </div>
         </div>
     </div>
@@ -653,8 +191,8 @@
         <div class="modal-overlay" id="profileOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-user-circle text-rose-500 mr-2"></i>โปรไฟล์ของฉัน
-                </h2><button id="closeProfile" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-user-circle text-rose-500 mr-2"></i>โปรไฟล์ของฉัน</h2>
+                <button id="closeProfile" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <div id="profileContent" class="modal-body"></div>
         </div>
@@ -665,18 +203,18 @@
         <div class="modal-overlay" id="editProfileOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-edit text-rose-500 mr-2"></i>แก้ไขโปรไฟล์</h2><button
-                    id="closeEditProfileModal" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-edit text-rose-500 mr-2"></i>แก้ไขโปรไฟล์</h2>
+                <button id="closeEditProfileModal" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <div class="form-field"><label>ชื่อ-นามสกุล</label><input type="text" id="editDisplayName"></div>
                 <div class="form-field"><label>อีเมล</label><input type="email" id="editEmail"></div>
                 <div class="form-field"><label>เบอร์โทรศัพท์</label><input type="tel" id="editPhone"></div>
                 <div class="form-field"><label>ที่อยู่</label><textarea id="editAddress" rows="3"></textarea></div>
-                <div class="flex gap-3 pt-2"><button id="cancelEditProfile"
-                        class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button
-                        id="saveEditProfile" class="flex-1 bg-rose-500 text-white py-3 rounded-xl"><i
-                            class="fas fa-save mr-1"></i>บันทึก</button></div>
+                <div class="flex gap-3 pt-2">
+                    <button id="cancelEditProfile" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
+                    <button id="saveEditProfile" class="flex-1 bg-rose-500 text-white py-3 rounded-xl"><i class="fas fa-save mr-1"></i>บันทึก</button>
+                </div>
             </div>
         </div>
     </div>
@@ -686,8 +224,8 @@
         <div class="modal-overlay" id="orderHistoryOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ
-                </h2><button id="closeOrderHistory" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</h2>
+                <button id="closeOrderHistory" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <div id="orderHistoryContent" class="modal-body"></div>
         </div>
@@ -698,8 +236,8 @@
         <div class="modal-overlay" id="orderDetailOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-receipt text-rose-500 mr-2"></i>รายละเอียดคำสั่งซื้อ
-                </h2><button id="closeOrderDetail" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-receipt text-rose-500 mr-2"></i>รายละเอียดคำสั่งซื้อ</h2>
+                <button id="closeOrderDetail" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <div id="orderDetailContent" class="modal-body"></div>
         </div>
@@ -710,12 +248,11 @@
         <div class="modal-overlay" id="adminPanelOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-user-shield text-rose-500 mr-2"></i>แผงควบคุมแอดมิน
-                </h2><button id="closeAdminPanel" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><i class="fas fa-user-shield text-rose-500 mr-2"></i>แผงควบคุมแอดมิน</h2>
+                <button id="closeAdminPanel" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <div id="adminSubTabs" class="flex border-b">
-                <div class="admin-sub-tab active" data-tab="orders"><i class="fas fa-shopping-cart mr-1"></i>คำสั่งซื้อ
-                </div>
+                <div class="admin-sub-tab active" data-tab="orders"><i class="fas fa-shopping-cart mr-1"></i>คำสั่งซื้อ</div>
                 <div class="admin-sub-tab" data-tab="products"><i class="fas fa-box mr-1"></i>สินค้า</div>
                 <div class="admin-sub-tab" data-tab="categories"><i class="fas fa-tags mr-1"></i>หมวดหมู่</div>
                 <div class="admin-sub-tab" data-tab="users"><i class="fas fa-users mr-1"></i>สมาชิก</div>
@@ -723,66 +260,44 @@
             </div>
             <div id="adminOrdersSection" class="p-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold">รายการคำสั่งซื้อทั้งหมด</h3><button id="refreshOrdersBtn"
-                        class="text-rose-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
+                    <h3 class="font-semibold">รายการคำสั่งซื้อทั้งหมด</h3>
+                    <button id="refreshOrdersBtn" class="text-rose-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
                 </div>
                 <div id="adminOrdersList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminProductsSection" class="p-4 hidden">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold">จัดการสินค้า</h3><button id="addProductBtn"
-                        class="bg-rose-500 text-white px-3 py-1 rounded-lg text-sm"><i
-                            class="fas fa-plus mr-1"></i>เพิ่มสินค้า</button>
+                    <h3 class="font-semibold">จัดการสินค้า</h3>
+                    <button id="addProductBtn" class="bg-rose-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-plus mr-1"></i>เพิ่มสินค้า</button>
                 </div>
                 <div id="adminProductsList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminCategoriesSection" class="p-4 hidden">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold">จัดการหมวดหมู่</h3><button id="addCategoryBtn"
-                        class="bg-rose-500 text-white px-3 py-1 rounded-lg text-sm"><i
-                            class="fas fa-plus mr-1"></i>เพิ่มหมวดหมู่</button>
+                    <h3 class="font-semibold">จัดการหมวดหมู่</h3>
+                    <button id="addCategoryBtn" class="bg-rose-500 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-plus mr-1"></i>เพิ่มหมวดหมู่</button>
                 </div>
                 <div id="adminCategoriesList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminUsersSection" class="p-4 hidden">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold">จัดการสมาชิก</h3><button id="refreshUsersBtn"
-                        class="text-rose-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
+                    <h3 class="font-semibold">จัดการสมาชิก</h3>
+                    <button id="refreshUsersBtn" class="text-rose-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
                 </div>
                 <div id="adminUsersList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminSettingsSection" class="p-4 hidden">
-                <div class="bg-yellow-50 rounded-xl p-3 mb-4 text-sm"><i
-                        class="fas fa-info-circle mr-1"></i>ตั้งค่าทั่วไป</div>
-                <div class="form-field"><label>🏪 ชื่อร้านค้า</label><input type="text" id="storeName"
-                        placeholder="ชื่อร้าน"><button id="saveStoreName"
-                        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i
-                            class="fas fa-save mr-1"></i>บันทึก</button></div>
-                <div class="form-field mt-4"><label>📱 หมายเลข PromptPay (เบอร์โทร)</label><input type="text"
-                        id="promptpayPhone" placeholder="0812345678"><button id="savePromptPay"
-                        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i
-                            class="fas fa-save mr-1"></i>บันทึก</button></div>
-                <div class="form-field"><label>🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text"
-                        id="botToken" placeholder="Channel Access Token"><button id="saveBotToken"
-                        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Token</button></div>
-                <div class="form-field mt-4"><label>👑 Admin User IDs (คั่นด้วยจุลภาค)</label><input type="text"
-                        id="adminIds" placeholder="Uxxxxxxxxx, Uyyyyyyyyy"><button id="saveAdminIds"
-                        class="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Admin IDs</button>
-                </div>
-                <div class="form-field mt-4"><label>📁 Drive Folder ID (สำหรับรูปสินค้า)</label><input type="text"
-                        id="driveFolderId" placeholder="ID โฟลเดอร์ Google Drive"><button id="saveDriveFolder"
-                        class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Drive ID</button>
-                </div>
-                <div class="form-field mt-4"><label>🧾 Slip Folder ID (สำหรับสลิปโอนเงิน)</label><input type="text"
-                        id="slipFolderId" placeholder="ID โฟลเดอร์ Google Drive"><button id="saveSlipFolder"
-                        class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Slip ID</button>
-                </div>
+                <div class="bg-yellow-50 rounded-xl p-3 mb-4 text-sm"><i class="fas fa-info-circle mr-1"></i>ตั้งค่าทั่วไป</div>
+                <div class="form-field"><label>🏪 ชื่อร้านค้า</label><input type="text" id="storeName" placeholder="ชื่อร้าน"><button id="saveStoreName" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
+                <div class="form-field mt-4"><label>📱 หมายเลข PromptPay (เบอร์โทร)</label><input type="text" id="promptpayPhone" placeholder="0812345678"><button id="savePromptPay" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
+                <div class="form-field"><label>🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text" id="botToken" placeholder="Channel Access Token"><button id="saveBotToken" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Token</button></div>
+                <div class="form-field mt-4"><label>👑 Admin User IDs (คั่นด้วยจุลภาค)</label><input type="text" id="adminIds" placeholder="Uxxxxxxxxx, Uyyyyyyyyy"><button id="saveAdminIds" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Admin IDs</button></div>
+                <div class="form-field mt-4"><label>📁 Drive Folder ID (สำหรับรูปสินค้า)</label><input type="text" id="driveFolderId" placeholder="ID โฟลเดอร์ Google Drive"><button id="saveDriveFolder" class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Drive ID</button></div>
+                <div class="form-field mt-4"><label>🧾 Slip Folder ID (สำหรับสลิปโอนเงิน)</label><input type="text" id="slipFolderId" placeholder="ID โฟลเดอร์ Google Drive"><button id="saveSlipFolder" class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Slip ID</button></div>
                 <div class="form-field mt-4"><label>🔗 Web App URL</label>
                     <div class="flex gap-2"><input type="text" id="webAppUrl" readonly class="bg-gray-100 flex-1"><button id="copyUrlBtn" class="bg-gray-500 text-white px-4 rounded-lg"><i class="fas fa-copy"></i></button></div>
                 </div>
-                <div class="form-field mt-4"><label>📢 ทดสอบแจ้งเตือน</label><button id="testNotifyBtn"
-                        class="w-full bg-rose-500 text-white py-2 rounded-lg"><i
-                            class="fab fa-line mr-1"></i>ส่งข้อความทดสอบ</button></div>
+                <div class="form-field mt-4"><label>📢 ทดสอบแจ้งเตือน</label><button id="testNotifyBtn" class="w-full bg-rose-500 text-white py-2 rounded-lg"><i class="fab fa-line mr-1"></i>ส่งข้อความทดสอบ</button></div>
             </div>
         </div>
     </div>
@@ -792,30 +307,25 @@
         <div class="modal-overlay" id="productFormOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><span id="productFormTitle">เพิ่มสินค้า</span></h2><button
-                    id="closeProductForm" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><span id="productFormTitle">เพิ่มสินค้า</span></h2>
+                <button id="closeProductForm" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body"><input type="hidden" id="productId">
+            <div class="modal-body">
+                <input type="hidden" id="productId">
                 <div class="form-field"><label>ชื่อสินค้า</label><input type="text" id="productName"></div>
                 <div class="form-field"><label>หมวดหมู่</label><select id="productCategory"></select></div>
                 <div class="form-field"><label>ราคา (บาท)</label><input type="number" id="productPrice"></div>
-                <div class="form-field"><label>จำนวนคงเหลือ</label><input type="number" id="productStock" min="0"
-                        step="1" placeholder="0"></div>
+                <div class="form-field"><label>จำนวนคงเหลือ</label><input type="number" id="productStock" min="0" step="1" placeholder="0"></div>
                 <div class="form-field"><label>รูปภาพ</label>
-                    <div class="flex gap-2"><input type="text" id="productImage" placeholder="URL รูปภาพ"
-                            class="flex-1"><button id="uploadImageBtn" class="bg-gray-500 text-white px-4 rounded-lg"><i
-                                class="fas fa-upload"></i></button></div><input type="file" id="imageFile"
-                        accept="image/*" class="hidden">
-                    <div id="imagePreview" class="mt-2 hidden"><img id="previewImg"
-                            class="w-20 h-20 object-cover rounded"></div>
+                    <div class="flex gap-2"><input type="text" id="productImage" placeholder="URL รูปภาพ" class="flex-1"><button id="uploadImageBtn" class="bg-gray-500 text-white px-4 rounded-lg"><i class="fas fa-upload"></i></button></div>
+                    <input type="file" id="imageFile" accept="image/*" class="hidden">
+                    <div id="imagePreview" class="mt-2 hidden"><img id="previewImg" class="w-20 h-20 object-cover rounded"></div>
                 </div>
-                <div class="form-field"><label>สถานะ</label><select id="productStatus">
-                        <option value="active">แสดงสินค้า</option>
-                        <option value="inactive">ซ่อนสินค้า</option>
-                    </select></div>
-                <div class="flex gap-3 pt-2"><button id="cancelProductFormBtn"
-                        class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="saveProductBtn"
-                        class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div>
+                <div class="form-field"><label>สถานะ</label><select id="productStatus"><option value="active">แสดงสินค้า</option><option value="inactive">ซ่อนสินค้า</option></select></div>
+                <div class="flex gap-3 pt-2">
+                    <button id="cancelProductFormBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
+                    <button id="saveProductBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button>
+                </div>
             </div>
         </div>
     </div>
@@ -825,19 +335,17 @@
         <div class="modal-overlay" id="categoryFormOverlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="text-lg font-semibold"><span id="categoryFormTitle">เพิ่มหมวดหมู่</span></h2><button
-                    id="closeCategoryForm" class="text-gray-500"><i class="fas fa-times"></i></button>
+                <h2 class="text-lg font-semibold"><span id="categoryFormTitle">เพิ่มหมวดหมู่</span></h2>
+                <button id="closeCategoryForm" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body"><input type="hidden" id="categoryId">
-                <div class="form-field"><label>ชื่อหมวดหมู่</label><input type="text" id="categoryName"
-                        placeholder="เช่น เสื้อผ้า, รองเท้า"></div>
-                <div class="form-field"><label>สถานะ</label><select id="categoryStatus">
-                        <option value="active">ใช้งาน</option>
-                        <option value="inactive">ปิดใช้งาน</option>
-                    </select></div>
-                <div class="flex gap-3 pt-2"><button id="cancelCategoryFormBtn"
-                        class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button
-                        id="saveCategoryBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="categoryId">
+                <div class="form-field"><label>ชื่อหมวดหมู่</label><input type="text" id="categoryName" placeholder="เช่น เสื้อผ้า, รองเท้า"></div>
+                <div class="form-field"><label>สถานะ</label><select id="categoryStatus"><option value="active">ใช้งาน</option><option value="inactive">ปิดใช้งาน</option></select></div>
+                <div class="flex gap-3 pt-2">
+                    <button id="cancelCategoryFormBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
+                    <button id="saveCategoryBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button>
+                </div>
             </div>
         </div>
     </div>
@@ -858,13 +366,11 @@
             </select>
             <div id="trackingLinkGroup" class="mb-4 hidden">
                 <label class="block text-sm font-medium mb-1">ลิงก์ติดตามพัสดุ (ไม่บังคับ)</label>
-                <input type="url" id="trackingLink" placeholder="https://track.kerry.com/..."
-                    class="w-full border rounded-lg p-3">
+                <input type="url" id="trackingLink" placeholder="https://track.kerry.com/..." class="w-full border rounded-lg p-3">
             </div>
             <div class="flex gap-3">
                 <button id="cancelOrderStatusBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
-                <button id="confirmOrderStatusBtn"
-                    class="flex-1 bg-rose-500 text-white py-3 rounded-xl">อัพเดทสถานะ</button>
+                <button id="confirmOrderStatusBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">อัพเดทสถานะ</button>
             </div>
         </div>
     </div>
@@ -874,14 +380,15 @@
         <div class="modal-overlay" id="userRoleOverlay"></div>
         <div class="modal-content p-4">
             <h2 class="text-lg font-semibold mb-4">แก้ไขสิทธิ์ผู้ใช้</h2>
-            <div id="userRoleInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div><select id="userRoleSelect"
-                class="w-full border rounded-lg p-3 mb-4">
+            <div id="userRoleInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div>
+            <select id="userRoleSelect" class="w-full border rounded-lg p-3 mb-4">
                 <option value="user">ผู้ใช้ทั่วไป</option>
                 <option value="admin">ผู้ดูแลระบบ (Admin)</option>
             </select>
-            <div class="flex gap-3"><button id="cancelUserRoleBtn"
-                    class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmUserRoleBtn"
-                    class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div>
+            <div class="flex gap-3">
+                <button id="cancelUserRoleBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
+                <button id="confirmUserRoleBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button>
+            </div>
         </div>
     </div>
 
@@ -889,20 +396,14 @@
         // ============================================
         // CONFIGURATION
         // ============================================
-        // IMPORTANT: แก้ไข URL นี้ให้ตรงกับ Web App URL ของคุณ
+        // แก้ไข URL นี้ให้ตรงกับ Web App URL ของคุณ
         const API_URL = "https://script.google.com/macros/s/AKfycbyBHTgvJ33uythdOXy6AXvJv62jrJwtlka7gYTdEwAxk1x5DxZFoQwmE_d56CaPsdsjpA/exec";
         const LIFF_ID = "2006974084-pCKlrYsc";
 
         let products = [], cart = [], categories = [], adminCategories = [], allUsers = [], allOrders = [], orderHistory = [];
         let currentCategory = "all", searchQuery = "", currentTab = "all", isRadialOpen = false;
         
-        const tabMapping = {
-            "all": "all",
-            "clothing": "เสื้อผ้า",
-            "shoes": "รองเท้า",
-            "accessories": "เครื่องประดับ",
-            "bags": "กระเป๋า"
-        };
+        const tabMapping = { "all": "all", "clothing": "เสื้อผ้า", "shoes": "รองเท้า", "accessories": "เครื่องประดับ", "bags": "กระเป๋า" };
 
         let liffProfile = null, userProfile = null, isAdmin = false;
         let currentEditingOrder = null, currentEditingUser = null;
@@ -916,6 +417,16 @@
         function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch])); }
         function isModalVisible() { return Array.from(document.querySelectorAll(".modal-container")).some(modal => !modal.classList.contains("hidden")); }
         function updateDockVisibility() { const dock = document.getElementById("dockNav"); if (dock) dock.classList.toggle("is-hidden", isModalVisible()); }
+        
+        function getStatusThai(status) {
+            const map = { "Pending": "รอชำระเงิน", "Paid": "ชำระแล้ว", "Processing": "กำลังจัดเตรียม", "Shipped": "จัดส่งแล้ว", "Delivered": "รับสินค้าแล้ว", "Cancelled": "ยกเลิก" };
+            return map[status] || status;
+        }
+        
+        function getStatusColorClass(status) {
+            const map = { "Pending": "bg-yellow-100 text-yellow-700", "Paid": "bg-blue-100 text-blue-700", "Processing": "bg-purple-100 text-purple-700", "Shipped": "bg-cyan-100 text-cyan-700", "Delivered": "bg-green-100 text-green-700", "Cancelled": "bg-red-100 text-red-700" };
+            return map[status] || "bg-gray-100 text-gray-700";
+        }
 
         async function fetchAPI(action, params = {}) {
             const url = new URL(API_URL);
@@ -924,13 +435,12 @@
             const res = await fetch(url.toString());
             return res.json();
         }
+        
         async function fetchPostAPI(action, formData) {
             const url = new URL(API_URL);
             url.searchParams.append("action", action);
             const params = new URLSearchParams();
-            for (const pair of formData.entries()) {
-                params.append(pair[0], pair[1]);
-            }
+            for (const pair of formData.entries()) { params.append(pair[0], pair[1]); }
             const res = await fetch(url.toString(), { method: "POST", body: params });
             return res.json();
         }
@@ -950,23 +460,19 @@
             } catch (e) { 
                 console.error("Fetch error:", e);
                 showToast("ไม่สามารถโหลดข้อมูลได้", "error");
-            } finally {
-                hideLoading();
-            }
+            } finally { hideLoading(); }
         }
         
         function renderProducts() {
             let filtered = products;
-            
-            if (currentCategory !== "all") {
-                filtered = filtered.filter(p => p.category === currentCategory);
-            }
-            
-            if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+            if (currentCategory !== "all") { filtered = filtered.filter(p => p.category === currentCategory); }
+            if (searchQuery) { filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())); }
             
             const grid = document.getElementById("productGrid");
             if (!filtered.length) { grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">ไม่พบสินค้า</div>`; return; }
-            grid.innerHTML = filtered.map(p => { const stock = Number(p.stock) || 0, soldOut = stock <= 0; return `<div class="product-card ${soldOut ? 'opacity-70' : ''}" data-product='${JSON.stringify(p)}'><div class="relative"><img src="${p.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">${soldOut ? '<div class="absolute inset-0 bg-black/45 flex items-center justify-center text-white font-semibold">หมด</div>' : ''}</div><div class="p-2"><div class="text-xs text-gray-400"><i class="fas fa-tag mr-1"></i>${p.category}</div><div class="font-medium text-sm">${p.name}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div><div class="text-xs ${soldOut ? 'text-red-500' : 'text-gray-500'}">คงเหลือ ${stock} ชิ้น</div><button class="add-to-cart-btn w-full mt-2 ${soldOut ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-rose-500 text-white'} py-1.5 rounded-lg text-sm" data-product='${JSON.stringify(p)}' ${soldOut ? 'disabled' : ''}><i class="fas fa-cart-plus mr-1"></i> ${soldOut ? 'สินค้าหมด' : 'หยิบใส่ตะกร้า'}</button></div></div>`; }).join("");
+            grid.innerHTML = filtered.map(p => { 
+                const stock = Number(p.stock) || 0, soldOut = stock <= 0; 
+                return `<div class="product-card ${soldOut ? 'opacity-70' : ''}" data-product='${JSON.stringify(p)}'><div class="relative"><img src="${p.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">${soldOut ? '<div class="absolute inset-0 bg-black/45 flex items-center justify-center text-white font-semibold">หมด</div>' : ''}</div><div class="p-2"><div class="text-xs text-gray-400"><i class="fas fa-tag mr-1"></i>${p.category}</div><div class="font-medium text-sm">${p.name}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div><div class="text-xs ${soldOut ? 'text-red-500' : 'text-gray-500'}">คงเหลือ ${stock} ชิ้น</div><button class="add-to-cart-btn w-full mt-2 ${soldOut ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-rose-500 text-white'} py-1.5 rounded-lg text-sm" data-product='${JSON.stringify(p)}' ${soldOut ? 'disabled' : ''}><i class="fas fa-cart-plus mr-1"></i> ${soldOut ? 'สินค้าหมด' : 'หยิบใส่ตะกร้า'}</button></div></div>`; }).join("");
             document.querySelectorAll(".add-to-cart-btn").forEach(btn => btn.addEventListener("click", (e) => { e.stopPropagation(); addToCart(JSON.parse(btn.dataset.product)); }));
             document.querySelectorAll(".product-card").forEach(card => card.addEventListener("contextmenu", (e) => { e.preventDefault(); showContextMenu(e.clientX, e.clientY, JSON.parse(card.dataset.product)); }));
         }
@@ -978,27 +484,17 @@
             document.querySelectorAll(".cat-btn").forEach(btn => btn.addEventListener("click", () => { 
                 const cat = btn.dataset.cat;
                 currentCategory = cat;
-                
                 for (const [tabId, thaiName] of Object.entries(tabMapping)) {
-                    if (thaiName === cat) {
-                        currentTab = tabId;
-                        break;
-                    }
+                    if (thaiName === cat) { currentTab = tabId; break; }
                 }
-                
                 updateFilterUI();
                 renderProducts(); 
             }));
         }
         
         function updateFilterUI() {
-            document.querySelectorAll(".tab-item").forEach(t => {
-                t.classList.toggle("active", t.dataset.tab === currentTab);
-            });
-            
-            document.querySelectorAll(".cat-btn").forEach(b => {
-                b.classList.toggle("active", b.dataset.cat === currentCategory);
-            });
+            document.querySelectorAll(".tab-item").forEach(t => { t.classList.toggle("active", t.dataset.tab === currentTab); });
+            document.querySelectorAll(".cat-btn").forEach(b => { b.classList.toggle("active", b.dataset.cat === currentCategory); });
         }
         
         function updateCommandSuggestions() {
@@ -1008,10 +504,10 @@
                 if (q.length < 1) { suggestionsDiv.classList.add("hidden"); return; }
                 const matches = products.filter(p => p.name.toLowerCase().includes(q)).slice(0, 5);
                 if (matches.length) {
-                    suggestionsDiv.innerHTML = matches.map(p => `<div class="suggestion-item" data-name="${p.name}"><i class="fas fa-box"></i><div><div>${p.name}</div><div class="text-xs text-gray-400">${p.category} - ${formatPrice(p.price)}</div></div></div>`).join(""); suggestionsDiv.classList.remove("hidden");
+                    suggestionsDiv.innerHTML = matches.map(p => `<div class="suggestion-item" data-name="${p.name}"><i class="fas fa-box"></i><div><div>${p.name}</div><div class="text-xs text-gray-400">${p.category} - ${formatPrice(p.price)}</div></div></div>`).join("");
+                    suggestionsDiv.classList.remove("hidden");
                     document.querySelectorAll(".suggestion-item").forEach(item => item.addEventListener("click", () => { searchInput.value = item.dataset.name; searchQuery = item.dataset.name; suggestionsDiv.classList.add("hidden"); renderProducts(); }));
-                }
-                else suggestionsDiv.classList.add("hidden");
+                } else { suggestionsDiv.classList.add("hidden"); }
             });
             document.addEventListener("click", (e) => { if (!suggestionsDiv.contains(e.target) && e.target !== searchInput) suggestionsDiv.classList.add("hidden"); });
         }
@@ -1039,7 +535,15 @@
         
         function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); }
         
-        function updateQuantity(id, d) { let i = cart.find(i => i.id === id); if (i) { if (d > 0 && i.quantity >= (Number(i.stock) || 0)) { showToast(`สินค้าเหลือ ${i.stock} ชิ้น`, "error"); return; } i.quantity += d; if (i.quantity <= 0) removeFromCart(id); else updateCartUI(); } }
+        function updateQuantity(id, d) { 
+            let i = cart.find(i => i.id === id); 
+            if (i) { 
+                if (d > 0 && i.quantity >= (Number(i.stock) || 0)) { showToast(`สินค้าเหลือ ${i.stock} ชิ้น`, "error"); return; } 
+                i.quantity += d; 
+                if (i.quantity <= 0) removeFromCart(id); 
+                else updateCartUI(); 
+            } 
+        }
         
         function updateCartUI() {
             document.getElementById("cartCount").innerText = cart.reduce((s, i) => s + i.quantity, 0);
@@ -1053,7 +557,12 @@
             removeContextMenu(); const menu = document.createElement("div"); menu.className = "context-menu"; menu.style.left = x + "px"; menu.style.top = y + "px";
             menu.innerHTML = `<div class="context-menu-item" data-action="add"><i class="fas fa-cart-plus"></i> หยิบใส่ตะกร้า</div><div class="context-menu-item" data-action="detail"><i class="fas fa-info-circle"></i> รายละเอียด</div><div class="context-menu-item danger" data-action="share"><i class="fas fa-share-alt"></i> แชร์</div>`;
             document.body.appendChild(menu);
-            menu.querySelectorAll(".context-menu-item").forEach(item => item.addEventListener("click", () => { if (item.dataset.action === "add") addToCart(p); else if (item.dataset.action === "detail") Swal.fire({ title: p.name, html: `<img src="${p.image}" class="w-full rounded-lg mb-3"><p>ราคา: ${formatPrice(p.price)}</p><p>หมวดหมู่: ${p.category}</p>` }); else if (item.dataset.action === "share") { navigator.clipboard.writeText(p.name + " - " + formatPrice(p.price)); showToast("คัดลอกข้อมูลสินค้าแล้ว"); } removeContextMenu(); }));
+            menu.querySelectorAll(".context-menu-item").forEach(item => item.addEventListener("click", () => { 
+                if (item.dataset.action === "add") addToCart(p); 
+                else if (item.dataset.action === "detail") Swal.fire({ title: p.name, html: `<img src="${p.image}" class="w-full rounded-lg mb-3"><p>ราคา: ${formatPrice(p.price)}</p><p>หมวดหมู่: ${p.category}</p>` }); 
+                else if (item.dataset.action === "share") { navigator.clipboard.writeText(p.name + " - " + formatPrice(p.price)); showToast("คัดลอกข้อมูลสินค้าแล้ว"); } 
+                removeContextMenu(); 
+            }));
         }
         
         function removeContextMenu() { const menu = document.querySelector(".context-menu"); if (menu) menu.remove(); }
@@ -1650,6 +1159,8 @@
                     autoFillCheckoutForm();
                     
                     orderHistory = await fetchAPI("getUserOrders", { lineId: userProfile.userId });
+                    console.log("Loaded orders:", orderHistory);
+                    
                     await checkAdminStatus(userProfile.userId);
                     await loadStoreSettings();
                     
@@ -1722,7 +1233,74 @@
         
         function showProfileModal() {
             const pic = userProfile?.pictureUrl || "https://via.placeholder.com/80?text=User";
-            document.getElementById("profileContent").innerHTML = `<div class="profile-header"><div class="flex items-center gap-4"><img class="profile-avatar" src="${pic}"><div><h3 class="font-bold text-lg">${userProfile?.displayName || "Guest"}</h3><p class="text-sm opacity-90">LINE: ${userProfile?.lineName || "-"}</p></div></div></div><div class="flex gap-3 mb-4"><div class="stat-card"><div class="stat-value">${userProfile?.orderCount || 0}</div><div class="stat-label">คำสั่งซื้อ</div></div><div class="stat-card"><div class="stat-value">${formatPrice(userProfile?.totalSpent || 0)}</div><div class="stat-label">ยอดรวม</div></div><div class="stat-card"><div class="stat-value">${orderHistory.length}</div><div class="stat-label">รายการ</div></div></div><div class="bg-white rounded-xl p-4 mb-4 shadow-sm"><h3 class="font-semibold mb-3"><i class="fas fa-envelope text-rose-500 mr-2"></i>ข้อมูลติดต่อ</h3><p><i class="fas fa-envelope w-5 text-gray-400"></i> ${userProfile?.email || "ไม่ได้ระบุ"}</p><p><i class="fas fa-phone w-5 text-gray-400"></i> ${userProfile?.phone || "ไม่ได้ระบุ"}</p><p><i class="fas fa-map-marker-alt w-5 text-gray-400"></i> ${userProfile?.address || "ไม่ได้ระบุ"}</p><button id="editProfileBtn" class="w-full mt-4 bg-gray-100 py-2 rounded-xl text-sm"><i class="fas fa-edit mr-1"></i>แก้ไขโปรไฟล์</button></div><div class="bg-white rounded-xl p-4 shadow-sm"><h3 class="font-semibold mb-3 flex justify-between"><span><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</span><button id="refreshOrdersBtn" class="text-xs text-rose-500"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button></h3><div id="orderHistoryPreview" class="max-h-64 overflow-y-auto">${orderHistory.length === 0 ? '<p class="text-center py-4">ยังไม่มีประวัติการสั่งซื้อ</p>' : orderHistory.slice(0, 5).map(o => `<div class="border-b py-3 cursor-pointer" onclick="viewOrderDetail('${o.orderId}')"><div class="flex justify-between"><div><p class="font-medium text-sm">${o.orderId}</p><p class="text-xs text-gray-400">${o.timestamp}</p></div><div class="text-right"><p class="text-rose-500 font-bold text-sm">${formatPrice(o.total)}</p><p class="text-xs text-gray-400">${o.items.length} รายการ</p></div></div></div>`).join('')}${orderHistory.length > 5 ? `<button id="viewAllOrdersBtn" class="w-full mt-3 text-rose-500 text-sm py-2">ดูทั้งหมด (${orderHistory.length})</button>` : ''}</div></div>`;
+            
+            let historyPreviewHtml = '';
+            if (!orderHistory || orderHistory.length === 0) {
+                historyPreviewHtml = '<p class="text-center py-4">ยังไม่มีประวัติการสั่งซื้อ</p>';
+            } else {
+                const recentOrders = orderHistory.slice(0, 5);
+                historyPreviewHtml = recentOrders.map(o => `
+                    <div class="border-b py-3 cursor-pointer" onclick="viewOrderDetail('${o.orderId}')">
+                        <div class="flex justify-between">
+                            <div>
+                                <p class="font-medium text-sm">${o.orderId}</p>
+                                <p class="text-xs text-gray-400">${o.timestamp}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-rose-500 font-bold text-sm">${formatPrice(o.total)}</p>
+                                <p class="text-xs text-gray-400">${o.items.length} รายการ</p>
+                            </div>
+                        </div>
+                        <div class="text-xs mt-1">
+                            <span class="px-2 py-0.5 rounded-full ${getStatusColorClass(o.status)}">${getStatusThai(o.status)}</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                if (orderHistory.length > 5) {
+                    historyPreviewHtml += `<button id="viewAllOrdersBtn" class="w-full mt-3 text-rose-500 text-sm py-2">ดูทั้งหมด (${orderHistory.length})</button>`;
+                }
+            }
+            
+            document.getElementById("profileContent").innerHTML = `
+                <div class="profile-header">
+                    <div class="flex items-center gap-4">
+                        <img class="profile-avatar" src="${pic}">
+                        <div>
+                            <h3 class="font-bold text-lg">${userProfile?.displayName || "Guest"}</h3>
+                            <p class="text-sm opacity-90">LINE: ${userProfile?.lineName || "-"}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 mb-4">
+                    <div class="stat-card">
+                        <div class="stat-value">${userProfile?.orderCount || 0}</div>
+                        <div class="stat-label">คำสั่งซื้อ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatPrice(userProfile?.totalSpent || 0)}</div>
+                        <div class="stat-label">ยอดรวม</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${orderHistory.length}</div>
+                        <div class="stat-label">รายการ</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                    <h3 class="font-semibold mb-3"><i class="fas fa-envelope text-rose-500 mr-2"></i>ข้อมูลติดต่อ</h3>
+                    <p><i class="fas fa-envelope w-5 text-gray-400"></i> ${userProfile?.email || "ไม่ได้ระบุ"}</p>
+                    <p><i class="fas fa-phone w-5 text-gray-400"></i> ${userProfile?.phone || "ไม่ได้ระบุ"}</p>
+                    <p><i class="fas fa-map-marker-alt w-5 text-gray-400"></i> ${userProfile?.address || "ไม่ได้ระบุ"}</p>
+                    <button id="editProfileBtn" class="w-full mt-4 bg-gray-100 py-2 rounded-xl text-sm"><i class="fas fa-edit mr-1"></i>แก้ไขโปรไฟล์</button>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <h3 class="font-semibold mb-3 flex justify-between">
+                        <span><i class="fas fa-history text-rose-500 mr-2"></i>ประวัติการสั่งซื้อ</span>
+                        <button id="refreshOrdersBtn" class="text-xs text-rose-500"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
+                    </h3>
+                    <div id="orderHistoryPreview" class="max-h-64 overflow-y-auto">${historyPreviewHtml}</div>
+                </div>`;
+                
             document.getElementById("profileModal").classList.remove("hidden");
             document.getElementById("editProfileBtn")?.addEventListener("click", () => { 
                 document.getElementById("editDisplayName").value = userProfile?.displayName || ""; 
@@ -1785,13 +1363,16 @@
                     trackingHtml = `<div class="mt-2 text-xs"><a href="${o.trackingLink}" target="_blank" class="text-green-600"><i class="fas fa-box"></i> ลิงก์ติดตามพัสดุ</a></div>`;
                 }
                 return `<div class="order-history-card" onclick="viewOrderDetail('${o.orderId}')">
-            <div class="flex justify-between"><div><p class="font-semibold text-rose-500">${o.orderId}</p><p class="text-xs text-gray-400">${o.timestamp}</p></div><div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(o.total)}</p><p class="text-xs text-gray-400">${o.status || 'สำเร็จ'}</p></div></div>
-            <div class="border-t pt-2 mt-2"><p class="text-sm">สินค้า:</p>${o.items.slice(0, 2).map(i => `<div class="flex justify-between text-sm mt-1"><span>${i.name} x ${i.quantity}</span><span>${formatPrice(i.price * i.quantity)}</span></div>`).join('')}${o.items.length > 2 ? `<p class="text-xs text-gray-400 mt-1">และอีก ${o.items.length - 2} รายการ</p>` : ''}</div>
-            ${slipLink}
-            ${trackingHtml}
-            ${slipButton}
-            <button class="w-full mt-3 bg-rose-50 text-rose-500 py-2 rounded-xl text-sm" onclick="event.stopPropagation(); reorderItems('${o.orderId}')"><i class="fas fa-redo-alt mr-1"></i>สั่งซื้ออีกครั้ง</button>
-        </div>`;
+                    <div class="flex justify-between">
+                        <div><p class="font-semibold text-rose-500">${o.orderId}</p><p class="text-xs text-gray-400">${o.timestamp}</p></div>
+                        <div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(o.total)}</p><p class="text-xs text-gray-400">${o.status || 'สำเร็จ'}</p></div>
+                    </div>
+                    <div class="border-t pt-2 mt-2"><p class="text-sm">สินค้า:</p>${o.items.slice(0, 2).map(i => `<div class="flex justify-between text-sm mt-1"><span>${i.name} x ${i.quantity}</span><span>${formatPrice(i.price * i.quantity)}</span></div>`).join('')}${o.items.length > 2 ? `<p class="text-xs text-gray-400 mt-1">และอีก ${o.items.length - 2} รายการ</p>` : ''}</div>
+                    ${slipLink}
+                    ${trackingHtml}
+                    ${slipButton}
+                    <button class="w-full mt-3 bg-rose-50 text-rose-500 py-2 rounded-xl text-sm" onclick="event.stopPropagation(); reorderItems('${o.orderId}')"><i class="fas fa-redo-alt mr-1"></i>สั่งซื้ออีกครั้ง</button>
+                </div>`;
             }).join('');
             document.getElementById("orderHistoryModal").classList.remove("hidden"); 
             document.getElementById("profileModal").classList.add("hidden");
@@ -1821,14 +1402,8 @@
             document.getElementById("orderDetailContent").innerHTML = `
                 <div class="bg-gray-50 rounded-xl p-4 mb-4">
                     <div class="flex justify-between">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">เลขที่ออเดอร์</p>
-                            <p class="font-bold text-rose-500">${o.orderId}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">วันที่สั่งซื้อ</p>
-                            <p class="text-sm font-medium">${o.timestamp}</p>
-                        </div>
+                        <div><p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">เลขที่ออเดอร์</p><p class="font-bold text-rose-500">${o.orderId}</p></div>
+                        <div class="text-right"><p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">วันที่สั่งซื้อ</p><p class="text-sm font-medium">${o.timestamp}</p></div>
                     </div>
                     <div class="border-t pt-3 mt-3">
                         <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">ข้อมูลผู้รับ</p>
@@ -1842,10 +1417,7 @@
                     <div class="space-y-1">
                         ${o.items.map(i => `
                             <div class="flex justify-between py-2 border-b border-dashed border-gray-200">
-                                <div>
-                                    <p class="font-medium text-sm text-gray-800">${i.name}</p>
-                                    <p class="text-xs text-gray-500">จำนวน x${i.quantity}</p>
-                                </div>
+                                <div><p class="font-medium text-sm text-gray-800">${i.name}</p><p class="text-xs text-gray-500">จำนวน x${i.quantity}</p></div>
                                 <p class="text-rose-500 font-semibold">${formatPrice(i.price * i.quantity)}</p>
                             </div>
                         `).join('')}
@@ -1858,9 +1430,7 @@
                     </div>
                     <div class="flex justify-between items-center pt-2 border-t border-gray-200">
                         <span class="text-sm text-gray-500">สถานะปัจจุบัน</span>
-                        <span class="${statusColor} font-bold flex items-center">
-                            <i class="fas ${statusIcon} mr-1.5"></i>${o.status || "Pending"}
-                        </span>
+                        <span class="${statusColor} font-bold flex items-center"><i class="fas ${statusIcon} mr-1.5"></i>${o.status || "Pending"}</span>
                     </div>
                     ${slipHtml}
                     ${trackingHtml}
@@ -1983,11 +1553,8 @@
             document.getElementById("confirmOrderStatusBtn")?.addEventListener("click", updateOrderStatus);
             document.getElementById("newOrderStatus")?.addEventListener("change", (e) => {
                 const trackingGroup = document.getElementById("trackingLinkGroup");
-                if (e.target.value === "Shipped") {
-                    trackingGroup.classList.remove("hidden");
-                } else {
-                    trackingGroup.classList.add("hidden");
-                }
+                if (e.target.value === "Shipped") { trackingGroup.classList.remove("hidden"); } 
+                else { trackingGroup.classList.add("hidden"); }
             });
             document.getElementById("cancelUserRoleBtn")?.addEventListener("click", () => document.getElementById("userRoleModal").classList.add("hidden"));
             document.getElementById("userRoleOverlay")?.addEventListener("click", () => document.getElementById("userRoleModal").classList.add("hidden"));
