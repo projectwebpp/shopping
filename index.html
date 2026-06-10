@@ -918,9 +918,21 @@
             showLoading();
             try {
                 const res = await fetchAPI("getProducts");
-                if (res.success && res.products) { products = res.products; renderProducts(); setupCategories(); updateCommandSuggestions(); if (isAdmin) loadAdminProducts(); }
-            } catch (e) { console.error(e); }
-            hideLoading();
+                if (res.success && res.products) { 
+                    products = res.products; 
+                    renderProducts(); 
+                    setupCategories(); 
+                    updateCommandSuggestions(); 
+                    if (isAdmin) loadAdminProducts(); 
+                } else {
+                    console.error("Failed to load products:", res?.error);
+                }
+            } catch (e) { 
+                console.error("Fetch error:", e);
+                showToast("ไม่สามารถโหลดข้อมูลได้", "error");
+            } finally {
+                hideLoading();
+            }
         }
         function renderProducts() {
             let filtered = products.filter(p => currentCategory === "all" || p.category === currentCategory);
@@ -1190,9 +1202,8 @@
                     await loadStoreSettings();
                     if (isAdmin) { await loadAllOrders(); await loadAllUsers(); await loadCategories(); renderTabBar(); }
                     else { await loadCategories(); renderTabBar(); }
-                    await loadProducts();
                 } else liff.login();
-            } catch (e) { userProfile = { userId: "guest", lineName: "Guest", displayName: "Guest" }; updateUserUI(); loadCategories(); renderTabBar(); loadProducts(); }
+            } catch (e) { userProfile = { userId: "guest", lineName: "Guest", displayName: "Guest" }; updateUserUI(); loadCategories(); renderTabBar(); }
         }
         async function saveUserProfile(profile) { const fd = new FormData(); fd.append("lineId", profile.userId); fd.append("lineName", profile.lineName); fd.append("displayName", profile.displayName); fd.append("email", profile.email); fd.append("phone", profile.phone); fd.append("address", profile.address); fd.append("pictureUrl", profile.pictureUrl || ""); await fetchPostAPI("saveUserProfile", fd); }
         async function updateUserProfile(profile) { const fd = new FormData(); fd.append("lineId", profile.userId); fd.append("displayName", profile.displayName); fd.append("email", profile.email); fd.append("phone", profile.phone); fd.append("address", profile.address); fd.append("pictureUrl", profile.pictureUrl || ""); return await fetchPostAPI("updateUserProfile", fd); }
@@ -1266,7 +1277,7 @@
 
         // ========== Event Listeners ==========
         document.addEventListener("DOMContentLoaded", async () => {
-            await initializeLIFF();
+            loadProducts();
             document.querySelectorAll(".modal-container").forEach(modal => { new MutationObserver(updateDockVisibility).observe(modal, { attributes: true, attributeFilter: ["class"] }); });
             updateDockVisibility();
             document.getElementById("searchInput")?.addEventListener("input", (e) => { searchQuery = e.target.value; renderProducts(); });
@@ -1336,13 +1347,26 @@
             document.getElementById("saveAdminIds")?.addEventListener("click", saveAdminIdsSetting);
             document.getElementById("saveStoreName")?.addEventListener("click", saveStoreNameSetting);
             document.getElementById("savePromptPay")?.addEventListener("click", savePromptPaySetting);
-            document.getElementById("testNotifyBtn")?.addEventListener("click", testNotify);
+            document.getElementById("testNotifyBtn")?.addEventListener("click", async () => {
+                if (!isAdmin) return;
+                showLoading();
+                try {
+                    const fd = new FormData();
+                    fd.append("adminLineId", userProfile?.userId);
+                    const res = await fetchPostAPI("testMessagingAPI", fd);
+                    if (res.success) showToast(res.message);
+                    else Swal.fire("ผิดพลาด", res.error, "error");
+                } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); }
+                hideLoading();
+            });
             document.getElementById("closeQrModal")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
             document.getElementById("qrOverlay")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
             document.getElementById("closeQrModalBtn")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
             document.querySelectorAll(".radial-item").forEach(i => i.addEventListener("click", () => { const a = i.dataset.action; if (a === "home") { window.scrollTo({ top: 0 }); closeCart(); closeAllModals(); } else if (a === "search") document.getElementById("searchInput")?.focus(); else if (a === "cart") openCart(); else if (a === "profile") showProfileModal(); else if (a === "category") document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); else if (a === "admin") openAdminPanel(); closeRadialMenu(); }));
             document.addEventListener("click", (e) => { if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fab")) closeRadialMenu(); if (!e.target.closest(".context-menu")) removeContextMenu(); });
             document.querySelectorAll(".dock-item").forEach(d => d.addEventListener("click", () => { document.querySelectorAll(".dock-item").forEach(dd => dd.classList.remove("active")); d.classList.add("active"); const dck = d.dataset.dock; if (dck === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0 }); } else if (dck === "shop") { closeCart(); closeAllModals(); } else if (dck === "cart") openCart(); else if (dck === "profile") showProfileModal(); }));
+
+            await initializeLIFF();
         });
     </script>
 
