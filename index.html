@@ -769,17 +769,6 @@
                         id="adminIds" placeholder="Uxxxxxxxxx, Uyyyyyyyyy"><button id="saveAdminIds"
                         class="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Admin IDs</button>
                 </div>
-                <div class="form-field mt-4"><label>📁 Drive Folder ID (สำหรับรูปสินค้า)</label><input type="text"
-                        id="driveFolderId" placeholder="ID โฟลเดอร์ Google Drive"><button id="saveDriveFolder"
-                        class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Drive ID</button>
-                </div>
-                <div class="form-field mt-4"><label>🧾 Slip Folder ID (สำหรับสลิปโอนเงิน)</label><input type="text"
-                        id="slipFolderId" placeholder="ID โฟลเดอร์ Google Drive"><button id="saveSlipFolder"
-                        class="mt-2 bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Slip ID</button>
-                </div>
-                <div class="form-field mt-4"><label>🔗 Web App URL</label>
-                    <div class="flex gap-2"><input type="text" id="webAppUrl" readonly class="bg-gray-100 flex-1"><button id="copyUrlBtn" class="bg-gray-500 text-white px-4 rounded-lg"><i class="fas fa-copy"></i></button></div>
-                </div>
                 <div class="form-field mt-4"><label>📢 ทดสอบแจ้งเตือน</label><button id="testNotifyBtn"
                         class="w-full bg-rose-500 text-white py-2 rounded-lg"><i
                             class="fab fa-line mr-1"></i>ส่งข้อความทดสอบ</button></div>
@@ -888,20 +877,11 @@
         // ============================================
         // CONFIGURATION - แก้ไข URL ให้ตรงกับ Web App ของคุณ
         // ============================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbyBHTgvJ33uythdOXy6AXvJv62jrJwtlka7gYTdEwAxk1x5DxZFoQwmE_d56CaPsdsjpA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwM9du1XjiXCftKL0Xl19kpB76bWcO9D-0ZKddWcIeThPkN4pNEkPRa-BXbfDh6I4mvkQ/exec";
         const LIFF_ID = "2006974084-pCKlrYsc";
 
         let products = [], cart = [], categories = [], adminCategories = [], allUsers = [], allOrders = [], orderHistory = [];
         let currentCategory = "all", searchQuery = "", currentTab = "all", isRadialOpen = false;
-        
-        const tabMapping = {
-            "all": "all",
-            "clothing": "เสื้อผ้า",
-            "shoes": "รองเท้า",
-            "accessories": "เครื่องประดับ",
-            "bags": "กระเป๋า"
-        };
-
         let liffProfile = null, userProfile = null, isAdmin = false;
         let currentEditingOrder = null, currentEditingUser = null;
         let storeSettings = { STORE_NAME: "E-Shop Thailand", PROMPTPAY_PHONE: "" };
@@ -955,15 +935,8 @@
             }
         }
         function renderProducts() {
-            let filtered = products;
-            
-            // Apply category filter (synced with tab filter)
-            if (currentCategory !== "all") {
-                filtered = filtered.filter(p => p.category === currentCategory);
-            }
-            
+            let filtered = products.filter(p => currentCategory === "all" || p.category === currentCategory);
             if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-            
             const grid = document.getElementById("productGrid");
             if (!filtered.length) { grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-10">ไม่พบสินค้า</div>`; return; }
             grid.innerHTML = filtered.map(p => { const stock = Number(p.stock) || 0, soldOut = stock <= 0; return `<div class="product-card ${soldOut ? 'opacity-70' : ''}" data-product='${JSON.stringify(p)}'><div class="relative"><img src="${p.image}" class="w-full h-32 object-cover" onerror="this.src='https://picsum.photos/id/20/200/200'">${soldOut ? '<div class="absolute inset-0 bg-black/45 flex items-center justify-center text-white font-semibold">หมด</div>' : ''}</div><div class="p-2"><div class="text-xs text-gray-400"><i class="fas fa-tag mr-1"></i>${p.category}</div><div class="font-medium text-sm">${p.name}</div><div class="text-rose-500 font-bold">${formatPrice(p.price)}</div><div class="text-xs ${soldOut ? 'text-red-500' : 'text-gray-500'}">คงเหลือ ${stock} ชิ้น</div><button class="add-to-cart-btn w-full mt-2 ${soldOut ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-rose-500 text-white'} py-1.5 rounded-lg text-sm" data-product='${JSON.stringify(p)}' ${soldOut ? 'disabled' : ''}><i class="fas fa-cart-plus mr-1"></i> ${soldOut ? 'สินค้าหมด' : 'หยิบใส่ตะกร้า'}</button></div></div>`; }).join("");
@@ -973,34 +946,8 @@
         function setupCategories() {
             const cats = ["all", ...new Set(products.map(p => p.category))];
             const container = document.getElementById("categoryFilter");
-            container.innerHTML = cats.map(cat => `<button data-cat="${cat}" class="cat-btn ${cat === currentCategory ? "active" : ""}">${cat === "all" ? "ทั้งหมด" : cat}</button>`).join("");
-            document.querySelectorAll(".cat-btn").forEach(btn => btn.addEventListener("click", () => { 
-                const cat = btn.dataset.cat;
-                currentCategory = cat;
-                
-                // Sync with Tab Bar
-                currentTab = "all";
-                for (const [tabId, thaiName] of Object.entries(tabMapping)) {
-                    if (thaiName === cat) {
-                        currentTab = tabId;
-                        break;
-                    }
-                }
-                
-                updateFilterUI();
-                renderProducts(); 
-            }));
-        }
-        function updateFilterUI() {
-            // Update Tab Bar UI
-            document.querySelectorAll(".tab-item").forEach(t => {
-                t.classList.toggle("active", t.dataset.tab === currentTab);
-            });
-            
-            // Update Category Buttons UI
-            document.querySelectorAll(".cat-btn").forEach(b => {
-                b.classList.toggle("active", b.dataset.cat === currentCategory);
-            });
+            container.innerHTML = cats.map(cat => `<button data-cat="${cat}" class="cat-btn ${cat === "all" ? "active" : ""}">${cat === "all" ? "ทั้งหมด" : cat}</button>`).join("");
+            document.querySelectorAll(".cat-btn").forEach(btn => btn.addEventListener("click", () => { document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active")); btn.classList.add("active"); currentCategory = btn.dataset.cat; renderProducts(); }));
         }
         function updateCommandSuggestions() {
             const searchInput = document.getElementById("searchInput"), suggestionsDiv = document.getElementById("suggestions");
@@ -1019,12 +966,7 @@
         function renderTabBar() {
             const tabBar = document.getElementById("tabBar"), tabs = [{ id: "all", icon: "th-large", name: "ทั้งหมด" }, { id: "clothing", icon: "tshirt", name: "เสื้อผ้า" }, { id: "shoes", icon: "shoe-prints", name: "รองเท้า" }, { id: "accessories", icon: "gem", name: "เครื่องประดับ" }, { id: "bags", icon: "bag-shopping", name: "กระเป๋า" }];
             tabBar.innerHTML = tabs.map(t => `<div class="tab-item ${currentTab === t.id ? "active" : ""}" data-tab="${t.id}"><i class="fas fa-${t.icon}"></i><span>${t.name}</span></div>`).join("");
-            document.querySelectorAll(".tab-item").forEach(tab => tab.addEventListener("click", () => { 
-                currentTab = tab.dataset.tab;
-                currentCategory = tabMapping[currentTab] || "all";
-                updateFilterUI();
-                renderProducts(); 
-            }));
+            document.querySelectorAll(".tab-item").forEach(tab => tab.addEventListener("click", () => { currentTab = tab.dataset.tab; document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active")); tab.classList.add("active"); renderProducts(); }));
         }
 
         // ========== Cart ==========
@@ -1236,13 +1178,11 @@
         async function saveUserRole() { const newRole = document.getElementById("userRoleSelect").value, isAdminUser = newRole === "admin"; if (!currentEditingUser) return; showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("targetLineId", currentEditingUser.lineId); fd.append("isAdmin", isAdminUser); const res = await fetchPostAPI("updateUserRole", fd); if (res.success) { showToast("เปลี่ยนสิทธิ์สำเร็จ"); document.getElementById("userRoleModal").classList.add("hidden"); await loadAllUsers(); if (currentEditingUser.lineId === userProfile?.userId) await checkAdminStatus(userProfile.userId); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function loadCategories() { try { const res = await fetchAPI("getCategories"); if (Array.isArray(res)) categories = res; else if (res.categories) categories = res.categories; else categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; } catch (e) { categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; } if (isAdmin) loadAdminCategories(); }
         async function loadAllUsers() { if (!isAdmin) return; try { const res = await fetchAPI("getAllUsers", { lineId: userProfile?.userId }); allUsers = res.users || []; renderAdminUsers(); } catch (e) { console.error(e); } }
-        async function loadStoreSettings() { try { const res = await fetchAPI("getSettings"); storeSettings = { STORE_NAME: res.STORE_NAME || "E-Shop Thailand", PROMPTPAY_PHONE: res.PROMPTPAY_PHONE || "" }; document.getElementById("storeNameHeader").innerHTML = `🛍️ ${storeSettings.STORE_NAME}`; document.getElementById("storeName").value = storeSettings.STORE_NAME; document.getElementById("promptpayPhone").value = storeSettings.PROMPTPAY_PHONE; document.getElementById("driveFolderId").value = res.DRIVE_FOLDER_ID || ""; document.getElementById("slipFolderId").value = res.SLIP_FOLDER_ID || ""; document.getElementById("webAppUrl").value = res.WEB_APP_URL || ""; } catch (e) { console.error(e); } }
+        async function loadStoreSettings() { try { const res = await fetchAPI("getSettings"); storeSettings = { STORE_NAME: res.STORE_NAME || "E-Shop Thailand", PROMPTPAY_PHONE: res.PROMPTPAY_PHONE || "" }; document.getElementById("storeNameHeader").innerHTML = `🛍️ ${storeSettings.STORE_NAME}`; document.getElementById("storeName").value = storeSettings.STORE_NAME; document.getElementById("promptpayPhone").value = storeSettings.PROMPTPAY_PHONE; } catch (e) { console.error(e); } }
         async function saveStoreNameSetting() { const name = document.getElementById("storeName").value.trim(); if (!name) { showToast("กรุณากรอกชื่อร้าน", "error"); return; } showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("storeName", name); const res = await fetchPostAPI("saveStoreName", fd); if (res.success) { showToast("บันทึกชื่อร้านสำเร็จ"); await loadStoreSettings(); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function savePromptPaySetting() { const phone = document.getElementById("promptpayPhone").value.trim(); showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("promptpayPhone", phone); const res = await fetchPostAPI("savePromptPay", fd); if (res.success) { showToast("บันทึกหมายเลข PromptPay สำเร็จ"); await loadStoreSettings(); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function saveBotTokenSetting() { const token = document.getElementById("botToken").value.trim(); showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("token", token); const res = await fetchPostAPI("saveBotToken", fd); if (res.success) showToast("บันทึก Token เรียบร้อย"); else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function saveAdminIdsSetting() { const ids = document.getElementById("adminIds").value.trim(); showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("ids", ids); const res = await fetchPostAPI("saveAdminIds", fd); if (res.success) { showToast("บันทึก Admin IDs เรียบร้อย"); await checkAdminStatus(userProfile?.userId); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
-        async function saveDriveFolderSetting() { const id = document.getElementById("driveFolderId").value.trim(); showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("folderId", id); const res = await fetchPostAPI("saveDriveFolder", fd); if (res.success) showToast("บันทึก Drive ID เรียบร้อย"); else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
-        async function saveSlipFolderSetting() { const id = document.getElementById("slipFolderId").value.trim(); showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("folderId", id); const res = await fetchPostAPI("saveSlipFolder", fd); if (res.success) showToast("บันทึก Slip ID เรียบร้อย"); else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function loadBotTokenSetting() { try { const settings = await fetchAPI("getSettings"); document.getElementById("botToken").value = settings.BOT_TOKEN || ""; } catch (e) { document.getElementById("botToken").value = ""; } }
         async function loadAdminIdsSetting() { try { const settings = await fetchAPI("getSettings"); document.getElementById("adminIds").value = settings.ADMIN_IDS || ""; } catch (e) { document.getElementById("adminIds").value = ""; } }
         async function testNotify() { if (!liff.isInClient()) { showToast("ไม่ได้อยู่ในแอป LINE", "error"); return; } try { await liff.sendMessages([{ type: "text", text: "ทดสอบการแจ้งเตือนจาก E-Shop" }]); showToast("ส่งข้อความทดสอบสำเร็จ"); } catch (e) { showToast("ส่งไม่สำเร็จ", "error"); } }
@@ -1321,76 +1261,9 @@
         function viewOrderDetail(orderId) {
             const o = orderHistory.find(o => o.orderId === orderId);
             if (!o) return;
-            
-            const isPending = (o.status || '').toLowerCase() === 'pending';
-            const slipHtml = o.slipUrl ? `<div class="bg-gray-50 rounded-xl p-3 mt-2"><a href="${o.slipUrl}" target="_blank" class="text-blue-500 font-medium"><i class="fas fa-receipt mr-1"></i>ดูสลิปการโอนเงิน</a></div>` : '';
-            
-            let slipButton = '';
-            if (isPending && !o.slipUrl) {
-                slipButton = `<button class="w-full mt-3 bg-blue-500 text-white py-3 rounded-xl font-medium" onclick="uploadSlip('${o.orderId}', ${o.total}, '${escapeHtml(o.name)}')"><i class="fas fa-upload mr-2"></i>แนบสลิปโอนเงิน</button>`;
-            }
-            
-            const trackingHtml = (o.trackingLink && (o.status === 'Shipped' || o.status === 'Delivered')) ? `<div class="bg-gray-50 rounded-xl p-3 mt-2"><a href="${o.trackingLink}" target="_blank" class="text-green-600 font-medium"><i class="fas fa-box mr-1"></i>ลิงก์ติดตามพัสดุ</a></div>` : '';
-            
-            let statusColor = "text-amber-500";
-            let statusIcon = "fa-clock";
-            if (o.status === "Paid") { statusColor = "text-blue-500"; statusIcon = "fa-check-circle"; }
-            else if (o.status === "Shipped") { statusColor = "text-cyan-500"; statusIcon = "fa-truck"; }
-            else if (o.status === "Delivered") { statusColor = "text-emerald-500"; statusIcon = "fa-heart"; }
-            else if (o.status === "Cancelled") { statusColor = "text-rose-500"; statusIcon = "fa-times-circle"; }
-
-            document.getElementById("orderDetailContent").innerHTML = `
-                <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                    <div class="flex justify-between">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">เลขที่ออเดอร์</p>
-                            <p class="font-bold text-rose-500">${o.orderId}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">วันที่สั่งซื้อ</p>
-                            <p class="text-sm font-medium">${o.timestamp}</p>
-                        </div>
-                    </div>
-                    <div class="border-t pt-3 mt-3">
-                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">ข้อมูลผู้รับ</p>
-                        <p class="font-medium">${o.name || "-"}</p>
-                        <p class="text-sm text-gray-600"><i class="fas fa-phone mr-1"></i>${o.phone || "-"}</p>
-                        <p class="text-sm text-gray-600"><i class="fas fa-map-marker-alt mr-1"></i>${o.address || "-"}</p>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <p class="font-bold text-gray-700 mb-2">รายการสินค้า</p>
-                    <div class="space-y-1">
-                        ${o.items.map(i => `
-                            <div class="flex justify-between py-2 border-b border-dashed border-gray-200">
-                                <div>
-                                    <p class="font-medium text-sm text-gray-800">${i.name}</p>
-                                    <p class="text-xs text-gray-500">จำนวน x${i.quantity}</p>
-                                </div>
-                                <p class="text-rose-500 font-semibold">${formatPrice(i.price * i.quantity)}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-gray-700">ยอดรวมทั้งสิ้น</span>
-                        <span class="text-2xl font-bold text-rose-500">${formatPrice(o.total)}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-2 border-t border-gray-200">
-                        <span class="text-sm text-gray-500">สถานะปัจจุบัน</span>
-                        <span class="${statusColor} font-bold flex items-center">
-                            <i class="fas ${statusIcon} mr-1.5"></i>${o.status || "Pending"}
-                        </span>
-                    </div>
-                    ${slipHtml}
-                    ${trackingHtml}
-                </div>
-                ${slipButton}
-                <button id="reorderFromDetailBtn" class="w-full mt-3 bg-rose-50 text-rose-500 py-3 rounded-xl font-medium border border-rose-100 hover:bg-rose-100 transition-colors">
-                    <i class="fas fa-redo-alt mr-2"></i>สั่งซื้อรายการเดิมอีกครั้ง
-                </button>`;
-                
+            const slipHtml = o.slipUrl ? `<div class="bg-gray-50 rounded-xl p-3 mt-2"><a href="${o.slipUrl}" target="_blank" class="text-blue-500"><i class="fas fa-receipt mr-1"></i>ดูสลิปการโอนเงิน</a></div>` : '';
+            const trackingHtml = (o.trackingLink && (o.status === 'Shipped' || o.status === 'Delivered')) ? `<div class="bg-gray-50 rounded-xl p-3 mt-2"><a href="${o.trackingLink}" target="_blank" class="text-green-600"><i class="fas fa-box mr-1"></i>ลิงก์ติดตามพัสดุ</a></div>` : '';
+            document.getElementById("orderDetailContent").innerHTML = `<div class="bg-gray-50 rounded-xl p-4 mb-4"><div class="flex justify-between"><div><p class="text-xs text-gray-500">เลขที่</p><p class="font-semibold">${o.orderId}</p></div><div class="text-right"><p class="text-xs text-gray-500">วันที่</p><p class="text-sm">${o.timestamp}</p></div></div><div class="border-t pt-3 mt-2"><p class="text-xs text-gray-500">ผู้รับ</p><p>${o.name || "-"}</p><p>${o.phone || "-"}</p><p>${o.address || "-"}</p></div></div><div class="mb-4"><p class="font-semibold mb-2">รายการสินค้า</p>${o.items.map(i => `<div class="flex justify-between py-2 border-b"><div><p>${i.name}</p><p class="text-xs text-gray-400">x ${i.quantity}</p></div><p class="text-rose-500">${formatPrice(i.price * i.quantity)}</p></div>`).join('')}</div><div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between"><span class="font-semibold">ยอดรวม</span><span class="text-xl font-bold text-rose-500">${formatPrice(o.total)}</span></div><div class="flex justify-between mt-2"><span>สถานะ</span><span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>${o.status || "สำเร็จ"}</span></div>${slipHtml}${trackingHtml}</div><button id="reorderFromDetailBtn" class="w-full mt-4 bg-rose-500 text-white py-3 rounded-xl"><i class="fas fa-redo-alt mr-2"></i>สั่งซื้ออีกครั้ง</button>`;
             document.getElementById("orderDetailModal").classList.remove("hidden");
             document.getElementById("reorderFromDetailBtn")?.addEventListener("click", () => { reorderItems(orderId); document.getElementById("orderDetailModal").classList.add("hidden"); });
         }
@@ -1477,15 +1350,6 @@
             document.getElementById("saveAdminIds")?.addEventListener("click", saveAdminIdsSetting);
             document.getElementById("saveStoreName")?.addEventListener("click", saveStoreNameSetting);
             document.getElementById("savePromptPay")?.addEventListener("click", savePromptPaySetting);
-            document.getElementById("saveDriveFolder")?.addEventListener("click", saveDriveFolderSetting);
-            document.getElementById("saveSlipFolder")?.addEventListener("click", saveSlipFolderSetting);
-            document.getElementById("copyUrlBtn")?.addEventListener("click", () => {
-                const urlInput = document.getElementById("webAppUrl");
-                urlInput.select();
-                urlInput.setSelectionRange(0, 99999);
-                navigator.clipboard.writeText(urlInput.value);
-                showToast("คัดลอก URL แล้ว");
-            });
             document.getElementById("testNotifyBtn")?.addEventListener("click", async () => {
                 if (!isAdmin) return;
                 showLoading();
