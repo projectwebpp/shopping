@@ -1336,14 +1336,6 @@
             document.getElementById("cancelOrderStatusBtn")?.addEventListener("click", () => document.getElementById("orderStatusModal").classList.add("hidden"));
             document.getElementById("orderStatusOverlay")?.addEventListener("click", () => document.getElementById("orderStatusModal").classList.add("hidden"));
             document.getElementById("confirmOrderStatusBtn")?.addEventListener("click", updateOrderStatus);
-            document.getElementById("newOrderStatus")?.addEventListener("change", (e) => {
-                const trackingGroup = document.getElementById("trackingLinkGroup");
-                if (e.target.value === "Shipped") {
-                    trackingGroup.classList.remove("hidden");
-                } else {
-                    trackingGroup.classList.add("hidden");
-                }
-            });
             document.getElementById("cancelUserRoleBtn")?.addEventListener("click", () => document.getElementById("userRoleModal").classList.add("hidden"));
             document.getElementById("userRoleOverlay")?.addEventListener("click", () => document.getElementById("userRoleModal").classList.add("hidden"));
             document.getElementById("confirmUserRoleBtn")?.addEventListener("click", saveUserRole);
@@ -1360,12 +1352,12 @@
             document.querySelectorAll(".dock-item").forEach(d => d.addEventListener("click", () => { document.querySelectorAll(".dock-item").forEach(dd => dd.classList.remove("active")); d.classList.add("active"); const dck = d.dataset.dock; if (dck === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0 }); } else if (dck === "shop") { closeCart(); closeAllModals(); } else if (dck === "cart") openCart(); else if (dck === "profile") showProfileModal(); }));
         });
     </script>
+    <div id="dockNav" class="dock-nav">
+        <div class="dock-item active" data-dock="home"><i class="fas fa-home"></i><span>หน้าแรก</span></div>
+        <div class="dock-item" data-dock="shop"><i class="fas fa-store"></i><span>ร้านค้า</span></div>
+        <div class="dock-item" data-dock="cart"><i class="fas fa-shopping-cart"></i><span>ตะกร้า</span></div>
+        <div class="dock-item" data-dock="profile"><i class="fas fa-user"></i><span>โปรไฟล์</span></div>
+    </div>
 </body>
 
 </html>
-<div id="dockNav" class="dock-nav">
-    <div class="dock-item active" data-dock="home"><i class="fas fa-home"></i><span>หน้าแรก</span></div>
-    <div class="dock-item" data-dock="shop"><i class="fas fa-store"></i><span>ร้านค้า</span></div>
-    <div class="dock-item" data-dock="cart"><i class="fas fa-shopping-cart"></i><span>ตะกร้า</span></div>
-    <div class="dock-item" data-dock="profile"><i class="fas fa-user"></i><span>โปรไฟล์</span></div>
-</div>
