@@ -142,8 +142,30 @@
 <!-- Category Form Modal -->
 <div id="categoryFormModal" class="modal-container hidden"><div class="modal-overlay" id="categoryFormOverlay"></div><div class="modal-content"><div class="modal-header"><h2 class="text-lg font-semibold"><span id="categoryFormTitle">เพิ่มหมวดหมู่</span></h2><button id="closeCategoryForm" class="text-gray-500"><i class="fas fa-times"></i></button></div><div class="modal-body"><input type="hidden" id="categoryId"><div class="form-field"><label>ชื่อหมวดหมู่</label><input type="text" id="categoryName" placeholder="เช่น เสื้อผ้า, รองเท้า"></div><div class="form-field"><label>สถานะ</label><select id="categoryStatus"><option value="active">ใช้งาน</option><option value="inactive">ปิดใช้งาน</option></select></div><div class="flex gap-3 pt-2"><button id="cancelCategoryFormBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="saveCategoryBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div></div></div></div>
 
-<!-- Order Status Modal (ไม่มีปุ่มแจ้งเตือน) -->
-<div id="orderStatusModal" class="modal-container hidden"><div class="modal-overlay" id="orderStatusOverlay"></div><div class="modal-content p-4"><h2 class="text-lg font-semibold mb-4">อัพเดทสถานะคำสั่งซื้อ</h2><div id="orderStatusInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div><select id="newOrderStatus" class="w-full border rounded-lg p-3 mb-4"><option value="Pending">Pending (รอการชำระเงิน)</option><option value="Paid">Paid (ชำระเงินแล้ว)</option><option value="Processing">Processing (กำลังจัดเตรียมสินค้า)</option><option value="Shipped">Shipped (จัดส่งแล้ว)</option><option value="Delivered">Delivered (ได้รับสินค้าแล้ว)</option><option value="Cancelled">Cancelled (ยกเลิก)</option></select><div class="flex gap-3"><button id="cancelOrderStatusBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmOrderStatusBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">อัพเดทสถานะ</button></div></div></div>
+<!-- Order Status Modal (เพิ่ม Tracking Link) -->
+<div id="orderStatusModal" class="modal-container hidden">
+    <div class="modal-overlay" id="orderStatusOverlay"></div>
+    <div class="modal-content p-4">
+        <h2 class="text-lg font-semibold mb-4">อัพเดทสถานะคำสั่งซื้อ</h2>
+        <div id="orderStatusInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div>
+        <select id="newOrderStatus" class="w-full border rounded-lg p-3 mb-4">
+            <option value="Pending">Pending (รอการชำระเงิน)</option>
+            <option value="Paid">Paid (ชำระเงินแล้ว)</option>
+            <option value="Processing">Processing (กำลังจัดเตรียมสินค้า)</option>
+            <option value="Shipped">Shipped (จัดส่งแล้ว)</option>
+            <option value="Delivered">Delivered (ได้รับสินค้าแล้ว)</option>
+            <option value="Cancelled">Cancelled (ยกเลิก)</option>
+        </select>
+        <div id="trackingLinkGroup" class="mb-4 hidden">
+            <label class="block text-sm font-medium mb-1">ลิงก์ติดตามพัสดุ (ไม่บังคับ)</label>
+            <input type="text" id="trackingLink" placeholder="https://track.kerry.com/..." class="w-full border rounded-lg p-3">
+        </div>
+        <div class="flex gap-3">
+            <button id="cancelOrderStatusBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
+            <button id="confirmOrderStatusBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">อัพเดทสถานะ</button>
+        </div>
+    </div>
+</div>
 
 <!-- User Role Modal -->
 <div id="userRoleModal" class="modal-container hidden"><div class="modal-overlay" id="userRoleOverlay"></div><div class="modal-content p-4"><h2 class="text-lg font-semibold mb-4">แก้ไขสิทธิ์ผู้ใช้</h2><div id="userRoleInfo" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div><select id="userRoleSelect" class="w-full border rounded-lg p-3 mb-4"><option value="user">ผู้ใช้ทั่วไป</option><option value="admin">ผู้ดูแลระบบ (Admin)</option></select><div class="flex gap-3"><button id="cancelUserRoleBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button><button id="confirmUserRoleBtn" class="flex-1 bg-rose-500 text-white py-3 rounded-xl">บันทึก</button></div></div></div>
@@ -379,16 +401,48 @@ function renderAdminOrders(){
     if(!allOrders.length){ container.innerHTML='<div class="text-center text-gray-400 py-10">ไม่มีคำสั่งซื้อ</div>'; return; }
     container.innerHTML=allOrders.map(o=>{ let sc=""; if(o.status==="Pending") sc="status-pending"; else if(o.status==="Paid") sc="status-paid"; else if(o.status==="Processing") sc="status-processing"; else if(o.status==="Shipped") sc="status-shipped"; else if(o.status==="Delivered") sc="status-delivered"; else if(o.status==="Cancelled") sc="status-cancelled";
         const slipHtml = o.slipUrl ? `<div class="mt-1"><a href="${o.slipUrl}" target="_blank" class="text-xs text-blue-500"><i class="fas fa-receipt"></i> ดูสลิป</a></div>` : '';
-        return `<div class="admin-card"><div class="admin-card-header"><div><div class="font-bold text-sm">${o.orderId}</div><div class="text-xs text-gray-400">${o.timestamp}</div><div class="text-sm mt-1"><i class="fas fa-user mr-1"></i>${o.name}</div><div class="text-xs"><i class="fas fa-phone mr-1"></i>${o.phone}</div>${slipHtml}</div><div class="text-right"><div class="font-bold ${sc}">${o.status||"Pending"}</div><div class="text-rose-500 font-bold">${formatPrice(o.total)}</div></div></div><div class="flex gap-2 mt-3"><button onclick="openOrderStatusModal('${o.orderId}', '${o.status}', '${o.lineId}', '${o.name}')" class="flex-1 bg-rose-500 text-white py-1.5 rounded-lg text-sm"><i class="fas fa-edit mr-1"></i>อัพเดทสถานะ</button></div></div>`;
+        const trackingHtml = (o.trackingLink && o.status === "Shipped") ? `<div class="mt-1"><a href="${o.trackingLink}" target="_blank" class="text-xs text-green-600"><i class="fas fa-box"></i> ติดตามพัสดุ</a></div>` : '';
+        return `<div class="admin-card"><div class="admin-card-header"><div><div class="font-bold text-sm">${o.orderId}</div><div class="text-xs text-gray-400">${o.timestamp}</div><div class="text-sm mt-1"><i class="fas fa-user mr-1"></i>${o.name}</div><div class="text-xs"><i class="fas fa-phone mr-1"></i>${o.phone}</div>${slipHtml}${trackingHtml}</div><div class="text-right"><div class="font-bold ${sc}">${o.status||"Pending"}</div><div class="text-rose-500 font-bold">${formatPrice(o.total)}</div></div></div><div class="flex gap-2 mt-3"><button onclick="openOrderStatusModal('${o.orderId}', '${o.status}', '${o.lineId}', '${o.name}')" class="flex-1 bg-rose-500 text-white py-1.5 rounded-lg text-sm"><i class="fas fa-edit mr-1"></i>อัพเดทสถานะ</button></div></div>`;
     }).join("");
 }
-function openOrderStatusModal(orderId,status,customerLineId,customerName){ currentEditingOrder={ orderId,status,customerLineId,customerName }; document.getElementById("orderStatusInfo").innerHTML=`<strong>${orderId}</strong><br>ลูกค้า: ${customerName}`; document.getElementById("newOrderStatus").value=status; document.getElementById("orderStatusModal").classList.remove("hidden"); }
+function openOrderStatusModal(orderId,status,customerLineId,customerName){
+    currentEditingOrder={ orderId,status,customerLineId,customerName };
+    document.getElementById("orderStatusInfo").innerHTML=`<strong>${orderId}</strong><br>ลูกค้า: ${customerName}`;
+    document.getElementById("newOrderStatus").value=status;
+    const trackingGroup = document.getElementById("trackingLinkGroup");
+    const trackingInput = document.getElementById("trackingLink");
+    if(status === "Shipped"){
+        trackingGroup.classList.remove("hidden");
+        const order = allOrders.find(o => o.orderId === orderId);
+        if(order && order.trackingLink) trackingInput.value = order.trackingLink;
+        else trackingInput.value = "";
+    } else {
+        trackingGroup.classList.add("hidden");
+        trackingInput.value = "";
+    }
+    document.getElementById("orderStatusModal").classList.remove("hidden");
+}
 async function updateOrderStatus(){
-    const newStatus=document.getElementById("newOrderStatus").value;
+    const newStatus = document.getElementById("newOrderStatus").value;
+    const trackingLink = document.getElementById("trackingLink").value.trim();
     if(!currentEditingOrder) return; showLoading();
-    try{ const fd=new FormData(); fd.append("orderId",currentEditingOrder.orderId); fd.append("status",newStatus); fd.append("customerLineId",currentEditingOrder.customerLineId); fd.append("adminLineId",userProfile?.userId); const res=await fetchPostAPI("updateOrderStatus",fd);
-        if(res.success){ showToast("อัพเดทสถานะสำเร็จ"); document.getElementById("orderStatusModal").classList.add("hidden"); await loadAllOrders(); await loadProducts(); }
-        else Swal.fire("ผิดพลาด",res.error,"error");
+    try{
+        const fd=new FormData();
+        fd.append("orderId",currentEditingOrder.orderId);
+        fd.append("status",newStatus);
+        fd.append("customerLineId",currentEditingOrder.customerLineId);
+        fd.append("adminLineId",userProfile?.userId);
+        if(trackingLink) fd.append("trackingLink",trackingLink);
+        const res=await fetchPostAPI("updateOrderStatus",fd);
+        if(res.success){
+            showToast("อัพเดทสถานะสำเร็จ");
+            document.getElementById("orderStatusModal").classList.add("hidden");
+            await loadAllOrders();
+            await loadProducts();
+            if(userProfile?.userId){
+                orderHistory = await fetchAPI("getUserOrders",{ lineId:userProfile.userId });
+            }
+        } else { Swal.fire("ผิดพลาด",res.error,"error"); }
     } catch(e){ Swal.fire("ผิดพลาด",e.message,"error"); }
     hideLoading();
 }
@@ -459,18 +513,24 @@ function showAllOrders(){
     const content=document.getElementById("orderHistoryContent");
     if(!orderHistory.length) content.innerHTML='<p class="text-center py-10">ยังไม่มีประวัติการสั่งซื้อ</p>';
     else content.innerHTML=orderHistory.map(o=>{
+        const isPending = (o.status || '').toLowerCase() === 'pending';
         let slipButton='';
-        if(o.status==='Pending' && !o.slipUrl){
+        if(isPending && !o.slipUrl){
             slipButton=`<button class="w-full mt-2 bg-blue-500 text-white py-2 rounded-xl text-sm" onclick="uploadSlip('${o.orderId}', ${o.total}, '${escapeHtml(o.name)}')"><i class="fas fa-upload mr-1"></i>แนบสลิปโอนเงิน</button>`;
         }
         let slipLink='';
         if(o.slipUrl){
             slipLink=`<div class="mt-2 text-xs"><a href="${o.slipUrl}" target="_blank" class="text-blue-500"><i class="fas fa-receipt"></i> ดูสลิปที่แนบ</a></div>`;
         }
+        let trackingHtml = '';
+        if(o.trackingLink && (o.status === 'Shipped' || o.status === 'Delivered')){
+            trackingHtml = `<div class="mt-2 text-xs"><a href="${o.trackingLink}" target="_blank" class="text-green-600"><i class="fas fa-box"></i> ลิงก์ติดตามพัสดุ</a></div>`;
+        }
         return `<div class="order-history-card" onclick="viewOrderDetail('${o.orderId}')">
             <div class="flex justify-between"><div><p class="font-semibold text-rose-500">${o.orderId}</p><p class="text-xs text-gray-400">${o.timestamp}</p></div><div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(o.total)}</p><p class="text-xs text-gray-400">${o.status||'สำเร็จ'}</p></div></div>
             <div class="border-t pt-2 mt-2"><p class="text-sm">สินค้า:</p>${o.items.slice(0,2).map(i=>`<div class="flex justify-between text-sm mt-1"><span>${i.name} x ${i.quantity}</span><span>${formatPrice(i.price*i.quantity)}</span></div>`).join('')}${o.items.length>2?`<p class="text-xs text-gray-400 mt-1">และอีก ${o.items.length-2} รายการ</p>`:''}</div>
             ${slipLink}
+            ${trackingHtml}
             ${slipButton}
             <button class="w-full mt-3 bg-rose-50 text-rose-500 py-2 rounded-xl text-sm" onclick="event.stopPropagation(); reorderItems('${o.orderId}')"><i class="fas fa-redo-alt mr-1"></i>สั่งซื้ออีกครั้ง</button>
         </div>`;
@@ -481,7 +541,8 @@ function viewOrderDetail(orderId){
     const o=orderHistory.find(o=>o.orderId===orderId);
     if(!o) return;
     const slipHtml = o.slipUrl ? `<div class="bg-gray-50 rounded-xl p-3 mt-2"><a href="${o.slipUrl}" target="_blank" class="text-blue-500"><i class="fas fa-receipt mr-1"></i>ดูสลิปการโอนเงิน</a></div>` : '';
-    document.getElementById("orderDetailContent").innerHTML=`<div class="bg-gray-50 rounded-xl p-4 mb-4"><div class="flex justify-between"><div><p class="text-xs text-gray-500">เลขที่</p><p class="font-semibold">${o.orderId}</p></div><div class="text-right"><p class="text-xs text-gray-500">วันที่</p><p class="text-sm">${o.timestamp}</p></div></div><div class="border-t pt-3 mt-2"><p class="text-xs text-gray-500">ผู้รับ</p><p>${o.name||"-"}</p><p>${o.phone||"-"}</p><p>${o.address||"-"}</p></div></div><div class="mb-4"><p class="font-semibold mb-2">รายการสินค้า</p>${o.items.map(i=>`<div class="flex justify-between py-2 border-b"><div><p>${i.name}</p><p class="text-xs text-gray-400">x ${i.quantity}</p></div><p class="text-rose-500">${formatPrice(i.price*i.quantity)}</p></div>`).join('')}</div><div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between"><span class="font-semibold">ยอดรวม</span><span class="text-xl font-bold text-rose-500">${formatPrice(o.total)}</span></div><div class="flex justify-between mt-2"><span>สถานะ</span><span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>${o.status||"สำเร็จ"}</span></div>${slipHtml}</div><button id="reorderFromDetailBtn" class="w-full mt-4 bg-rose-500 text-white py-3 rounded-xl"><i class="fas fa-redo-alt mr-2"></i>สั่งซื้ออีกครั้ง</button>`;
+    const trackingHtml = (o.trackingLink && (o.status === 'Shipped' || o.status === 'Delivered')) ? `<div class="bg-gray-50 rounded-xl p-3 mt-2"><a href="${o.trackingLink}" target="_blank" class="text-green-600"><i class="fas fa-box mr-1"></i>ลิงก์ติดตามพัสดุ</a></div>` : '';
+    document.getElementById("orderDetailContent").innerHTML=`<div class="bg-gray-50 rounded-xl p-4 mb-4"><div class="flex justify-between"><div><p class="text-xs text-gray-500">เลขที่</p><p class="font-semibold">${o.orderId}</p></div><div class="text-right"><p class="text-xs text-gray-500">วันที่</p><p class="text-sm">${o.timestamp}</p></div></div><div class="border-t pt-3 mt-2"><p class="text-xs text-gray-500">ผู้รับ</p><p>${o.name||"-"}</p><p>${o.phone||"-"}</p><p>${o.address||"-"}</p></div></div><div class="mb-4"><p class="font-semibold mb-2">รายการสินค้า</p>${o.items.map(i=>`<div class="flex justify-between py-2 border-b"><div><p>${i.name}</p><p class="text-xs text-gray-400">x ${i.quantity}</p></div><p class="text-rose-500">${formatPrice(i.price*i.quantity)}</p></div>`).join('')}</div><div class="bg-gray-50 rounded-xl p-3"><div class="flex justify-between"><span class="font-semibold">ยอดรวม</span><span class="text-xl font-bold text-rose-500">${formatPrice(o.total)}</span></div><div class="flex justify-between mt-2"><span>สถานะ</span><span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>${o.status||"สำเร็จ"}</span></div>${slipHtml}${trackingHtml}</div><button id="reorderFromDetailBtn" class="w-full mt-4 bg-rose-500 text-white py-3 rounded-xl"><i class="fas fa-redo-alt mr-2"></i>สั่งซื้ออีกครั้ง</button>`;
     document.getElementById("orderDetailModal").classList.remove("hidden");
     document.getElementById("reorderFromDetailBtn")?.addEventListener("click",()=>{ reorderItems(orderId); document.getElementById("orderDetailModal").classList.add("hidden"); });
 }
