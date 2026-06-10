@@ -1343,7 +1343,18 @@
             document.getElementById("saveAdminIds")?.addEventListener("click", saveAdminIdsSetting);
             document.getElementById("saveStoreName")?.addEventListener("click", saveStoreNameSetting);
             document.getElementById("savePromptPay")?.addEventListener("click", savePromptPaySetting);
-            document.getElementById("testNotifyBtn")?.addEventListener("click", testNotify);
+            document.getElementById("testNotifyBtn")?.addEventListener("click", async () => {
+                if (!isAdmin) return;
+                showLoading();
+                try {
+                    const fd = new FormData();
+                    fd.append("adminLineId", userProfile?.userId);
+                    const res = await fetchPostAPI("testMessagingAPI", fd);
+                    if (res.success) showToast(res.message);
+                    else Swal.fire("ผิดพลาด", res.error, "error");
+                } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); }
+                hideLoading();
+            });
             document.getElementById("closeQrModal")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
             document.getElementById("qrOverlay")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
             document.getElementById("closeQrModalBtn")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
