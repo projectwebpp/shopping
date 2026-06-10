@@ -1075,22 +1075,19 @@
                     reader.onloadend = async function () {
                         const base64 = reader.result.split(',')[1];
                         const fd = new FormData();
-                        fd.append('action', 'uploadSlip');
                         fd.append('orderId', orderId);
                         fd.append('lineId', userProfile?.userId || '');
                         fd.append('fileData', base64);
                         fd.append('fileName', file.name);
-                        const res = await fetch(API_URL, { method: 'POST', body: fd });
-                        const result = await res.json();
+                        const result = await fetchPostAPI("uploadSlip", fd);
                         if (result.success) {
                             showToast('อัปโหลดสลิปสำเร็จ');
                             const notifyFd = new FormData();
-                            notifyFd.append('action', 'sendSlipNotify');
                             notifyFd.append('orderId', orderId);
                             notifyFd.append('slipUrl', result.slipUrl);
                             notifyFd.append('customerName', customerName);
                             notifyFd.append('total', totalAmount);
-                            await fetch(API_URL, { method: 'POST', body: notifyFd });
+                            await fetchPostAPI("sendSlipNotify", notifyFd);
                             orderHistory = await fetchAPI('getUserOrders', { lineId: userProfile.userId });
                             if (document.getElementById('orderHistoryModal') && !document.getElementById('orderHistoryModal').classList.contains('hidden')) {
                                 showAllOrders();
@@ -1369,6 +1366,16 @@
         <div class="dock-item active" data-dock="home"><i class="fas fa-home"></i><span>หน้าแรก</span></div>
         <div class="dock-item" data-dock="shop"><i class="fas fa-store"></i><span>ร้านค้า</span></div>
         <div class="dock-item" data-dock="cart"><i class="fas fa-shopping-cart"></i><span>ตะกร้า</span></div>
+        <div class="dock-item" data-dock="profile"><i class="fas fa-user"></i><span>โปรไฟล์</span></div>
+    </div>
+</body>
+
+</html>��า</span></div>
+        <div class="dock-item" data-dock="profile"><i class="fas fa-user"></i><span>โปรไฟล์</span></div>
+    </div>
+</body>
+
+</html>      <div class="dock-item" data-dock="cart"><i class="fas fa-shopping-cart"></i><span>ตะกร้า</span></div>
         <div class="dock-item" data-dock="profile"><i class="fas fa-user"></i><span>โปรไฟล์</span></div>
     </div>
 </body>
