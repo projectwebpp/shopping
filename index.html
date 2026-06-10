@@ -1244,7 +1244,9 @@
                     if (sheetProfile?.displayName) userProfile = { userId: sheetProfile.lineId, lineName: sheetProfile.lineName, displayName: sheetProfile.displayName, email: sheetProfile.email || email, phone: sheetProfile.phone || "", address: sheetProfile.address || "", pictureUrl: liffProfile.pictureUrl || "", totalSpent: sheetProfile.totalSpent || 0, orderCount: sheetProfile.orderCount || 0 };
                     else userProfile = { userId: liffProfile.userId, lineName: liffProfile.displayName, displayName: liffProfile.displayName, email: email, phone: "", address: "", pictureUrl: liffProfile.pictureUrl || "", totalSpent: 0, orderCount: 0 };
                     await saveUserProfile(userProfile); updateUserUI(); autoFillCheckoutForm();
+                    console.log("Fetching orders for:", userProfile.userId);
                     orderHistory = await fetchAPI("getUserOrders", { lineId: userProfile.userId });
+                    console.log("Fetched orders:", orderHistory);
                     await checkAdminStatus(userProfile.userId);
                     await loadStoreSettings();
                     if (isAdmin) { await loadAllOrders(); await loadAllUsers(); await loadCategories(); renderTabBar(); }
@@ -1278,23 +1280,29 @@
             else showToast("เกิดข้อผิดพลาด", "error");
         }
         function showAllOrders() {
+            console.log("showAllOrders called. orderHistory:", orderHistory);
             const content = document.getElementById("orderHistoryContent");
-            if (!orderHistory.length) content.innerHTML = '<p class="text-center py-10">ยังไม่มีประวัติการสั่งซื้อ</p>';
-            else content.innerHTML = orderHistory.map(o => {
-                const isPending = (o.status || '').toLowerCase() === 'pending';
-                let slipButton = '';
-                if (isPending && !o.slipUrl) {
-                    slipButton = `<button class="w-full mt-2 bg-blue-500 text-white py-2 rounded-xl text-sm" onclick="uploadSlip('${o.orderId}', ${o.total}, '${escapeHtml(o.name)}')"><i class="fas fa-upload mr-1"></i>แนบสลิปโอนเงิน</button>`;
-                }
-                let slipLink = '';
-                if (o.slipUrl) {
-                    slipLink = `<div class="mt-2 text-xs"><a href="${o.slipUrl}" target="_blank" class="text-blue-500"><i class="fas fa-receipt"></i> ดูสลิปที่แนบ</a></div>`;
-                }
-                let trackingHtml = '';
-                if (o.trackingLink && (o.status === 'Shipped' || o.status === 'Delivered')) {
-                    trackingHtml = `<div class="mt-2 text-xs"><a href="${o.trackingLink}" target="_blank" class="text-green-600"><i class="fas fa-box"></i> ลิงก์ติดตามพัสดุ</a></div>`;
-                }
-                return `<div class="order-history-card" onclick="viewOrderDetail('${o.orderId}')">
+            if (!orderHistory || orderHistory.length === 0) {
+                console.log("No orders found to display.");
+                content.innerHTML = '<p class="text-center py-10">ยังไม่มีประวัติการสั่งซื้อ</p>';
+            }
+            else {
+                console.log("Rendering orders...");
+                content.innerHTML = orderHistory.map(o => {
+                    const isPending = (o.status || '').toLowerCase() === 'pending';
+                    let slipButton = '';
+                    if (isPending && !o.slipUrl) {
+                        slipButton = `<button class="w-full mt-2 bg-blue-500 text-white py-2 rounded-xl text-sm" onclick="uploadSlip('${o.orderId}', ${o.total}, '${escapeHtml(o.name)}')"><i class="fas fa-upload mr-1"></i>แนบสลิปโอนเงิน</button>`;
+                    }
+                    let slipLink = '';
+                    if (o.slipUrl) {
+                        slipLink = `<div class="mt-2 text-xs"><a href="${o.slipUrl}" target="_blank" class="text-blue-500"><i class="fas fa-receipt"></i> ดูสลิปที่แนบ</a></div>`;
+                    }
+                    let trackingHtml = '';
+                    if (o.trackingLink && (o.status === 'Shipped' || o.status === 'Delivered')) {
+                        trackingHtml = `<div class="mt-2 text-xs"><a href="${o.trackingLink}" target="_blank" class="text-green-600"><i class="fas fa-box"></i> ลิงก์ติดตามพัสดุ</a></div>`;
+                    }
+                    return `<div class="order-history-card" onclick="viewOrderDetail('${o.orderId}')">
             <div class="flex justify-between"><div><p class="font-semibold text-rose-500">${o.orderId}</p><p class="text-xs text-gray-400">${o.timestamp}</p></div><div class="text-right"><p class="text-rose-500 font-bold">${formatPrice(o.total)}</p><p class="text-xs text-gray-400">${o.status || 'สำเร็จ'}</p></div></div>
             <div class="border-t pt-2 mt-2"><p class="text-sm">สินค้า:</p>${o.items.slice(0, 2).map(i => `<div class="flex justify-between text-sm mt-1"><span>${i.name} x ${i.quantity}</span><span>${formatPrice(i.price * i.quantity)}</span></div>`).join('')}${o.items.length > 2 ? `<p class="text-xs text-gray-400 mt-1">และอีก ${o.items.length - 2} รายการ</p>` : ''}</div>
             ${slipLink}
@@ -1302,7 +1310,8 @@
             ${slipButton}
             <button class="w-full mt-3 bg-rose-50 text-rose-500 py-2 rounded-xl text-sm" onclick="event.stopPropagation(); reorderItems('${o.orderId}')"><i class="fas fa-redo-alt mr-1"></i>สั่งซื้ออีกครั้ง</button>
         </div>`;
-            }).join('');
+                }).join('');
+            }
             document.getElementById("orderHistoryModal").classList.remove("hidden"); document.getElementById("profileModal").classList.add("hidden");
         }
         function viewOrderDetail(orderId) {
