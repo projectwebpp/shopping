@@ -1277,6 +1277,9 @@
 
         // ========== Event Listeners ==========
         document.addEventListener("DOMContentLoaded", async () => {
+            // บังคับปิดโหลดหากค้างเกิน 5 วินาที
+            setTimeout(hideLoading, 5000);
+            
             loadProducts();
             document.querySelectorAll(".modal-container").forEach(modal => { new MutationObserver(updateDockVisibility).observe(modal, { attributes: true, attributeFilter: ["class"] }); });
             updateDockVisibility();
