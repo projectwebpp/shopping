@@ -764,7 +764,15 @@
                             class="fas fa-save mr-1"></i>บันทึก</button></div>
                 <div class="form-field mt-4">
                     <label>🏦 บัญชีธนาคาร</label>
-                    <input type="text" id="bankName" placeholder="ชื่อธนาคาร" class="mb-2">
+                    <select id="bankName" class="w-full border rounded-lg p-2 mb-2">
+                        <option value="">เลือกธนาคาร</option>
+                        <option value="kbank" class="kbank">ธนาคารกสิกรไทย</option>
+                        <option value="scb" class="scb">ธนาคารไทยพาณิชย์</option>
+                        <option value="bbl" class="bbl">ธนาคารกรุงเทพ</option>
+                        <option value="ktb" class="ktb">ธนาคารกรุงไทย</option>
+                        <option value="bay" class="bay">ธนาคารกรุงศรีอยุธยา</option>
+                        <option value="ttb" class="ttb">ธนาคารทหารไทยธนชาต</option>
+                    </select>
                     <input type="text" id="bankAccountName" placeholder="ชื่อบัญชี" class="mb-2">
                     <input type="text" id="bankAccountNumber" placeholder="เลขที่บัญชี" class="mb-2">
                     <button id="saveBankDetails" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-save mr-1"></i>บันทึกข้อมูลธนาคาร</button>
