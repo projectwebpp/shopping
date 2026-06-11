@@ -941,16 +941,21 @@
         async function fetchPostAPI(action, formData) {
             const url = new URL(API_URL);
             url.searchParams.append("action", action);
-            
-            // ใช้ URLSearchParams แทนการวน loop entries()
+
             const params = new URLSearchParams();
-            for (const key of formData.keys()) {
-                params.append(key, formData.get(key));
+            if (formData instanceof FormData) {
+                for (const key of formData.keys()) {
+                    params.append(key, formData.get(key));
+                }
+            } else {
+                Object.keys(formData).forEach(key => {
+                    params.append(key, formData[key]);
+                });
             }
-            
-            const res = await fetch(url.toString(), { 
-                method: "POST", 
-                body: params 
+
+            const res = await fetch(url.toString(), {
+                method: "POST",
+                body: params
             });
             return res.json();
         }
