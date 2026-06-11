@@ -105,8 +105,8 @@
         }
 
         .tab-item.active {
-            color: #f43f5e;
-            border-bottom: 2px solid #f43f5e;
+            color: #084eda;
+            border-bottom: 2px solid #084eda;
         }
 
         .product-card {
@@ -211,7 +211,7 @@
         }
 
         .cat-btn.active {
-            background: #f43f5e;
+            background: #084eda;
             color: white;
         }
 
@@ -262,7 +262,7 @@
             position: absolute;
             width: 50px;
             height: 50px;
-            background: #f43f5e;
+            background: #084eda;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -323,7 +323,7 @@
         .fab {
             width: 56px;
             height: 56px;
-            background: #f43f5e;
+            background: #084eda;
             border-radius: 50%;
             box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
             display: flex;
@@ -380,7 +380,7 @@
         }
 
         .dock-item.active {
-            color: #f43f5e;
+            color: #084eda;
             transform: translateY(-2px);
         }
 
@@ -452,8 +452,8 @@
         .form-field select:focus,
         .form-field textarea:focus {
             outline: none;
-            border-color: #f43f5e;
-            ring: 2px solid #f43f5e;
+            border-color: #084eda;
+            ring: 2px solid #084eda;
         }
 
         .admin-card {
@@ -461,7 +461,7 @@
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 12px;
-            border-left: 4px solid #f43f5e;
+            border-left: 4px solid #084eda;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             border: 1px solid #2a2a2a;
         }
@@ -499,7 +499,7 @@
         }
 
         .profile-header {
-            background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+            background: linear-gradient(135deg, #084eda 0%, #be123c 100%);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 16px;
@@ -527,7 +527,7 @@
         .stat-value {
             font-size: 20px;
             font-weight: bold;
-            color: #f43f5e;
+            color: #084eda;
         }
 
         .stat-label {
@@ -569,8 +569,8 @@
         }
 
         .admin-sub-tab.active {
-            color: #f43f5e;
-            border-bottom-color: #f43f5e;
+            color: #084eda;
+            border-bottom-color: #084eda;
             font-weight: 500;
         }
         
@@ -1266,7 +1266,7 @@
         
         async function sendFlexMessage(orderData) {
             if (!liff.isInClient()) return;
-            try { await liff.sendMessages([{ type: "flex", altText: "ใบเสร็จ", contents: { type: "bubble", header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", color: "#f43f5e" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666" }] }, body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold" }, { type: "separator" }, ...orderData.items.map(i => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${i.name} x ${i.quantity}`, flex: 2 }, { type: "text", text: formatPrice(i.price * i.quantity), flex: 1, align: "end" }] })), { type: "separator" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#f43f5e" }] }] }, footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center" }] } } }]); }
+            try { await liff.sendMessages([{ type: "flex", altText: "ใบเสร็จ", contents: { type: "bubble", header: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ใบเสร็จการสั่งซื้อ", weight: "bold", color: "#084eda" }, { type: "text", text: orderData.orderId, size: "sm", color: "#666666" }] }, body: { type: "box", layout: "vertical", contents: [{ type: "text", text: "รายละเอียด", weight: "bold" }, { type: "separator" }, ...orderData.items.map(i => ({ type: "box", layout: "horizontal", contents: [{ type: "text", text: `${i.name} x ${i.quantity}`, flex: 2 }, { type: "text", text: formatPrice(i.price * i.quantity), flex: 1, align: "end" }] })), { type: "separator" }, { type: "box", layout: "horizontal", contents: [{ type: "text", text: "รวมทั้งสิ้น", weight: "bold" }, { type: "text", text: formatPrice(orderData.total), weight: "bold", align: "end", color: "#084eda" }] }] }, footer: { type: "box", layout: "vertical", contents: [{ type: "text", text: "ขอบคุณที่ใช้บริการ", align: "center" }] } } }]); }
             catch (e) { console.log(e); }
         }
 
