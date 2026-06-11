@@ -764,18 +764,25 @@
                             class="fas fa-save mr-1"></i>บันทึก</button></div>
                 <div class="form-field mt-4">
                     <label>🏦 บัญชีธนาคาร</label>
-                    <select id="bankName" class="w-full border rounded-lg p-2 mb-2">
-                        <option value="">เลือกธนาคาร</option>
-                        <option value="kbank" class="kbank">ธนาคารกสิกรไทย</option>
-                        <option value="scb" class="scb">ธนาคารไทยพาณิชย์</option>
-                        <option value="bbl" class="bbl">ธนาคารกรุงเทพ</option>
-                        <option value="ktb" class="ktb">ธนาคารกรุงไทย</option>
-                        <option value="bay" class="bay">ธนาคารกรุงศรีอยุธยา</option>
-                        <option value="ttb" class="ttb">ธนาคารทหารไทยธนชาต</option>
-                    </select>
-                    <input type="text" id="bankAccountName" placeholder="ชื่อบัญชี" class="mb-2">
-                    <input type="text" id="bankAccountNumber" placeholder="เลขที่บัญชี" class="mb-2">
-                    <button id="saveBankDetails" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-save mr-1"></i>บันทึกข้อมูลธนาคาร</button>
+                    <div class="relative">
+                        <div id="bankDropdownSelected" class="w-full border rounded-lg p-2 mb-2 bg-white cursor-pointer flex items-center justify-between" onclick="toggleBankDropdown()">
+                            <span id="selectedBankText">เลือกธนาคาร</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="bankDropdownList" class="hidden absolute z-10 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <div class="p-2 cursor-pointer hover:bg-gray-100" onclick="selectBank('', 'เลือกธนาคาร')">เลือกธนาคาร</div>
+                            <div class="p-2 cursor-pointer hover:bg-gray-100 flex items-center" onclick="selectBank('bank-kbank', 'ธนาคารกสิกรไทย')"><i class="bank bank-kbank mr-2"></i> ธนาคารกสิกรไทย</div>
+                            <div class="p-2 cursor-pointer hover:bg-gray-100 flex items-center" onclick="selectBank('bank-scb', 'ธนาคารไทยพาณิชย์')"><i class="bank bank-scb mr-2"></i> ธนาคารไทยพาณิชย์</div>
+                            <div class="p-2 cursor-pointer hover:bg-gray-100 flex items-center" onclick="selectBank('bank-bbl', 'ธนาคารกรุงเทพ')"><i class="bank bank-bbl mr-2"></i> ธนาคารกรุงเทพ</div>
+                            <div class="p-2 cursor-pointer hover:bg-gray-100 flex items-center" onclick="selectBank('bank-ktb', 'ธนาคารกรุงไทย')"><i class="bank bank-ktb mr-2"></i> ธนาคารกรุงไทย</div>
+                            <div class="p-2 cursor-pointer hover:bg-gray-100 flex items-center" onclick="selectBank('bank-bay', 'ธนาคารกรุงศรีอยุธยา')"><i class="bank bank-bay mr-2"></i> ธนาคารกรุงศรีอยุธยา</div>
+                            <div class="p-2 cursor-pointer hover:bg-gray-100 flex items-center" onclick="selectBank('bank-ttb', 'ธนาคารทหารไทยธนชาต')"><i class="bank bank-ttb mr-2"></i> ธนาคารทหารไทยธนชาต</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="bankName">
+                    <input type="text" id="bankAccountName" placeholder="ชื่อบัญชี" class="mb-2 w-full border rounded-lg p-2">
+                    <input type="text" id="bankAccountNumber" placeholder="เลขที่บัญชี" class="mb-2 w-full border rounded-lg p-2">
+                    <button id="saveBankDetails" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm w-full"><i class="fas fa-save mr-1"></i>บันทึกข้อมูลธนาคาร</button>
                 </div>
                 <div class="form-field mt-4"><label>🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text"
                         id="botToken" placeholder="Channel Access Token"><button id="saveBotToken"
@@ -1281,7 +1288,27 @@
         async function saveUserRole() { const newRole = document.getElementById("userRoleSelect").value, isAdminUser = newRole === "admin"; if (!currentEditingUser) return; showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("targetLineId", currentEditingUser.lineId); fd.append("isAdmin", isAdminUser); const res = await fetchPostAPI("updateUserRole", fd); if (res.success) { showToast("เปลี่ยนสิทธิ์สำเร็จ"); document.getElementById("userRoleModal").classList.add("hidden"); await loadAllUsers(); if (currentEditingUser.lineId === userProfile?.userId) await checkAdminStatus(userProfile.userId); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function loadCategories() { try { const res = await fetchAPI("getCategories"); if (Array.isArray(res)) categories = res; else if (res.categories) categories = res.categories; else categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; } catch (e) { categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; } if (isAdmin) loadAdminCategories(); }
         async function loadAllUsers() { if (!isAdmin) return; try { const res = await fetchAPI("getAllUsers", { lineId: userProfile?.userId }); allUsers = res.users || []; renderAdminUsers(); } catch (e) { console.error(e); } }
-        async function loadStoreSettings() { try { const res = await fetchAPI("getSettings"); storeSettings = { STORE_NAME: res.STORE_NAME || "E-Shop Thailand", PROMPTPAY_PHONE: res.PROMPTPAY_PHONE || "", BANK_NAME: res.BANK_NAME || "", BANK_ACCOUNT_NAME: res.BANK_ACCOUNT_NAME || "", BANK_ACCOUNT_NUMBER: res.BANK_ACCOUNT_NUMBER || "" }; document.getElementById("storeNameHeader").innerHTML = `🛍️ ${storeSettings.STORE_NAME}`; document.getElementById("storeName").value = storeSettings.STORE_NAME; document.getElementById("promptpayPhone").value = storeSettings.PROMPTPAY_PHONE; document.getElementById("bankName").value = storeSettings.BANK_NAME; document.getElementById("bankAccountName").value = storeSettings.BANK_ACCOUNT_NAME; document.getElementById("bankAccountNumber").value = storeSettings.BANK_ACCOUNT_NUMBER; } catch (e) { console.error(e); } }
+        function toggleBankDropdown() { document.getElementById("bankDropdownList").classList.toggle("hidden"); }
+        function selectBank(value, text) {
+            document.getElementById("bankName").value = value;
+            document.getElementById("selectedBankText").innerHTML = value ? `<i class="bank ${value} mr-2"></i> ${text}` : text;
+            document.getElementById("bankDropdownList").classList.add("hidden");
+        }
+        // ปิด dropdown เมื่อคลิกที่อื่น
+        window.onclick = function(event) { if (!event.target.matches('#bankDropdownSelected') && !event.target.closest('#bankDropdownSelected')) { document.getElementById("bankDropdownList").classList.add("hidden"); } }
+
+        async function loadStoreSettings() { try { const res = await fetchAPI("getSettings"); storeSettings = { STORE_NAME: res.STORE_NAME || "E-Shop Thailand", PROMPTPAY_PHONE: res.PROMPTPAY_PHONE || "", BANK_NAME: res.BANK_NAME || "", BANK_ACCOUNT_NAME: res.BANK_ACCOUNT_NAME || "", BANK_ACCOUNT_NUMBER: res.BANK_ACCOUNT_NUMBER || "" }; document.getElementById("storeNameHeader").innerHTML = `🛍️ ${storeSettings.STORE_NAME}`; document.getElementById("storeName").value = storeSettings.STORE_NAME; document.getElementById("promptpayPhone").value = storeSettings.PROMPTPAY_PHONE;
+            
+            // ตั้งค่าข้อมูลธนาคาร
+            const bankName = storeSettings.BANK_NAME || "";
+            document.getElementById("bankName").value = bankName;
+            if (bankName) {
+                const bankMap = { "bank-kbank": "ธนาคารกสิกรไทย", "bank-scb": "ธนาคารไทยพาณิชย์", "bank-bbl": "ธนาคารกรุงเทพ", "bank-ktb": "ธนาคารกรุงไทย", "bank-bay": "ธนาคารกรุงศรีอยุธยา", "bank-ttb": "ธนาคารทหารไทยธนชาต" };
+                document.getElementById("selectedBankText").innerHTML = `<i class="bank ${bankName} mr-2"></i> ${bankMap[bankName] || "ธนาคาร"}`;
+            }
+            document.getElementById("bankAccountName").value = storeSettings.BANK_ACCOUNT_NAME;
+            document.getElementById("bankAccountNumber").value = storeSettings.BANK_ACCOUNT_NUMBER;
+        } catch (e) { console.error(e); } }
         async function saveBankDetailsSetting() {
             const bName = document.getElementById("bankName").value.trim();
             const bAccName = document.getElementById("bankAccountName").value.trim();
@@ -1511,6 +1538,7 @@
                     document.getElementById("adminOrdersSection").classList.add("hidden"); document.getElementById("adminProductsSection").classList.add("hidden"); document.getElementById("adminCategoriesSection").classList.add("hidden"); document.getElementById("adminUsersSection").classList.add("hidden"); document.getElementById("adminSettingsSection").classList.add("hidden");
                     if (target === "orders") document.getElementById("adminOrdersSection").classList.remove("hidden");
                     else if (target === "products") { document.getElementById("adminProductsSection").classList.remove("hidden"); loadAdminProducts(); }
+                
                     else if (target === "categories") { document.getElementById("adminCategoriesSection").classList.remove("hidden"); loadAdminCategories(); }
                     else if (target === "users") { document.getElementById("adminUsersSection").classList.remove("hidden"); loadAllUsers(); }
                     else if (target === "settings") { document.getElementById("adminSettingsSection").classList.remove("hidden"); loadBotTokenSetting(); loadAdminIdsSetting(); loadStoreSettings(); }
