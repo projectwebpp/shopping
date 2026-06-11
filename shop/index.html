@@ -181,7 +181,6 @@
                 opacity: 0;
                 transform: translateX(20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -253,7 +252,6 @@
                 opacity: 0;
                 transform: scale(0);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -279,6 +277,10 @@
             transform: scale(1.1);
         }
 
+        .radial-item[data-action="report"] {
+            background: #10b981;
+        }
+
         .context-menu {
             position: fixed;
             background: #13183a;
@@ -296,7 +298,6 @@
                 opacity: 0;
                 transform: scale(0.95);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -476,29 +477,12 @@
             color: #e5e5e5;
         }
 
-        .status-pending {
-            color: #f59e0b;
-        }
-
-        .status-paid {
-            color: #3b82f6;
-        }
-
-        .status-processing {
-            color: #8b5cf6;
-        }
-
-        .status-shipped {
-            color: #06b6d4;
-        }
-
-        .status-delivered {
-            color: #10b981;
-        }
-
-        .status-cancelled {
-            color: #ef4444;
-        }
+        .status-pending { color: #f59e0b; }
+        .status-paid { color: #3b82f6; }
+        .status-processing { color: #8b5cf6; }
+        .status-shipped { color: #06b6d4; }
+        .status-delivered { color: #10b981; }
+        .status-cancelled { color: #ef4444; }
 
         .profile-header {
             background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
@@ -595,31 +579,14 @@
             width: 6px;
             height: 6px;
         }
+        ::-webkit-scrollbar-track { background: #0f1435; }
+        ::-webkit-scrollbar-thumb { background: #1e2756; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2a3a8a; }
 
-        ::-webkit-scrollbar-track {
-            background: #0f1435;
-        }
+        input, select, textarea { color-scheme: dark; }
 
-        ::-webkit-scrollbar-thumb {
-            background: #1e2756;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #2a3a8a;
-        }
-
-        input, select, textarea {
-            color-scheme: dark;
-        }
-
-        .report-period-btn {
-            transition: all 0.2s;
-        }
-        .report-period-btn.active {
-            background: #3b82f6;
-            color: white;
-        }
+        .report-period-btn { transition: all 0.2s; }
+        .report-period-btn.active { background: #3b82f6; color: white; }
     </style>
 </head>
 
@@ -639,30 +606,22 @@
                 <p class="text-xs text-gray-500">Thailand</p>
             </div>
             <div class="flex items-center gap-3">
-                <div id="userAvatar"
-                    class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center cursor-pointer"><i
-                        class="fas fa-user text-blue-400 text-sm"></i></div>
-                <div id="cartIcon" class="relative cursor-pointer"><i
-                        class="fas fa-shopping-cart text-2xl text-gray-300"></i><span id="cartCount"
-                        class="cart-badge">0</span></div>
+                <div id="userAvatar" class="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center cursor-pointer"><i class="fas fa-user text-blue-400 text-sm"></i></div>
+                <div id="cartIcon" class="relative cursor-pointer"><i class="fas fa-shopping-cart text-2xl text-gray-300"></i><span id="cartCount" class="cart-badge">0</span></div>
             </div>
         </div>
 
         <div class="px-4 pt-3">
             <div class="command-palette bg-[#13183a] rounded-xl shadow-md border border-[#1e2756] overflow-hidden">
-                <div class="flex items-center px-4 py-3"><i class="fas fa-search text-gray-500"></i><input type="text"
-                        id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 ml-3 outline-none text-sm bg-transparent"><i
-                        class="fas fa-sliders-h text-gray-500 cursor-pointer" id="filterBtn"></i></div>
-                  <div id="suggestions" class="command-suggestions hidden"></div>
+                <div class="flex items-center px-4 py-3"><i class="fas fa-search text-gray-500"></i><input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 ml-3 outline-none text-sm bg-transparent"><i class="fas fa-sliders-h text-gray-500 cursor-pointer" id="filterBtn"></i></div>
+                <div id="suggestions" class="command-suggestions hidden"></div>
             </div>
         </div>
 
         <div id="tabBar" class="tab-bar bg-[#0f1435] mx-4 mt-3 flex rounded-2xl shadow-sm border border-[#1e2756]"></div>
         <div id="categoryFilter" class="px-4 py-2 overflow-x-auto flex gap-2 hide-scrollbar"></div>
         <div id="productGrid" class="product-grid">
-            <div class="col-span-full text-center text-gray-500 py-10"><i class="fas fa-spinner fa-pulse text-2xl"></i>
-                <p class="mt-2">กำลังโหลดสินค้า...</p>
-            </div>
+            <div class="col-span-full text-center text-gray-500 py-10"><i class="fas fa-spinner fa-pulse text-2xl"></i><p class="mt-2">กำลังโหลดสินค้า...</p></div>
         </div>
     </div>
 
@@ -670,16 +629,11 @@
     <div id="cartSidebar" class="modal-container hidden">
         <div class="modal-overlay" id="cartOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-blue-500 mr-2"></i>ตะกร้าสินค้า
-                </h2><button id="closeCart" class="text-gray-400"><i class="fas fa-times text-xl"></i></button>
-            </div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-shopping-cart text-blue-500 mr-2"></i>ตะกร้าสินค้า</h2><button id="closeCart" class="text-gray-400"><i class="fas fa-times text-xl"></i></button></div>
             <div id="cartItems" class="modal-body space-y-3"></div>
             <div class="border-t border-[#1e2756] p-4 bg-[#0f1435]">
-                <div class="flex justify-between mb-3"><span class="font-semibold text-gray-300">รวมทั้งสิ้น</span><span
-                        id="cartTotal" class="text-xl font-bold text-blue-500">0 บาท</span></div><button
-                    id="checkoutBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition"><i
-                        class="fas fa-receipt mr-2"></i>สั่งซื้อเลย</button>
+                <div class="flex justify-between mb-3"><span class="font-semibold text-gray-300">รวมทั้งสิ้น</span><span id="cartTotal" class="text-xl font-bold text-blue-500">0 บาท</span></div>
+                <button id="checkoutBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition"><i class="fas fa-receipt mr-2"></i>สั่งซื้อเลย</button>
             </div>
         </div>
     </div>
@@ -688,24 +642,17 @@
     <div id="checkoutModal" class="modal-container hidden">
         <div class="modal-overlay" id="checkoutOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i
-                        class="fas fa-file-invoice mr-2 text-blue-500"></i>ข้อมูลการสั่งซื้อ</h2><button
-                    id="closeCheckoutModal" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body space-y-4"><input type="text" id="custName" placeholder="ชื่อ-นามสกุล"
-                    class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200"><input type="email" id="custEmail" placeholder="อีเมล"
-                    class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200"><input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์"
-                    class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200"><textarea id="custAddress" placeholder="ที่อยู่จัดส่ง"
-                    class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200" rows="3"></textarea>
-                <div class="form-field"><label class="text-gray-300">วิธีการชำระเงิน</label><select id="paymentMethod"
-                        class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200">
-                        <option value="bankTransfer">🏦 โอนผ่านธนาคาร</option>
-                        <option value="promptpay">📱 โอนผ่าน PromptPay (แสดง QR Code)</option>
-                    </select></div>
-                <div class="flex gap-3 pt-2"><button id="cancelCheckout"
-                        class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="confirmOrder"
-                        class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">✅ ยืนยัน</button></div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-file-invoice mr-2 text-blue-500"></i>ข้อมูลการสั่งซื้อ</h2><button id="closeCheckoutModal" class="text-gray-400"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body space-y-4">
+                <input type="text" id="custName" placeholder="ชื่อ-นามสกุล" class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200">
+                <input type="email" id="custEmail" placeholder="อีเมล" class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200">
+                <input type="tel" id="custPhone" placeholder="เบอร์โทรศัพท์" class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200">
+                <textarea id="custAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200" rows="3"></textarea>
+                <div class="form-field"><label class="text-gray-300">วิธีการชำระเงิน</label><select id="paymentMethod" class="w-full border border-[#1e2756] rounded-xl p-3 bg-[#13183a] text-gray-200">
+                    <option value="bankTransfer">🏦 โอนผ่านธนาคาร</option>
+                    <option value="promptpay">📱 โอนผ่าน PromptPay (แสดง QR Code)</option>
+                </select></div>
+                <div class="flex gap-3 pt-2"><button id="cancelCheckout" class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="confirmOrder" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">✅ ยืนยัน</button></div>
             </div>
         </div>
     </div>
@@ -714,20 +661,13 @@
     <div id="qrModal" class="modal-container hidden">
         <div class="modal-overlay" id="qrOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-qrcode text-blue-500 mr-2"></i>ชำระเงินผ่าน PromptPay
-                </h2><button id="closeQrModal" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-qrcode text-blue-500 mr-2"></i>ชำระเงินผ่าน PromptPay</h2><button id="closeQrModal" class="text-gray-400"><i class="fas fa-times"></i></button></div>
             <div class="modal-body text-center">
                 <div id="qrCodeContainer" class="flex justify-center mb-4 bg-white p-4 rounded-xl inline-block mx-auto"></div>
-                <div class="bg-[#13183a] rounded-lg p-3 mb-3 border border-[#1e2756]">
-                    <p class="font-semibold text-gray-300">ยอดที่ต้องชำระ</p>
-                    <p id="qrAmount" class="text-2xl text-blue-500 font-bold">0 บาท</p>
-                </div>
+                <div class="bg-[#13183a] rounded-lg p-3 mb-3 border border-[#1e2756]"><p class="font-semibold text-gray-300">ยอดที่ต้องชำระ</p><p id="qrAmount" class="text-2xl text-blue-500 font-bold">0 บาท</p></div>
                 <div id="qrTimer" class="text-sm text-blue-400 font-semibold mb-3">⏱️ QR Code จะหมดอายุใน 60 วินาที</div>
-                <div class="bg-yellow-900/30 rounded-lg p-3 text-sm text-gray-300 border border-yellow-800/30"><i class="fas fa-info-circle mr-1"></i> กรุณาสแกน QR
-                    Code เพื่อชำระเงิน<br>หลังจากโอนแล้ว รายการสั่งซื้อจะถูกดำเนินการเมื่อแอดมินยืนยัน</div><button
-                    id="closeQrModalBtn" class="w-full mt-4 bg-gray-700 text-white py-3 rounded-xl hover:bg-gray-600 transition">ปิด</button>
+                <div class="bg-yellow-900/30 rounded-lg p-3 text-sm text-gray-300 border border-yellow-800/30"><i class="fas fa-info-circle mr-1"></i> กรุณาสแกน QR Code เพื่อชำระเงิน<br>หลังจากโอนแล้ว รายการสั่งซื้อจะถูกดำเนินการเมื่อแอดมินยืนยัน</div>
+                <button id="closeQrModalBtn" class="w-full mt-4 bg-gray-700 text-white py-3 rounded-xl hover:bg-gray-600 transition">ปิด</button>
             </div>
         </div>
     </div>
@@ -736,10 +676,7 @@
     <div id="profileModal" class="modal-container hidden">
         <div class="modal-overlay" id="profileOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-user-circle text-blue-500 mr-2"></i>โปรไฟล์ของฉัน
-                </h2><button id="closeProfile" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-user-circle text-blue-500 mr-2"></i>โปรไฟล์ของฉัน</h2><button id="closeProfile" class="text-gray-400"><i class="fas fa-times"></i></button></div>
             <div id="profileContent" class="modal-body"></div>
         </div>
     </div>
@@ -748,19 +685,13 @@
     <div id="editProfileModal" class="modal-container hidden">
         <div class="modal-overlay" id="editProfileOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-edit text-blue-500 mr-2"></i>แก้ไขโปรไฟล์</h2><button
-                    id="closeEditProfileModal" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-edit text-blue-500 mr-2"></i>แก้ไขโปรไฟล์</h2><button id="closeEditProfileModal" class="text-gray-400"><i class="fas fa-times"></i></button></div>
             <div class="modal-body">
                 <div class="form-field"><label class="text-gray-300">ชื่อ-นามสกุล</label><input type="text" id="editDisplayName" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
                 <div class="form-field"><label class="text-gray-300">อีเมล</label><input type="email" id="editEmail" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
                 <div class="form-field"><label class="text-gray-300">เบอร์โทรศัพท์</label><input type="tel" id="editPhone" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
                 <div class="form-field"><label class="text-gray-300">ที่อยู่</label><textarea id="editAddress" rows="3" class="bg-[#13183a] border-[#1e2756] text-gray-200"></textarea></div>
-                <div class="flex gap-3 pt-2"><button id="cancelEditProfile"
-                        class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button
-                        id="saveEditProfile" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition"><i
-                            class="fas fa-save mr-1"></i>บันทึก</button></div>
+                <div class="flex gap-3 pt-2"><button id="cancelEditProfile" class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="saveEditProfile" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
             </div>
         </div>
     </div>
@@ -769,10 +700,7 @@
     <div id="orderHistoryModal" class="modal-container hidden">
         <div class="modal-overlay" id="orderHistoryOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-history text-blue-500 mr-2"></i>ประวัติการสั่งซื้อ
-                </h2><button id="closeOrderHistory" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-history text-blue-500 mr-2"></i>ประวัติการสั่งซื้อ</h2><button id="closeOrderHistory" class="text-gray-400"><i class="fas fa-times"></i></button></div>
             <div id="orderHistoryContent" class="modal-body"></div>
         </div>
     </div>
@@ -781,10 +709,7 @@
     <div id="orderDetailModal" class="modal-container hidden">
         <div class="modal-overlay" id="orderDetailOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-receipt text-blue-500 mr-2"></i>รายละเอียดคำสั่งซื้อ
-                </h2><button id="closeOrderDetail" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-receipt text-blue-500 mr-2"></i>รายละเอียดคำสั่งซื้อ</h2><button id="closeOrderDetail" class="text-gray-400"><i class="fas fa-times"></i></button></div>
             <div id="orderDetailContent" class="modal-body"></div>
         </div>
     </div>
@@ -793,10 +718,7 @@
     <div id="adminPanelModal" class="modal-container hidden">
         <div class="modal-overlay" id="adminPanelOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><i class="fas fa-user-shield text-blue-500 mr-2"></i>แผงควบคุมแอดมิน
-                </h2><button id="closeAdminPanel" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><i class="fas fa-user-shield text-blue-500 mr-2"></i>แผงควบคุมแอดมิน</h2><button id="closeAdminPanel" class="text-gray-400"><i class="fas fa-times"></i></button></div>
             <div id="adminSubTabs" class="flex border-b border-[#1e2756]">
                 <div class="admin-sub-tab active" data-tab="orders"><i class="fas fa-shopping-cart mr-1"></i>คำสั่งซื้อ</div>
                 <div class="admin-sub-tab" data-tab="products"><i class="fas fa-box mr-1"></i>สินค้า</div>
@@ -806,41 +728,25 @@
                 <div class="admin-sub-tab" data-tab="settings"><i class="fas fa-cog mr-1"></i>ตั้งค่า</div>
             </div>
             <div id="adminOrdersSection" class="p-4">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold text-gray-300">รายการคำสั่งซื้อทั้งหมด</h3><button id="refreshOrdersBtn"
-                        class="text-blue-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
-                </div>
+                <div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-gray-300">รายการคำสั่งซื้อทั้งหมด</h3><button id="refreshOrdersBtn" class="text-blue-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button></div>
                 <div id="adminOrdersList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminProductsSection" class="p-4 hidden">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold text-gray-300">จัดการสินค้า</h3><button id="addProductBtn"
-                        class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition"><i
-                            class="fas fa-plus mr-1"></i>เพิ่มสินค้า</button>
-                </div>
+                <div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-gray-300">จัดการสินค้า</h3><button id="addProductBtn" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition"><i class="fas fa-plus mr-1"></i>เพิ่มสินค้า</button></div>
                 <div id="adminProductsList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminCategoriesSection" class="p-4 hidden">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold text-gray-300">จัดการหมวดหมู่</h3><button id="addCategoryBtn"
-                        class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition"><i
-                            class="fas fa-plus mr-1"></i>เพิ่มหมวดหมู่</button>
-                </div>
+                <div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-gray-300">จัดการหมวดหมู่</h3><button id="addCategoryBtn" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition"><i class="fas fa-plus mr-1"></i>เพิ่มหมวดหมู่</button></div>
                 <div id="adminCategoriesList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminUsersSection" class="p-4 hidden">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-semibold text-gray-300">จัดการสมาชิก</h3><button id="refreshUsersBtn"
-                        class="text-blue-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button>
-                </div>
+                <div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-gray-300">จัดการสมาชิก</h3><button id="refreshUsersBtn" class="text-blue-500 text-sm"><i class="fas fa-sync-alt mr-1"></i>รีเฟรช</button></div>
                 <div id="adminUsersList" class="space-y-3 max-h-96 overflow-y-auto"></div>
             </div>
             <div id="adminReportsSection" class="p-4 hidden">
-                <div class="bg-blue-900/30 rounded-xl p-3 mb-4 text-sm text-gray-300 border border-blue-800/30">
-                    <i class="fas fa-chart-line mr-1"></i> รายงานสรุปยอดขาย
-                </div>
+                <div class="bg-blue-900/30 rounded-xl p-3 mb-4 text-sm text-gray-300 border border-blue-800/30"><i class="fas fa-chart-line mr-1"></i> รายงานสรุปยอดขาย</div>
                 <div class="flex gap-2 mb-4">
-                    <button data-period="day" class="report-period-btn flex-1 px-3 py-2 rounded-lg bg-[#1e2756] text-gray-300 text-sm active:bg-blue-600 active:text-white">วันนี้</button>
+                    <button data-period="day" class="report-period-btn flex-1 px-3 py-2 rounded-lg bg-[#1e2756] text-gray-300 text-sm">วันนี้</button>
                     <button data-period="week" class="report-period-btn flex-1 px-3 py-2 rounded-lg bg-[#1e2756] text-gray-300 text-sm">สัปดาห์นี้</button>
                     <button data-period="month" class="report-period-btn flex-1 px-3 py-2 rounded-lg bg-[#1e2756] text-gray-300 text-sm">เดือนนี้</button>
                     <button data-period="year" class="report-period-btn flex-1 px-3 py-2 rounded-lg bg-[#1e2756] text-gray-300 text-sm">ปีนี้</button>
@@ -848,22 +754,10 @@
                 <div class="bg-[#13183a] rounded-xl p-4 mb-4 border border-[#1e2756]">
                     <h4 class="font-semibold text-gray-200 mb-2">📊 สรุปภาพรวม</h4>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="text-center p-3 bg-[#1e2756] rounded-lg">
-                            <p class="text-xs text-gray-400">ยอดขายรวม</p>
-                            <p id="reportTotalSales" class="text-xl font-bold text-blue-500">0 บาท</p>
-                        </div>
-                        <div class="text-center p-3 bg-[#1e2756] rounded-lg">
-                            <p class="text-xs text-gray-400">จำนวนคำสั่งซื้อ</p>
-                            <p id="reportTotalOrders" class="text-xl font-bold text-green-500">0</p>
-                        </div>
-                        <div class="text-center p-3 bg-[#1e2756] rounded-lg">
-                            <p class="text-xs text-gray-400">สินค้าขายดี</p>
-                            <p id="reportTopProduct" class="text-sm font-semibold text-amber-500">-</p>
-                        </div>
-                        <div class="text-center p-3 bg-[#1e2756] rounded-lg">
-                            <p class="text-xs text-gray-400">ลูกค้าใหม่</p>
-                            <p id="reportNewCustomers" class="text-lg font-bold text-purple-500">0</p>
-                        </div>
+                        <div class="text-center p-3 bg-[#1e2756] rounded-lg"><p class="text-xs text-gray-400">ยอดขายรวม</p><p id="reportTotalSales" class="text-xl font-bold text-blue-500">0 บาท</p></div>
+                        <div class="text-center p-3 bg-[#1e2756] rounded-lg"><p class="text-xs text-gray-400">จำนวนคำสั่งซื้อ</p><p id="reportTotalOrders" class="text-xl font-bold text-green-500">0</p></div>
+                        <div class="text-center p-3 bg-[#1e2756] rounded-lg"><p class="text-xs text-gray-400">สินค้าขายดี</p><p id="reportTopProduct" class="text-sm font-semibold text-amber-500">-</p></div>
+                        <div class="text-center p-3 bg-[#1e2756] rounded-lg"><p class="text-xs text-gray-400">ลูกค้าใหม่</p><p id="reportNewCustomers" class="text-lg font-bold text-purple-500">0</p></div>
                     </div>
                 </div>
                 <div class="bg-[#13183a] rounded-xl p-4 mb-4 border border-[#1e2756]">
@@ -876,16 +770,9 @@
                 </div>
             </div>
             <div id="adminSettingsSection" class="p-4 hidden">
-                <div class="bg-yellow-900/30 rounded-xl p-3 mb-4 text-sm text-gray-300 border border-yellow-800/30"><i
-                        class="fas fa-info-circle mr-1"></i>ตั้งค่าทั่วไป</div>
-                <div class="form-field"><label class="text-gray-300">🏪 ชื่อร้านค้า</label><input type="text" id="storeName"
-                        placeholder="ชื่อร้าน" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="saveStoreName"
-                        class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"><i
-                            class="fas fa-save mr-1"></i>บันทึก</button></div>
-                <div class="form-field mt-4"><label class="text-gray-300">📱 หมายเลข PromptPay (เบอร์โทร)</label><input type="text"
-                        id="promptpayPhone" placeholder="0812345678" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="savePromptPay"
-                        class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"><i
-                            class="fas fa-save mr-1"></i>บันทึก</button></div>
+                <div class="bg-yellow-900/30 rounded-xl p-3 mb-4 text-sm text-gray-300 border border-yellow-800/30"><i class="fas fa-info-circle mr-1"></i>ตั้งค่าทั่วไป</div>
+                <div class="form-field"><label class="text-gray-300">🏪 ชื่อร้านค้า</label><input type="text" id="storeName" placeholder="ชื่อร้าน" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="saveStoreName" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
+                <div class="form-field mt-4"><label class="text-gray-300">📱 หมายเลข PromptPay (เบอร์โทร)</label><input type="text" id="promptpayPhone" placeholder="0812345678" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="savePromptPay" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i>บันทึก</button></div>
                 <div class="form-field mt-4">
                     <label class="text-gray-300">🏦 บัญชีธนาคาร</label>
                     <div class="relative">
@@ -908,16 +795,9 @@
                     <input type="text" id="bankAccountNumber" placeholder="เลขที่บัญชี" class="mb-2 w-full border border-[#1e2756] rounded-lg p-2 bg-[#13183a] text-gray-200">
                     <button id="saveBankDetails" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm w-full hover:bg-blue-700 transition"><i class="fas fa-save mr-1"></i>บันทึกข้อมูลธนาคาร</button>
                 </div>
-                <div class="form-field mt-4"><label class="text-gray-300">🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text"
-                        id="botToken" placeholder="Channel Access Token" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="saveBotToken"
-                        class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">บันทึก Token</button></div>
-                <div class="form-field mt-4"><label class="text-gray-300">👑 Admin User IDs (คั่นด้วยจุลภาค)</label><input type="text"
-                        id="adminIds" placeholder="Uxxxxxxxxx, Uyyyyyyyyy" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="saveAdminIds"
-                        class="mt-2 bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-800 transition">บันทึก Admin IDs</button>
-                </div>
-                <div class="form-field mt-4"><label class="text-gray-300">📢 ทดสอบแจ้งเตือน</label><button id="testNotifyBtn"
-                        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"><i
-                            class="fab fa-line mr-1"></i>ส่งข้อความทดสอบ</button></div>
+                <div class="form-field mt-4"><label class="text-gray-300">🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text" id="botToken" placeholder="Channel Access Token" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="saveBotToken" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition">บันทึก Token</button></div>
+                <div class="form-field mt-4"><label class="text-gray-300">👑 Admin User IDs (คั่นด้วยจุลภาค)</label><input type="text" id="adminIds" placeholder="Uxxxxxxxxx, Uyyyyyyyyy" class="bg-[#13183a] border-[#1e2756] text-gray-200"><button id="saveAdminIds" class="mt-2 bg-green-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-800 transition">บันทึก Admin IDs</button></div>
+                <div class="form-field mt-4"><label class="text-gray-300">📢 ทดสอบแจ้งเตือน</label><button id="testNotifyBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"><i class="fab fa-line mr-1"></i>ส่งข้อความทดสอบ</button></div>
             </div>
         </div>
     </div>
@@ -926,32 +806,21 @@
     <div id="productFormModal" class="modal-container hidden">
         <div class="modal-overlay" id="productFormOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><span id="productFormTitle">เพิ่มสินค้า</span></h2><button
-                    id="closeProductForm" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body"><input type="hidden" id="productId">
+            <div class="modal-header"><h2 class="text-lg font-semibold"><span id="productFormTitle">เพิ่มสินค้า</span></h2><button id="closeProductForm" class="text-gray-400"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="productId">
                 <div class="form-field"><label class="text-gray-300">ชื่อสินค้า</label><input type="text" id="productName" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
                 <div class="form-field"><label class="text-gray-300">หมวดหมู่</label><select id="productCategory" class="bg-[#13183a] border-[#1e2756] text-gray-200"></select></div>
                 <div class="form-field"><label class="text-gray-300">ราคา (บาท)</label><input type="number" id="productPrice" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
-                <div class="form-field"><label class="text-gray-300">จำนวนคงเหลือ</label><input type="number" id="productStock" min="0"
-                        step="1" placeholder="0" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
+                <div class="form-field"><label class="text-gray-300">จำนวนคงเหลือ</label><input type="number" id="productStock" min="0" step="1" placeholder="0" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
                 <div class="form-field"><label class="text-gray-300">รูปภาพ</label>
-                    <div class="flex gap-2"><input type="text" id="productImage" placeholder="URL รูปภาพ"
-                            class="flex-1 bg-[#13183a] border-[#1e2756] text-gray-200"><button id="uploadImageBtn" class="bg-gray-700 text-white px-4 rounded-lg hover:bg-gray-600 transition"><i
-                                class="fas fa-upload"></i></button></div><input type="file" id="imageFile"
-                        accept="image/*" class="hidden">
-                    <div id="imagePreview" class="mt-2 hidden"><img id="previewImg"
-                            class="w-20 h-20 object-cover rounded"></div>
+                    <div class="flex gap-2"><input type="text" id="productImage" placeholder="URL รูปภาพ" class="flex-1 bg-[#13183a] border-[#1e2756] text-gray-200"><button id="uploadImageBtn" class="bg-gray-700 text-white px-4 rounded-lg hover:bg-gray-600 transition"><i class="fas fa-upload"></i></button></div>
+                    <input type="file" id="imageFile" accept="image/*" class="hidden">
+                    <div id="imagePreview" class="mt-2 hidden"><img id="previewImg" class="w-20 h-20 object-cover rounded"></div>
                 </div>
-                <div class="form-field"><label class="text-gray-300">สถานะ</label><select id="productStatus" class="bg-[#13183a] border-[#1e2756] text-gray-200">
-                        <option value="active">แสดงสินค้า</option>
-                        <option value="inactive">ซ่อนสินค้า</option>
-                    </select></div>
+                <div class="form-field"><label class="text-gray-300">สถานะ</label><select id="productStatus" class="bg-[#13183a] border-[#1e2756] text-gray-200"><option value="active">แสดงสินค้า</option><option value="inactive">ซ่อนสินค้า</option></select></div>
                 <div class="form-field"><label class="text-gray-300">ลิงก์สั่งซื้อ</label><input type="text" id="productOrderLink" placeholder="https://shop.line.me/..." class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
-                <div class="flex gap-3 pt-2"><button id="cancelProductFormBtn"
-                        class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="saveProductBtn"
-                        class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">บันทึก</button></div>
+                <div class="flex gap-3 pt-2"><button id="cancelProductFormBtn" class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="saveProductBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">บันทึก</button></div>
             </div>
         </div>
     </div>
@@ -960,25 +829,17 @@
     <div id="categoryFormModal" class="modal-container hidden">
         <div class="modal-overlay" id="categoryFormOverlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="text-lg font-semibold"><span id="categoryFormTitle">เพิ่มหมวดหมู่</span></h2><button
-                    id="closeCategoryForm" class="text-gray-400"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body"><input type="hidden" id="categoryId">
-                <div class="form-field"><label class="text-gray-300">ชื่อหมวดหมู่</label><input type="text" id="categoryName"
-                        placeholder="เช่น เสื้อผ้า, รองเท้า" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
-                <div class="form-field"><label class="text-gray-300">สถานะ</label><select id="categoryStatus" class="bg-[#13183a] border-[#1e2756] text-gray-200">
-                        <option value="active">ใช้งาน</option>
-                        <option value="inactive">ปิดใช้งาน</option>
-                    </select></div>
-                <div class="flex gap-3 pt-2"><button id="cancelCategoryFormBtn"
-                        class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button
-                        id="saveCategoryBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">บันทึก</button></div>
+            <div class="modal-header"><h2 class="text-lg font-semibold"><span id="categoryFormTitle">เพิ่มหมวดหมู่</span></h2><button id="closeCategoryForm" class="text-gray-400"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="categoryId">
+                <div class="form-field"><label class="text-gray-300">ชื่อหมวดหมู่</label><input type="text" id="categoryName" placeholder="เช่น เสื้อผ้า, รองเท้า" class="bg-[#13183a] border-[#1e2756] text-gray-200"></div>
+                <div class="form-field"><label class="text-gray-300">สถานะ</label><select id="categoryStatus" class="bg-[#13183a] border-[#1e2756] text-gray-200"><option value="active">ใช้งาน</option><option value="inactive">ปิดใช้งาน</option></select></div>
+                <div class="flex gap-3 pt-2"><button id="cancelCategoryFormBtn" class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="saveCategoryBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">บันทึก</button></div>
             </div>
         </div>
     </div>
 
-    <!-- Order Status Modal (พร้อม Tracking Link) -->
+    <!-- Order Status Modal -->
     <div id="orderStatusModal" class="modal-container hidden">
         <div class="modal-overlay" id="orderStatusOverlay"></div>
         <div class="modal-content p-4">
@@ -994,19 +855,13 @@
             </select>
             <div id="trackingLinkGroup" class="mb-4 hidden">
                 <label class="block text-sm font-medium mb-1 text-gray-300">ลิงก์ติดตามพัสดุ (ไม่บังคับ)</label>
-                <input type="url" id="trackingLink" placeholder="https://track.kerry.com/..."
-                    class="w-full border border-[#1e2756] rounded-lg p-3 bg-[#13183a] text-gray-200">
+                <input type="url" id="trackingLink" placeholder="https://track.kerry.com/..." class="w-full border border-[#1e2756] rounded-lg p-3 bg-[#13183a] text-gray-200">
             </div>
             <div id="deliveryNoteGroup" class="mb-4 hidden">
                 <label class="block text-sm font-medium mb-1 text-gray-300">หมายเหตุการจัดส่ง (Delivered Note)</label>
-                <textarea id="deliveryNote" placeholder="ระบุรายละเอียดการจัดส่ง..."
-                    class="w-full border border-[#1e2756] rounded-lg p-3 bg-[#13183a] text-gray-200" rows="3"></textarea>
+                <textarea id="deliveryNote" placeholder="ระบุรายละเอียดการจัดส่ง..." class="w-full border border-[#1e2756] rounded-lg p-3 bg-[#13183a] text-gray-200" rows="3"></textarea>
             </div>
-            <div class="flex gap-3">
-                <button id="cancelOrderStatusBtn" class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button>
-                <button id="confirmOrderStatusBtn"
-                    class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">อัพเดทสถานะ</button>
-            </div>
+            <div class="flex gap-3"><button id="cancelOrderStatusBtn" class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="confirmOrderStatusBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">อัพเดทสถานะ</button></div>
         </div>
     </div>
 
@@ -1015,14 +870,9 @@
         <div class="modal-overlay" id="userRoleOverlay"></div>
         <div class="modal-content p-4">
             <h2 class="text-lg font-semibold mb-4 text-gray-200">แก้ไขสิทธิ์ผู้ใช้</h2>
-            <div id="userRoleInfo" class="bg-[#13183a] rounded-lg p-3 mb-4 text-sm text-gray-300 border border-[#1e2756]"></div><select id="userRoleSelect"
-                class="w-full border border-[#1e2756] rounded-lg p-3 mb-4 bg-[#13183a] text-gray-200">
-                <option value="user">ผู้ใช้ทั่วไป</option>
-                <option value="admin">ผู้ดูแลระบบ (Admin)</option>
-            </select>
-            <div class="flex gap-3"><button id="cancelUserRoleBtn"
-                    class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="confirmUserRoleBtn"
-                    class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">บันทึก</button></div>
+            <div id="userRoleInfo" class="bg-[#13183a] rounded-lg p-3 mb-4 text-sm text-gray-300 border border-[#1e2756]"></div>
+            <select id="userRoleSelect" class="w-full border border-[#1e2756] rounded-lg p-3 mb-4 bg-[#13183a] text-gray-200"><option value="user">ผู้ใช้ทั่วไป</option><option value="admin">ผู้ดูแลระบบ (Admin)</option></select>
+            <div class="flex gap-3"><button id="cancelUserRoleBtn" class="flex-1 border border-[#1e2756] py-3 rounded-xl text-gray-300 hover:bg-[#1e2756] transition">ยกเลิก</button><button id="confirmUserRoleBtn" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition">บันทึก</button></div>
         </div>
     </div>
 
@@ -1034,6 +884,7 @@
         <div class="radial-item" data-action="profile" style="transform: translate(70px, 70px);"><i class="fas fa-user"></i></div>
         <div class="radial-item" data-action="category" style="transform: translate(0px, 100px);"><i class="fas fa-tags"></i></div>
         <div id="radialAdminBtn" class="radial-item hidden" data-action="admin" style="transform: translate(-70px, -70px);"><i class="fas fa-user-shield"></i></div>
+        <div id="radialReportBtn" class="radial-item hidden" data-action="report" style="transform: translate(-130px, 0px);"><i class="fas fa-chart-line"></i></div>
     </div>
     <div id="dockNav" class="dock-nav">
         <div class="dock-item active" data-dock="home"><i class="fas fa-home"></i><span>หน้าแรก</span></div>
@@ -1044,7 +895,7 @@
 
     <script>
         // ============================================
-        // CONFIGURATION
+        // CONFIGURATION - แก้ไข URL ให้ตรงกับ Web App ของคุณ
         // ============================================
         const API_URL = "https://script.google.com/macros/s/AKfycbyBHTgvJ33uythdOXy6AXvJv62jrJwtlka7gYTdEwAxk1x5DxZFoQwmE_d56CaPsdsjpA/exec";
         const LIFF_ID = "2010368919-K7AV3PAj";
@@ -1052,11 +903,7 @@
         let products = [], cart = [], categories = [], adminCategories = [], allUsers = [], allOrders = [], orderHistory = [];
         let currentCategory = "all", searchQuery = "", currentTab = "all", isRadialOpen = false;
 
-        const tabMapping = {
-            "all": "all",
-            "courses": "คอร์สเรียนออนไลน์",
-            "linebot": "Linebot"
-        };
+        const tabMapping = { "all": "all", "courses": "คอร์สเรียนออนไลน์", "linebot": "Linebot" };
 
         let liffProfile = null, userProfile = null, isAdmin = false;
         let currentEditingOrder = null, currentEditingUser = null;
@@ -1072,6 +919,50 @@
         function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch])); }
         function isModalVisible() { return Array.from(document.querySelectorAll(".modal-container")).some(modal => !modal.classList.contains("hidden")); }
         function updateDockVisibility() { const dock = document.getElementById("dockNav"); if (dock) dock.classList.toggle("is-hidden", isModalVisible()); }
+
+        // ========== ฟังก์ชันแปลงวันที่แบบไทย ==========
+        function parseThaiDate(dateString) {
+            if (!dateString) return null;
+            // รูปแบบ: "11/6/2569, 12:52:59" หรือ "11/6/2569 12:52:59"
+            let cleanStr = dateString.split(',')[0].trim();
+            const parts = cleanStr.split('/');
+            if (parts.length === 3) {
+                let day = parseInt(parts[0]);
+                let month = parseInt(parts[1]);
+                let year = parseInt(parts[2]);
+                // แปลง พ.ศ. เป็น ค.ศ.
+                if (year > 2400) year = year - 543;
+                return new Date(year, month - 1, day);
+            }
+            return new Date(dateString);
+        }
+
+        function isSameDay(date1, date2) {
+            return date1 && date2 && 
+                date1.getDate() === date2.getDate() &&
+                date1.getMonth() === date2.getMonth() &&
+                date1.getFullYear() === date2.getFullYear();
+        }
+
+        function isSameWeek(date, refDate) {
+            if (!date || !refDate) return false;
+            const startOfWeek = new Date(refDate);
+            startOfWeek.setDate(refDate.getDate() - refDate.getDay());
+            startOfWeek.setHours(0,0,0,0);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            return date >= startOfWeek && date <= endOfWeek;
+        }
+
+        function isSameMonth(date, refDate) {
+            return date && refDate &&
+                date.getMonth() === refDate.getMonth() &&
+                date.getFullYear() === refDate.getFullYear();
+        }
+
+        function isSameYear(date, refDate) {
+            return date && refDate && date.getFullYear() === refDate.getFullYear();
+        }
 
         async function fetchAPI(action, params = {}) {
             const url = new URL(API_URL);
@@ -1104,8 +995,8 @@
                     setupCategories();
                     updateCommandSuggestions();
                     if (isAdmin) loadAdminProducts();
-                } else console.error("Failed to load products:", res?.error);
-            } catch (e) { console.error("Fetch error:", e); showToast("ไม่สามารถโหลดข้อมูลได้", "error"); }
+                }
+            } catch (e) { console.error(e); showToast("ไม่สามารถโหลดข้อมูลได้", "error"); }
             finally { hideLoading(); }
         }
         
@@ -1317,7 +1208,12 @@
 
         // ========== Admin Functions ==========
         async function checkAdminStatus(lineId) {
-            try { const res = await fetchAPI("checkAdmin", { lineId: lineId }); isAdmin = res.isAdmin || false; document.getElementById("radialAdminBtn").classList.toggle("hidden", !isAdmin); renderTabBar(); return isAdmin; }
+            try { const res = await fetchAPI("checkAdmin", { lineId: lineId }); 
+            isAdmin = res.isAdmin || false; 
+            document.getElementById("radialAdminBtn").classList.toggle("hidden", !isAdmin);
+            document.getElementById("radialReportBtn").classList.toggle("hidden", !isAdmin);
+            renderTabBar(); 
+            return isAdmin; }
             catch (e) { return false; }
         }
         
@@ -1419,22 +1315,23 @@
         // ========== Report Functions ==========
         async function loadReportData() {
             if (!isAdmin || !allOrders.length) return;
+            
             const now = new Date();
             let filteredOrders = [];
-            if (currentReportPeriod === "day") {
-                const today = new Date().toDateString();
-                filteredOrders = allOrders.filter(o => new Date(o.timestamp).toDateString() === today);
-            } else if (currentReportPeriod === "week") {
-                const startOfWeek = new Date(now);
-                startOfWeek.setDate(now.getDate() - now.getDay());
-                startOfWeek.setHours(0,0,0,0);
-                filteredOrders = allOrders.filter(o => new Date(o.timestamp) >= startOfWeek);
-            } else if (currentReportPeriod === "month") {
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                filteredOrders = allOrders.filter(o => new Date(o.timestamp) >= startOfMonth);
-            } else if (currentReportPeriod === "year") {
-                const startOfYear = new Date(now.getFullYear(), 0, 1);
-                filteredOrders = allOrders.filter(o => new Date(o.timestamp) >= startOfYear);
+            
+            for (const o of allOrders) {
+                const orderDate = parseThaiDate(o.timestamp);
+                if (!orderDate) continue;
+                
+                if (currentReportPeriod === "day") {
+                    if (isSameDay(orderDate, now)) filteredOrders.push(o);
+                } else if (currentReportPeriod === "week") {
+                    if (isSameWeek(orderDate, now)) filteredOrders.push(o);
+                } else if (currentReportPeriod === "month") {
+                    if (isSameMonth(orderDate, now)) filteredOrders.push(o);
+                } else if (currentReportPeriod === "year") {
+                    if (isSameYear(orderDate, now)) filteredOrders.push(o);
+                }
             }
             
             const totalSales = filteredOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
@@ -1463,33 +1360,47 @@
             document.getElementById("reportTopProduct").innerHTML = topProduct;
             document.getElementById("reportNewCustomers").innerHTML = newCustomersCount;
             
+            // เตรียมข้อมูลกราฟ
             const chartLabels = [];
             const chartData = [];
+            
             if (currentReportPeriod === "day") {
                 for (let i = 0; i < 24; i++) { chartLabels.push(`${i}:00`); chartData.push(0); }
                 filteredOrders.forEach(o => {
-                    const hour = new Date(o.timestamp).getHours();
-                    chartData[hour] += Number(o.total) || 0;
+                    const date = parseThaiDate(o.timestamp);
+                    if (date) {
+                        const hour = date.getHours();
+                        chartData[hour] += Number(o.total) || 0;
+                    }
                 });
             } else if (currentReportPeriod === "week") {
                 const days = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
                 for (let i = 0; i < 7; i++) { chartLabels.push(days[i]); chartData.push(0); }
                 filteredOrders.forEach(o => {
-                    const day = new Date(o.timestamp).getDay();
-                    chartData[day] += Number(o.total) || 0;
+                    const date = parseThaiDate(o.timestamp);
+                    if (date) {
+                        const day = date.getDay();
+                        chartData[day] += Number(o.total) || 0;
+                    }
                 });
             } else if (currentReportPeriod === "month") {
                 const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
                 for (let i = 1; i <= daysInMonth; i++) { chartLabels.push(`${i}`); chartData.push(0); }
                 filteredOrders.forEach(o => {
-                    const date = new Date(o.timestamp).getDate();
-                    chartData[date - 1] += Number(o.total) || 0;
+                    const date = parseThaiDate(o.timestamp);
+                    if (date && date.getMonth() === now.getMonth()) {
+                        const day = date.getDate();
+                        chartData[day - 1] += Number(o.total) || 0;
+                    }
                 });
             } else if (currentReportPeriod === "year") {
                 for (let i = 1; i <= 12; i++) { chartLabels.push(`เดือน${i}`); chartData.push(0); }
                 filteredOrders.forEach(o => {
-                    const month = new Date(o.timestamp).getMonth();
-                    chartData[month] += Number(o.total) || 0;
+                    const date = parseThaiDate(o.timestamp);
+                    if (date && date.getFullYear() === now.getFullYear()) {
+                        const month = date.getMonth();
+                        chartData[month] += Number(o.total) || 0;
+                    }
                 });
             }
             
@@ -1512,6 +1423,24 @@
             document.querySelectorAll(".report-period-btn").forEach(btn => btn.classList.remove("active"));
             document.querySelector(`.report-period-btn[data-period="${period}"]`).classList.add("active");
             loadReportData();
+        }
+        
+        function openReportModal() {
+            if (!isAdmin) {
+                showToast("ไม่มีสิทธิ์เข้าถึง", "error");
+                return;
+            }
+            openAdminPanel();
+            document.querySelectorAll(".admin-sub-tab").forEach(t => t.classList.remove("active"));
+            const reportTab = document.querySelector('.admin-sub-tab[data-tab="reports"]');
+            if (reportTab) reportTab.classList.add("active");
+            document.getElementById("adminOrdersSection").classList.add("hidden");
+            document.getElementById("adminProductsSection").classList.add("hidden");
+            document.getElementById("adminCategoriesSection").classList.add("hidden");
+            document.getElementById("adminUsersSection").classList.add("hidden");
+            document.getElementById("adminReportsSection").classList.remove("hidden");
+            document.getElementById("adminSettingsSection").classList.add("hidden");
+            loadAllOrders().then(() => setReportPeriod(currentReportPeriod));
         }
         
         function toggleBankDropdown() { document.getElementById("bankDropdownList").classList.toggle("hidden"); }
@@ -1722,7 +1651,17 @@
             document.getElementById("closeQrModal")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
             document.getElementById("qrOverlay")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
             document.getElementById("closeQrModalBtn")?.addEventListener("click", () => { document.getElementById("qrModal").classList.add("hidden"); if (qrTimerInterval) clearInterval(qrTimerInterval); });
-            document.querySelectorAll(".radial-item").forEach(i => i.addEventListener("click", () => { const a = i.dataset.action; if (a === "home") { window.scrollTo({ top: 0 }); closeCart(); closeAllModals(); } else if (a === "search") document.getElementById("searchInput")?.focus(); else if (a === "cart") openCart(); else if (a === "profile") showProfileModal(); else if (a === "category") document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); else if (a === "admin") openAdminPanel(); closeRadialMenu(); }));
+            document.querySelectorAll(".radial-item").forEach(i => i.addEventListener("click", () => { 
+                const a = i.dataset.action; 
+                if (a === "home") { window.scrollTo({ top: 0 }); closeCart(); closeAllModals(); } 
+                else if (a === "search") document.getElementById("searchInput")?.focus(); 
+                else if (a === "cart") openCart(); 
+                else if (a === "profile") showProfileModal(); 
+                else if (a === "category") document.getElementById("categoryFilter").scrollIntoView({ behavior: "smooth" }); 
+                else if (a === "admin") openAdminPanel(); 
+                else if (a === "report") openReportModal();
+                closeRadialMenu(); 
+            }));
             document.addEventListener("click", (e) => { if (isRadialOpen && !e.target.closest(".radial-menu") && !e.target.closest("#fab")) closeRadialMenu(); if (!e.target.closest(".context-menu")) removeContextMenu(); });
             document.querySelectorAll(".dock-item").forEach(d => d.addEventListener("click", () => { document.querySelectorAll(".dock-item").forEach(dd => dd.classList.remove("active")); d.classList.add("active"); const dck = d.dataset.dock; if (dck === "home") { closeCart(); closeAllModals(); window.scrollTo({ top: 0 }); } else if (dck === "shop") { closeCart(); closeAllModals(); } else if (dck === "cart") openCart(); else if (dck === "profile") showProfileModal(); }));
             await initializeLIFF();
