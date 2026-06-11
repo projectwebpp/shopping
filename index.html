@@ -762,7 +762,14 @@
                         id="promptpayPhone" placeholder="0812345678"><button id="savePromptPay"
                         class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i
                             class="fas fa-save mr-1"></i>บันทึก</button></div>
-                <div class="form-field"><label>🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text"
+                <div class="form-field mt-4">
+                    <label>🏦 บัญชีธนาคาร</label>
+                    <input type="text" id="bankName" placeholder="ชื่อธนาคาร" class="mb-2">
+                    <input type="text" id="bankAccountName" placeholder="ชื่อบัญชี" class="mb-2">
+                    <input type="text" id="bankAccountNumber" placeholder="เลขที่บัญชี" class="mb-2">
+                    <button id="saveBankDetails" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-save mr-1"></i>บันทึกข้อมูลธนาคาร</button>
+                </div>
+                <div class="form-field mt-4"><label>🤖 LINE Bot Token (สำหรับส่งแจ้งเตือน)</label><input type="text"
                         id="botToken" placeholder="Channel Access Token"><button id="saveBotToken"
                         class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">บันทึก Token</button></div>
                 <div class="form-field mt-4"><label>👑 Admin User IDs (คั่นด้วยจุลภาค)</label><input type="text"
@@ -1098,8 +1105,23 @@
                 const result = await fetchPostAPI("saveOrder", fd);
                 if (result.success) {
                     if (paymentMethod === "promptpay") { showPromptPayQR(total, result.orderId); }
+                    else if (paymentMethod === "bankTransfer") {
+                        Swal.fire({
+                            title: "สั่งซื้อสำเร็จ!",
+                            html: `เลขที่: <strong>${result.orderId}</strong><br><br>
+                                   <div class="text-left bg-gray-50 p-4 rounded-lg">
+                                       <p class="font-bold">กรุณาโอนเงินเข้าบัญชี:</p>
+                                       <p>ธนาคาร: ${storeSettings.BANK_NAME || "-"}</p>
+                                       <p>ชื่อบัญชี: ${storeSettings.BANK_ACCOUNT_NAME || "-"}</p>
+                                       <p>เลขบัญชี: <span class="font-bold text-rose-500">${storeSettings.BANK_ACCOUNT_NUMBER || "-"}</span></p>
+                                   </div>`,
+                            icon: "success"
+                        });
+                    }
+                    else {
+                        Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่: <strong>${result.orderId}</strong>`, icon: "success" });
+                    }
                     await sendFlexMessage({ orderId: result.orderId, items, total });
-                    Swal.fire({ title: "สั่งซื้อสำเร็จ!", html: `เลขที่: <strong>${result.orderId}</strong>`, icon: "success" });
                     cart = []; updateCartUI(); closeCart(); document.getElementById("checkoutModal").classList.add("hidden");
                     await loadProducts();
                     if (userProfile?.userId) { orderHistory = await fetchAPI("getUserOrders", { lineId: userProfile.userId }); userProfile = await fetchAPI("getUserProfile", { lineId: userProfile.userId }); }
@@ -1245,7 +1267,23 @@
         async function saveUserRole() { const newRole = document.getElementById("userRoleSelect").value, isAdminUser = newRole === "admin"; if (!currentEditingUser) return; showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("targetLineId", currentEditingUser.lineId); fd.append("isAdmin", isAdminUser); const res = await fetchPostAPI("updateUserRole", fd); if (res.success) { showToast("เปลี่ยนสิทธิ์สำเร็จ"); document.getElementById("userRoleModal").classList.add("hidden"); await loadAllUsers(); if (currentEditingUser.lineId === userProfile?.userId) await checkAdminStatus(userProfile.userId); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function loadCategories() { try { const res = await fetchAPI("getCategories"); if (Array.isArray(res)) categories = res; else if (res.categories) categories = res.categories; else categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; } catch (e) { categories = ["เสื้อผ้า", "รองเท้า", "เครื่องประดับ", "กระเป๋า", "ของใช้", "อิเล็กทรอนิกส์"]; } if (isAdmin) loadAdminCategories(); }
         async function loadAllUsers() { if (!isAdmin) return; try { const res = await fetchAPI("getAllUsers", { lineId: userProfile?.userId }); allUsers = res.users || []; renderAdminUsers(); } catch (e) { console.error(e); } }
-        async function loadStoreSettings() { try { const res = await fetchAPI("getSettings"); storeSettings = { STORE_NAME: res.STORE_NAME || "E-Shop Thailand", PROMPTPAY_PHONE: res.PROMPTPAY_PHONE || "" }; document.getElementById("storeNameHeader").innerHTML = `🛍️ ${storeSettings.STORE_NAME}`; document.getElementById("storeName").value = storeSettings.STORE_NAME; document.getElementById("promptpayPhone").value = storeSettings.PROMPTPAY_PHONE; } catch (e) { console.error(e); } }
+        async function loadStoreSettings() { try { const res = await fetchAPI("getSettings"); storeSettings = { STORE_NAME: res.STORE_NAME || "E-Shop Thailand", PROMPTPAY_PHONE: res.PROMPTPAY_PHONE || "", BANK_NAME: res.BANK_NAME || "", BANK_ACCOUNT_NAME: res.BANK_ACCOUNT_NAME || "", BANK_ACCOUNT_NUMBER: res.BANK_ACCOUNT_NUMBER || "" }; document.getElementById("storeNameHeader").innerHTML = `🛍️ ${storeSettings.STORE_NAME}`; document.getElementById("storeName").value = storeSettings.STORE_NAME; document.getElementById("promptpayPhone").value = storeSettings.PROMPTPAY_PHONE; document.getElementById("bankName").value = storeSettings.BANK_NAME; document.getElementById("bankAccountName").value = storeSettings.BANK_ACCOUNT_NAME; document.getElementById("bankAccountNumber").value = storeSettings.BANK_ACCOUNT_NUMBER; } catch (e) { console.error(e); } }
+        async function saveBankDetailsSetting() {
+            const bName = document.getElementById("bankName").value.trim();
+            const bAccName = document.getElementById("bankAccountName").value.trim();
+            const bAccNum = document.getElementById("bankAccountNumber").value.trim();
+            showLoading();
+            try {
+                const results = await Promise.all([
+                    fetchPostAPI("saveBankName", { adminLineId: userProfile?.userId, bankName: bName }),
+                    fetchPostAPI("saveBankAccountName", { adminLineId: userProfile?.userId, bankAccountName: bAccName }),
+                    fetchPostAPI("saveBankAccountNumber", { adminLineId: userProfile?.userId, bankAccountNumber: bAccNum })
+                ]);
+                if (results.every(r => r.success)) { showToast("บันทึกข้อมูลธนาคารสำเร็จ"); await loadStoreSettings(); }
+                else Swal.fire("ผิดพลาด", "บันทึกข้อมูลธนาคารไม่สำเร็จ", "error");
+            } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); }
+            hideLoading();
+        }
         async function saveStoreNameSetting() { const name = document.getElementById("storeName").value.trim(); if (!name) { showToast("กรุณากรอกชื่อร้าน", "error"); return; } showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("storeName", name); const res = await fetchPostAPI("saveStoreName", fd); if (res.success) { showToast("บันทึกชื่อร้านสำเร็จ"); await loadStoreSettings(); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function savePromptPaySetting() { const phone = document.getElementById("promptpayPhone").value.trim(); showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("promptpayPhone", phone); const res = await fetchPostAPI("savePromptPay", fd); if (res.success) { showToast("บันทึกหมายเลข PromptPay สำเร็จ"); await loadStoreSettings(); } else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
         async function saveBotTokenSetting() { const token = document.getElementById("botToken").value.trim(); showLoading(); try { const fd = new FormData(); fd.append("adminLineId", userProfile?.userId); fd.append("token", token); const res = await fetchPostAPI("saveBotToken", fd); if (res.success) showToast("บันทึก Token เรียบร้อย"); else Swal.fire("ผิดพลาด", res.error, "error"); } catch (e) { Swal.fire("ผิดพลาด", e.message, "error"); } hideLoading(); }
@@ -1498,6 +1536,7 @@
             document.getElementById("cancelUserRoleBtn")?.addEventListener("click", () => document.getElementById("userRoleModal").classList.add("hidden"));
             document.getElementById("userRoleOverlay")?.addEventListener("click", () => document.getElementById("userRoleModal").classList.add("hidden"));
             document.getElementById("confirmUserRoleBtn")?.addEventListener("click", saveUserRole);
+            document.getElementById("saveBankDetails")?.addEventListener("click", saveBankDetailsSetting);
             document.getElementById("saveBotToken")?.addEventListener("click", saveBotTokenSetting);
             document.getElementById("saveAdminIds")?.addEventListener("click", saveAdminIdsSetting);
             document.getElementById("saveStoreName")?.addEventListener("click", saveStoreNameSetting);
@@ -1511,6 +1550,19 @@
                 navigator.clipboard.writeText(urlInput.value);
                 showToast("คัดลอก URL แล้ว");
             });
+
+            // Update Checkout Modal Payment Options
+            const paymentSelect = document.getElementById("paymentMethod");
+            if (paymentSelect) {
+                paymentSelect.innerHTML = `
+                    <option value="bankTransfer">🏦 โอนผ่านธนาคาร</option>
+                    <option value="promptpay">📱 โอนผ่าน PromptPay (แสดง QR Code)</option>
+                `;
+            }
+
+            // (Add this inside the confirmOrder or logic flow to display bank info)
+            // ... (I will need to adjust how bank info is displayed based on selection) ...
+            
             document.getElementById("testNotifyBtn")?.addEventListener("click", async () => {
                 if (!isAdmin) return;
                 showLoading();
