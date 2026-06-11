@@ -850,6 +850,11 @@
                 <input type="url" id="trackingLink" placeholder="https://track.kerry.com/..."
                     class="w-full border rounded-lg p-3">
             </div>
+            <div id="deliveryNoteGroup" class="mb-4 hidden">
+                <label class="block text-sm font-medium mb-1">หมายเหตุการจัดส่ง (Delivered Note)</label>
+                <textarea id="deliveryNote" placeholder="ระบุรายละเอียดการจัดส่ง..."
+                    class="w-full border rounded-lg p-3" rows="3"></textarea>
+            </div>
             <div class="flex gap-3">
                 <button id="cancelOrderStatusBtn" class="flex-1 border border-gray-300 py-3 rounded-xl">ยกเลิก</button>
                 <button id="confirmOrderStatusBtn"
@@ -1172,22 +1177,36 @@
             currentEditingOrder = { orderId, status, customerLineId, customerName };
             document.getElementById("orderStatusInfo").innerHTML = `<strong>${orderId}</strong><br>ลูกค้า: ${customerName}`;
             document.getElementById("newOrderStatus").value = status;
+            
             const trackingGroup = document.getElementById("trackingLinkGroup");
             const trackingInput = document.getElementById("trackingLink");
+            const noteGroup = document.getElementById("deliveryNoteGroup");
+            const noteInput = document.getElementById("deliveryNote");
+            
+            const order = allOrders.find(o => o.orderId === orderId);
+
             if (status === "Shipped") {
                 trackingGroup.classList.remove("hidden");
-                const order = allOrders.find(o => o.orderId === orderId);
-                if (order && order.trackingLink) trackingInput.value = order.trackingLink;
-                else trackingInput.value = "";
+                trackingInput.value = order?.trackingLink || "";
             } else {
                 trackingGroup.classList.add("hidden");
                 trackingInput.value = "";
             }
+
+            if (status === "Delivered") {
+                noteGroup.classList.remove("hidden");
+                noteInput.value = order?.deliveryNote || "";
+            } else {
+                noteGroup.classList.add("hidden");
+                noteInput.value = "";
+            }
+            
             document.getElementById("orderStatusModal").classList.remove("hidden");
         }
         async function updateOrderStatus() {
             const newStatus = document.getElementById("newOrderStatus").value;
             const trackingLink = document.getElementById("trackingLink").value.trim();
+            const deliveryNote = document.getElementById("deliveryNote").value.trim();
             if (!currentEditingOrder) return; showLoading();
             try {
                 const fd = new FormData();
@@ -1196,6 +1215,7 @@
                 fd.append("customerLineId", currentEditingOrder.customerLineId);
                 fd.append("adminLineId", userProfile?.userId);
                 if (trackingLink) fd.append("trackingLink", trackingLink);
+                if (deliveryNote) fd.append("deliveryNote", deliveryNote);
                 const res = await fetchPostAPI("updateOrderStatus", fd);
                 if (res.success) {
                     showToast("อัพเดทสถานะสำเร็จ");
@@ -1328,6 +1348,8 @@
 
             const trackingHtml = (o.trackingLink && (o.status === 'Shipped' || o.status === 'Delivered')) ? `<div class="bg-gray-50 rounded-xl p-3 mt-2"><a href="${o.trackingLink}" target="_blank" class="text-green-600 font-medium"><i class="fas fa-box mr-1"></i>ลิงก์ติดตามพัสดุ</a></div>` : '';
 
+            const deliveryNoteHtml = (o.deliveryNote && o.status === 'Delivered') ? `<div class="bg-emerald-50 rounded-xl p-3 mt-2 border border-emerald-100"><p class="text-xs font-semibold text-emerald-800 uppercase tracking-wider mb-1">หมายเหตุจากร้านค้า:</p><p class="text-sm text-emerald-900">${escapeHtml(o.deliveryNote)}</p></div>` : '';
+
             let statusColor = "text-amber-500";
             let statusIcon = "fa-clock";
             if (o.status === "Paid") { statusColor = "text-blue-500"; statusIcon = "fa-check-circle"; }
@@ -1381,6 +1403,7 @@
                     </div>
                     ${slipHtml}
                     ${trackingHtml}
+                    ${deliveryNoteHtml}
                 </div>
                 ${slipButton}
                 <button id="reorderFromDetailBtn" class="w-full mt-3 bg-rose-50 text-rose-500 py-3 rounded-xl font-medium border border-rose-100 hover:bg-rose-100 transition-colors">
@@ -1460,10 +1483,16 @@
             document.getElementById("confirmOrderStatusBtn")?.addEventListener("click", updateOrderStatus);
             document.getElementById("newOrderStatus")?.addEventListener("change", (e) => {
                 const trackingGroup = document.getElementById("trackingLinkGroup");
+                const noteGroup = document.getElementById("deliveryNoteGroup");
                 if (e.target.value === "Shipped") {
                     trackingGroup.classList.remove("hidden");
+                    noteGroup.classList.add("hidden");
+                } else if (e.target.value === "Delivered") {
+                    trackingGroup.classList.add("hidden");
+                    noteGroup.classList.remove("hidden");
                 } else {
                     trackingGroup.classList.add("hidden");
+                    noteGroup.classList.add("hidden");
                 }
             });
             document.getElementById("cancelUserRoleBtn")?.addEventListener("click", () => document.getElementById("userRoleModal").classList.add("hidden"));
