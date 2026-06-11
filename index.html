@@ -643,7 +643,7 @@
                 <div class="flex items-center px-4 py-3"><i class="fas fa-search text-gray-500"></i><input type="text"
                         id="searchInput" placeholder="ค้นหาสินค้า..." class="flex-1 ml-3 outline-none text-sm bg-transparent"><i
                         class="fas fa-sliders-h text-gray-500 cursor-pointer" id="filterBtn"></i></div>
-                <div id="suggestions" class="command-suggestions hidden"></div>
+                  <div id="suggestions" class="command-suggestions hidden"></div>
             </div>
         </div>
 
@@ -1142,7 +1142,7 @@
         }
         
         function renderTabBar() {
-            const tabBar = document.getElementById("tabBar"), tabs = [{ id: "all", icon: "th-large", name: "ทั้งหมด" }, { id: "clothing", icon: "tshirt", name: "เสื้อผ้า" }, { id: "shoes", icon: "shoe-prints", name: "รองเท้า" }, { id: "accessories", icon: "gem", name: "เครื่องประดับ" }, { id: "bags", icon: "bag-shopping", name: "กระเป๋า" }];
+            const tabBar = document.getElementById("tabBar"), tabs = [{ id: "all", icon: "th-large", name: "ทั้งหมด" }, { id: "clothing", icon: "tshirt", name: "คอร์สเรียนออนไลน์" }, { id: "shoes", icon: "shoe-prints", name: "Linebot" },];
             tabBar.innerHTML = tabs.map(t => `<div class="tab-item ${currentTab === t.id ? "active" : ""}" data-tab="${t.id}"><i class="fas fa-${t.icon}"></i><span>${t.name}</span></div>`).join("");
             document.querySelectorAll(".tab-item").forEach(tab => tab.addEventListener("click", () => {
                 currentTab = tab.dataset.tab;
