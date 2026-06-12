@@ -912,6 +912,70 @@
         let salesChart = null;
         let currentReportPeriod = "day";
 
+        // ========== localStorage Cart Functions ==========
+        function saveCartToLocalStorage() {
+            try {
+                const cartToSave = cart.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image,
+                    category: item.category,
+                    stock: item.stock
+                }));
+                localStorage.setItem('eshop_cart', JSON.stringify(cartToSave));
+                console.log('Cart saved to localStorage:', cartToSave.length, 'items');
+            } catch (e) {
+                console.error('Failed to save cart:', e);
+            }
+        }
+
+        function loadCartFromLocalStorage() {
+            try {
+                const savedCart = localStorage.getItem('eshop_cart');
+                if (savedCart) {
+                    const parsedCart = JSON.parse(savedCart);
+                    if (Array.isArray(parsedCart) && parsedCart.length > 0) {
+                        // Validate and merge with current products (check stock)
+                        cart = [];
+                        for (const savedItem of parsedCart) {
+                            const currentProduct = products.find(p => p.id === savedItem.id);
+                            if (currentProduct) {
+                                const currentStock = Number(currentProduct.stock) || 0;
+                                let quantity = savedItem.quantity;
+                                // If stock is 0, don't add to cart
+                                if (currentStock <= 0) {
+                                    console.log(`Product "${savedItem.name}" is out of stock, removed from cart`);
+                                    continue;
+                                }
+                                // If quantity exceeds current stock, reduce it
+                                if (quantity > currentStock) {
+                                    quantity = currentStock;
+                                    console.log(`Product "${savedItem.name}" quantity reduced from ${savedItem.quantity} to ${quantity} due to stock limit`);
+                                }
+                                cart.push({
+                                    ...currentProduct,
+                                    quantity: quantity,
+                                    stock: currentStock
+                                });
+                            } else {
+                                console.log(`Product "${savedItem.name}" no longer exists, removed from cart`);
+                            }
+                        }
+                        updateCartUI();
+                        console.log('Cart loaded from localStorage:', cart.length, 'items');
+                        if (cart.length > 0 && parsedCart.length !== cart.length) {
+                            showToast('ตะกร้าสินค้าถูกปรับปรุงตามสต็อกปัจจุบัน', 'info');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load cart:', e);
+                cart = [];
+            }
+        }
+
         function showLoading() { document.getElementById("loadingOverlay").classList.remove("hidden"); }
         function hideLoading() { document.getElementById("loadingOverlay").classList.add("hidden"); }
         function formatPrice(p) { return p.toLocaleString("th-TH") + " บาท"; }
@@ -923,14 +987,12 @@
         // ========== ฟังก์ชันแปลงวันที่แบบไทย ==========
         function parseThaiDate(dateString) {
             if (!dateString) return null;
-            // รูปแบบ: "11/6/2569, 12:52:59" หรือ "11/6/2569 12:52:59"
             let cleanStr = dateString.split(',')[0].trim();
             const parts = cleanStr.split('/');
             if (parts.length === 3) {
                 let day = parseInt(parts[0]);
                 let month = parseInt(parts[1]);
                 let year = parseInt(parts[2]);
-                // แปลง พ.ศ. เป็น ค.ศ.
                 if (year > 2400) year = year - 543;
                 return new Date(year, month - 1, day);
             }
@@ -991,6 +1053,8 @@
                 const res = await fetchAPI("getProducts");
                 if (res.success && res.products) {
                     products = res.products;
+                    // Load cart from localStorage after products are loaded
+                    loadCartFromLocalStorage();
                     renderProducts();
                     setupCategories();
                     updateCommandSuggestions();
@@ -1066,14 +1130,44 @@
         // ========== Cart ==========
         function addToCart(p) {
             const stock = Number(p.stock) || 0;
-            if (stock <= 0) { showToast("สินค้าหมด", "error"); return; }
+            if (stock <= 0) { showToast("สินค้าหมด ไม่สามารถเพิ่มลงตะกร้าได้", "error"); return; }
             let exist = cart.find(i => i.id === p.id);
-            if (exist) { if (exist.quantity >= stock) { showToast(`สินค้าเหลือ ${stock} ชิ้น`, "error"); return; } exist.quantity++; }
+            if (exist) { 
+                if (exist.quantity >= stock) { 
+                    showToast(`สินค้าเหลือ ${stock} ชิ้น ไม่สามารถเพิ่มได้`, "error"); 
+                    return; 
+                } 
+                exist.quantity++; 
+            }
             else cart.push({ ...p, quantity: 1, stock });
-            updateCartUI(); showToast(p.name + " ใส่ตะกร้าแล้ว");
+            updateCartUI(); 
+            saveCartToLocalStorage();
+            showToast(p.name + " ใส่ตะกร้าแล้ว");
         }
-        function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); }
-        function updateQuantity(id, d) { let i = cart.find(i => i.id === id); if (i) { if (d > 0 && i.quantity >= (Number(i.stock) || 0)) { showToast(`สินค้าเหลือ ${i.stock} ชิ้น`, "error"); return; } i.quantity += d; if (i.quantity <= 0) removeFromCart(id); else updateCartUI(); } }
+        
+        function removeFromCart(id) { 
+            cart = cart.filter(i => i.id !== id); 
+            updateCartUI(); 
+            saveCartToLocalStorage();
+        }
+        
+        function updateQuantity(id, d) { 
+            let i = cart.find(i => i.id === id); 
+            if (i) { 
+                const currentStock = Number(i.stock) || 0;
+                if (d > 0 && i.quantity >= currentStock) { 
+                    showToast(`สินค้าเหลือ ${currentStock} ชิ้น`, "error"); 
+                    return; 
+                } 
+                i.quantity += d; 
+                if (i.quantity <= 0) removeFromCart(id); 
+                else {
+                    updateCartUI();
+                    saveCartToLocalStorage();
+                }
+            } 
+        }
+        
         function updateCartUI() {
             document.getElementById("cartCount").innerText = cart.reduce((s, i) => s + i.quantity, 0);
             document.getElementById("cartTotal").innerHTML = formatPrice(cart.reduce((s, i) => s + (i.price * i.quantity), 0));
@@ -1128,9 +1222,29 @@
         }
 
         // ========== Order & Payment ==========
+        async function checkStockBeforeOrder() {
+            for (const item of cart) {
+                const latestProduct = products.find(p => p.id === item.id);
+                const currentStock = Number(latestProduct?.stock ?? item.stock) || 0;
+                if (currentStock <= 0) {
+                    showToast(`สินค้า "${item.name}" หมดสต็อก กรุณาลบออกจากตะกร้า`, "error");
+                    return false;
+                }
+                if (item.quantity > currentStock) {
+                    showToast(`สินค้า "${item.name}" เหลือ ${currentStock} ชิ้น`, "error");
+                    return false;
+                }
+            }
+            return true;
+        }
+
         async function submitOrder() {
             if (!cart.length) { showToast("ไม่มีสินค้าในตะกร้า", "error"); return; }
-            for (const item of cart) { const latestProduct = products.find(p => p.id === item.id); const stock = Number(latestProduct?.stock ?? item.stock) || 0; if (stock <= 0 || item.quantity > stock) { showToast(`สินค้า "${item.name}" เหลือ ${stock} ชิ้น`, "error"); return; } }
+            
+            // Check stock before proceeding
+            const stockValid = await checkStockBeforeOrder();
+            if (!stockValid) return;
+            
             const name = document.getElementById("custName").value.trim(), email = document.getElementById("custEmail").value.trim(), phone = document.getElementById("custPhone").value.trim(), address = document.getElementById("custAddress").value.trim(), paymentMethod = document.getElementById("paymentMethod").value;
             if (!name || !email || !phone || !address) { showToast("กรุณากรอกข้อมูลให้ครบ", "error"); return; }
             if (userProfile) { userProfile.displayName = name; userProfile.email = email; userProfile.phone = phone; userProfile.address = address; await updateUserProfile({ userId: userProfile.userId, displayName: name, email: email, phone: phone, address: address, pictureUrl: userProfile.pictureUrl }); }
@@ -1143,7 +1257,7 @@
                 if (result.success) {
                     if (paymentMethod === "promptpay") { 
                         showPromptPayQR(total, result.orderId); 
-                        cart = []; updateCartUI(); closeCart(); 
+                        cart = []; updateCartUI(); saveCartToLocalStorage(); closeCart(); 
                         document.getElementById("checkoutModal").classList.add("hidden");
                     } else if (paymentMethod === "bankTransfer") {
                         let bankInfoHtml = '';
@@ -1151,7 +1265,7 @@
                         if (storeSettings.BANK_ACCOUNT_NAME) bankInfoHtml += `<p>ชื่อบัญชี: ${storeSettings.BANK_ACCOUNT_NAME}</p>`;
                         if (storeSettings.BANK_ACCOUNT_NUMBER) bankInfoHtml += `<p>เลขบัญชี: <span class="font-bold text-blue-500">${storeSettings.BANK_ACCOUNT_NUMBER}</span></p>`;
                         Swal.fire({ title: "สั่งซื้อสำเร็จ!", background: "#13183a", color: "#e5e5e5", html: `เลขที่: <strong>${result.orderId}</strong><br><br><div class="text-left bg-[#1e2756] p-4 rounded-lg"><p class="font-bold text-gray-200">กรุณาโอนเงินเข้าบัญชี:</p>${bankInfoHtml || '<p class="text-gray-400">กรุณารอแอดมินแจ้งข้อมูลการชำระเงิน</p>'}</div>`, icon: "success" });
-                        cart = []; updateCartUI(); closeCart(); document.getElementById("checkoutModal").classList.add("hidden");
+                        cart = []; updateCartUI(); saveCartToLocalStorage(); closeCart(); document.getElementById("checkoutModal").classList.add("hidden");
                     }
                     await sendFlexMessage({ orderId: result.orderId, items, total });
                     await loadProducts();
